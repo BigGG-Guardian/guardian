@@ -1,0 +1,42 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.sun.guardian</groupId>
+        <artifactId>guardian-parent</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>guardian-repeat-submit</artifactId>
+    <packaging>pom</packaging>
+
+    <name>guardian-repeat-submit</name>
+    <description>
+        Guardian 防重复提交模块
+    </description>
+
+    <modules>
+        <module>guardian-storage-redis</module>
+        <module>guardian-repeat-submit-spring-boot-starter</module>
+        <module>guardian-repeat-submit-core</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- 自定义模块-防重复提交核心模块 -->
+            <dependency>
+                <groupId>com.sun.guardian</groupId>
+                <artifactId>guardian-repeat-submit-core</artifactId>
+                <version>${guardian.version}</version>
+            </dependency>
+            <!-- 自定义模块-Redis存储模块 -->
+            <dependency>
+                <groupId>com.sun.guardian</groupId>
+                <artifactId>guardian-storage-redis</artifactId>
+                <version>${guardian.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+
+</project>

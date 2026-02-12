@@ -9,9 +9,6 @@ package com.sun.guardian.core.exception;
  */
 public class RepeatSubmitException extends RuntimeException {
 
-    public RepeatSubmitException() {
-    }
-
     public RepeatSubmitException(String message) {
         super(message);
     }

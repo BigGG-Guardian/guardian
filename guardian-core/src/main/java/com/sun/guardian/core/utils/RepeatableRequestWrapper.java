@@ -24,7 +24,7 @@ public class RepeatableRequestWrapper extends HttpServletRequestWrapper {
 
     /**
      * -- GETTER --
-     *  获取缓存的请求体字节数组
+     * 获取缓存的请求体字节数组
      */
     private final byte[] cachedBody;
 
