@@ -1,0 +1,177 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.sun.guardian</groupId>
+    <artifactId>guardian-parent</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+
+    <name>Guardian</name>
+    <description>轻量级接口防重复提交框架，为 Spring Boot 应用提供优雅的重复请求拦截能力</description>
+    <url>https://github.com/sunchengjie/guardian</url>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>scj</id>
+            <name>sunchengjie</name>
+            <url>https://github.com/sunchengjie</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/sunchengjie/guardian</url>
+        <connection>scm:git:https://github.com/sunchengjie/guardian.git</connection>
+        <developerConnection>scm:git:git@github.com:sunchengjie/guardian.git</developerConnection>
+        <tag>v${project.version}</tag>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/sunchengjie/guardian/issues</url>
+    </issueManagement>
+
+    <!--  参数管理  -->
+    <properties>
+        <guardian.version>1.0.0</guardian.version>
+        <java.version>1.8</java.version>
+        <spring-boot.version>2.7.18</spring-boot.version>
+        <jackson.version>2.13.4</jackson.version>
+
+        <servlet.version>4.0.1</servlet.version>
+        <lombok.version>1.18.30</lombok.version>
+        <hutool.version>5.8.35</hutool.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <!--  模块管理  -->
+    <modules>
+        <module>guardian-core</module>
+        <module>guardian-storage-redis</module>
+        <module>guardian-spring-boot-starter</module>
+    </modules>
+
+    <!--  依赖管理  -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- 导入Spring Boot的官方依赖管理，锁定Spring生态组件的版本 -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- 显式管理Jackson版本（虽然Spring Boot BOM已包含，但再次强调以确保覆盖） -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <!-- Servlet -->
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>javax.servlet-api</artifactId>
+                <version>${servlet.version}</version>
+            </dependency>
+            <!-- Lombok -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+            <!-- Hutool -->
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+            <!-- 自定义模块-核心模块 -->
+            <dependency>
+                <groupId>com.sun.guardian</groupId>
+                <artifactId>guardian-core</artifactId>
+                <version>${guardian.version}</version>
+            </dependency>
+
+            <!-- 自定义模块-Redis存储模块 -->
+            <dependency>
+                <groupId>com.sun.guardian</groupId>
+                <artifactId>guardian-storage-redis</artifactId>
+                <version>${guardian.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <!--  打包配置  -->
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
+                    <configuration>
+                        <source>${java.version}</source>
+                        <target>${java.version}</target>
+                        <encoding>${project.build.sourceEncoding}</encoding>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <!-- 打包源码 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 生成 Javadoc -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.3</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                    <charset>UTF-8</charset>
+                    <docencoding>UTF-8</docencoding>
+                    <doclint>none</doclint>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!--  发布到 GitHub Packages  -->
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/sunchengjie/guardian</url>
+        </repository>
+    </distributionManagement>
+
+</project>
