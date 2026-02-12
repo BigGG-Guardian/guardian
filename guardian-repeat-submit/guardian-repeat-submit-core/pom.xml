@@ -3,23 +3,32 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.sun.guardian</groupId>
-        <artifactId>guardian-parent</artifactId>
+        <artifactId>guardian-repeat-submit</artifactId>
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>guardian-core</artifactId>
+    <artifactId>guardian-repeat-submit-core</artifactId>
     <packaging>jar</packaging>
 
-    <name>guardian-core</name>
+    <name>guardian-repeat-submit-core</name>
 
     <description>
-        Guardian 核心模块
+        Guardian 防重复提交核心模块
     </description>
+
 
     <dependencies>
         <!--
-            Spring WebMVC（提供 HandlerInterceptor、OncePerRequestFilter 等）
-        -->
+                     Spring上下文核心
+                 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!--
+           Spring WebMVC
+       -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
@@ -31,19 +40,10 @@
             <artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!--
-            Lombok
-        -->
+        <!-- 自定义模块-核心模块 -->
         <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-        <!--
-            Hutool
-        -->
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
+            <groupId>com.sun.guardian</groupId>
+            <artifactId>guardian-core</artifactId>
         </dependency>
     </dependencies>
 </project>

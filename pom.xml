@@ -45,7 +45,6 @@
         <java.version>1.8</java.version>
         <spring-boot.version>2.7.18</spring-boot.version>
         <jackson.version>2.13.4</jackson.version>
-
         <servlet.version>4.0.1</servlet.version>
         <lombok.version>1.18.30</lombok.version>
         <hutool.version>5.8.35</hutool.version>
@@ -54,9 +53,10 @@
 
     <!--  模块管理  -->
     <modules>
+        <!--    核心模块    -->
         <module>guardian-core</module>
-        <module>guardian-storage-redis</module>
-        <module>guardian-spring-boot-starter</module>
+        <!--    防重复提交模块    -->
+        <module>guardian-repeat-submit</module>
     </modules>
 
     <!--  依赖管理  -->
@@ -69,12 +69,6 @@
                 <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <!-- 显式管理Jackson版本（虽然Spring Boot BOM已包含，但再次强调以确保覆盖） -->
-            <dependency>
-                <groupId>com.fasterxml.jackson.core</groupId>
-                <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
             </dependency>
             <!-- Servlet -->
             <dependency>
@@ -100,14 +94,6 @@
                 <artifactId>guardian-core</artifactId>
                 <version>${guardian.version}</version>
             </dependency>
-
-            <!-- 自定义模块-Redis存储模块 -->
-            <dependency>
-                <groupId>com.sun.guardian</groupId>
-                <artifactId>guardian-storage-redis</artifactId>
-                <version>${guardian.version}</version>
-            </dependency>
-
         </dependencies>
     </dependencyManagement>
 
