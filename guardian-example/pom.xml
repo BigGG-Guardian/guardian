@@ -2,12 +2,12 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.sun.guardian</groupId>
+        <groupId>io.github.biggg-guardian</groupId>
         <artifactId>guardian-parent</artifactId>
-        <version>1.0.0</version>
+        <version>${revision}</version>
     </parent>
 
-    <groupId>com.sun.guardian.example</groupId>
+    <groupId>io.github.biggg-guardian.example</groupId>
     <artifactId>guardian-example</artifactId>
     <packaging>jar</packaging>
 
@@ -57,7 +57,7 @@
 
         <!-- 自定义模块-Guardian 防重复提交Spring Boot Starter -->
         <dependency>
-            <groupId>com.sun.guardian</groupId>
+            <groupId>io.github.biggg-guardian</groupId>
             <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
             <optional>true</optional>
         </dependency>

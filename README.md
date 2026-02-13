@@ -35,9 +35,9 @@
 
 ```xml
 <dependency>
-    <groupId>com.sun.guardian</groupId>
+    <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
