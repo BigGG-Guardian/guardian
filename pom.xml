@@ -2,9 +2,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.sun.guardian</groupId>
+    <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-parent</artifactId>
-    <version>1.0.0</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
 
     <name>Guardian</name>
@@ -41,10 +41,9 @@
 
     <!--  参数管理  -->
     <properties>
-        <guardian.version>1.0.0</guardian.version>
+        <revision>1.1.0</revision>
         <java.version>1.8</java.version>
         <spring-boot.version>2.7.18</spring-boot.version>
-        <jackson.version>2.13.4</jackson.version>
         <servlet.version>4.0.1</servlet.version>
         <lombok.version>1.18.30</lombok.version>
         <hutool.version>5.8.35</hutool.version>
@@ -91,15 +90,15 @@
             </dependency>
             <!-- 自定义模块-核心模块 -->
             <dependency>
-                <groupId>com.sun.guardian</groupId>
+                <groupId>io.github.biggg-guardian</groupId>
                 <artifactId>guardian-core</artifactId>
-                <version>${guardian.version}</version>
+                <version>${revision}</version>
             </dependency>
             <!-- 自定义模块-Guardian 防重复提交Spring Boot Starter -->
             <dependency>
-                <groupId>com.sun.guardian</groupId>
+                <groupId>io.github.biggg-guardian</groupId>
                 <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-                <version>${guardian.version}</version>
+                <version>${revision}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -121,6 +120,32 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <!-- 统一版本号：将 ${revision} 替换为实际版本，确保发布的 pom 中不含变量 -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <configuration>
+                    <updatePomFile>true</updatePomFile>
+                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten.clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- 打包源码 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -158,13 +183,41 @@
         </plugins>
     </build>
 
-    <!--  发布到 GitHub Packages  -->
-    <distributionManagement>
-        <repository>
-            <id>github</id>
-            <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/sunchengjie/guardian</url>
-        </repository>
-    </distributionManagement>
+    <!--  发布 profile：mvn deploy -P release  -->
+    <profiles>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <!-- GPG 签名（Maven Central 强制要求） -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- Maven Central 发布插件（新版 Central Portal） -->
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>0.7.0</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>true</autoPublish>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

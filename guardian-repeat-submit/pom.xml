@@ -2,9 +2,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.sun.guardian</groupId>
+        <groupId>io.github.biggg-guardian</groupId>
         <artifactId>guardian-parent</artifactId>
-        <version>1.0.0</version>
+        <version>${revision}</version>
     </parent>
 
     <artifactId>guardian-repeat-submit</artifactId>
@@ -25,15 +25,15 @@
         <dependencies>
             <!-- 自定义模块-防重复提交核心模块 -->
             <dependency>
-                <groupId>com.sun.guardian</groupId>
+                <groupId>io.github.biggg-guardian</groupId>
                 <artifactId>guardian-repeat-submit-core</artifactId>
-                <version>${guardian.version}</version>
+                <version>${revision}</version>
             </dependency>
             <!-- 自定义模块-Redis存储模块 -->
             <dependency>
-                <groupId>com.sun.guardian</groupId>
+                <groupId>io.github.biggg-guardian</groupId>
                 <artifactId>guardian-storage-redis</artifactId>
-                <version>${guardian.version}</version>
+                <version>${revision}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
