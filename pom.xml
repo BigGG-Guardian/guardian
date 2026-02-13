@@ -57,6 +57,7 @@
         <module>guardian-core</module>
         <!--    防重复提交模块    -->
         <module>guardian-repeat-submit</module>
+        <module>guardian-example</module>
     </modules>
 
     <!--  依赖管理  -->
@@ -92,6 +93,12 @@
             <dependency>
                 <groupId>com.sun.guardian</groupId>
                 <artifactId>guardian-core</artifactId>
+                <version>${guardian.version}</version>
+            </dependency>
+            <!-- 自定义模块-Guardian 防重复提交Spring Boot Starter -->
+            <dependency>
+                <groupId>com.sun.guardian</groupId>
+                <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
                 <version>${guardian.version}</version>
             </dependency>
         </dependencies>

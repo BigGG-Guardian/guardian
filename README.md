@@ -22,6 +22,7 @@
 | 防重 Key 策略写死，不够灵活 | Key 生成、加密策略**可插拔替换** |
 | 防重粒度固定，无法区分场景 | 三种维度可选：**用户级 / IP 级 / 全局级** |
 | 某些接口不需要防重，但被全局拦截了 | 支持**排除规则（白名单）**，优先级最高 |
+| 拦截后只能抛异常，不够灵活 | **双响应模式**：抛异常 / 直接返回 JSON，响应处理器可自定义 |
 | 未登录用户防重 Key 出现 null | 自动降级为 **SessionId / IP**，永不为 null |
 | 有 context-path 的项目 URL 匹配失败 | 自动兼容 **context-path**，无需额外处理 |
 | 业务异常后锁未释放，后续请求一直被拦截 | 异常时**自动释放锁**，不影响正常使用 |
@@ -45,13 +46,10 @@
 > 不实现也能用，框架会自动以 SessionId / IP 作为用户标识。
 
 ```java
-@Component
-public class MyUserContextResolver implements UserContextResolver {
-    @Override
-    public String getUserId() {
-        // 从你的登录体系中获取当前用户 ID
-        return SecurityUtils.getCurrentUserId();
-    }
+@Bean
+public UserContextResolver userContextResolver() {
+    // 从你的登录体系中获取当前用户 ID
+    return () -> SecurityUtils.getCurrentUserId();
 }
 ```
 
@@ -71,12 +69,13 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 
 ```yaml
 guardian:
-  urls:
-    - pattern: /api/order/**
-      interval: 10
-      message: "订单正在处理，请勿重复提交"
-    - pattern: /api/payment/**
-      interval: 30
+  repeat-submit:
+    urls:
+      - pattern: /api/order/**
+        interval: 10
+        message: "订单正在处理，请勿重复提交"
+      - pattern: /api/payment/**
+        interval: 30
 ```
 
 完成。启动项目即可生效。
@@ -87,47 +86,52 @@ guardian:
 
 ```yaml
 guardian:
-  # 存储方式：redis（默认）/ local
-  storage: redis
+  repeat-submit:
+    # 存储方式：redis（默认）/ local
+    storage: redis
 
-  # Key 生成策略：default（默认）
-  key-generator: default
+    # Key 生成策略：default（默认）
+    key-generator: default
 
-  # Key 加密策略：none（默认）/ md5
-  key-encrypt: md5
+    # Key 加密策略：none（默认）/ md5
+    key-encrypt: md5
 
-  # 排除规则（白名单，优先级最高，命中直接跳过防重检查）
-  exclude-urls:
-    - pattern: /api/public/**
-    - pattern: /api/health
+    # 响应模式：exception（默认）/ json
+    response-mode: exception
 
-  # YAML 批量 URL 防重规则（优先级高于注解）
-  urls:
-    - pattern: /api/order/submit
-      interval: 10
-      time-unit: seconds
-      message: "订单正在处理，请勿重复提交"
-      key-scope: user
-      client-type: PC
-    - pattern: /api/sms/send
-      interval: 60
-      key-scope: ip
-    - pattern: /api/init/data
-      interval: 30
-      key-scope: global
+    # 排除规则（白名单，优先级最高，命中直接跳过防重检查）
+    exclude-urls:
+      - /api/public/**
+      - /api/health
+
+    # YAML 批量 URL 防重规则（优先级高于注解）
+    urls:
+      - pattern: /api/order/submit
+        interval: 10
+        time-unit: seconds
+        message: "订单正在处理，请勿重复提交"
+        key-scope: user
+        client-type: PC
+      - pattern: /api/sms/send
+        interval: 60
+        key-scope: ip
+      - pattern: /api/init/data
+        interval: 30
+        key-scope: global
 ```
 
 <details>
 <summary><b>配置项速查表</b></summary>
 
-### guardian.* 全局配置
+### guardian.repeat-submit.* 全局配置
 
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
 | `storage` | `redis` | 存储方式：`redis` / `local` |
 | `key-generator` | `default` | Key 生成策略 |
 | `key-encrypt` | `none` | Key 加密策略：`none` / `md5` |
-| `exclude-urls` | `[]` | 排除规则（白名单），命中跳过所有防重检查 |
+| `response-mode` | `exception` | 响应模式：`exception` / `json` |
+| `exclude-urls` | `[]` | 排除规则（白名单），支持 AntPath 通配符 |
 | `urls` | `[]` | YAML 批量 URL 防重规则 |
 
 ### @RepeatSubmit 注解参数
@@ -151,15 +155,51 @@ guardian:
 | `key-scope` | `user` | 防重维度：`user` / `ip` / `global` |
 | `client-type` | `PC` | 客户端类型 |
 
-### 排除规则参数
-
-| 参数 | 说明 |
-|------|------|
-| `pattern` | URL 匹配模式，支持 AntPath 通配符，自动兼容 context-path |
-
 > **优先级**：排除规则 > YAML `urls` > `@RepeatSubmit` 注解
 
 </details>
+
+---
+
+## 响应模式
+
+Guardian 支持两种重复提交时的响应方式，通过 `response-mode` 切换：
+
+| 模式 | 配置值 | 行为 | 适用场景 |
+|------|--------|------|----------|
+| 异常模式 | `exception`（默认） | 抛出 `RepeatSubmitException`，由业务全局异常处理器捕获 | 项目已有统一异常处理 |
+| JSON 模式 | `json` | 拦截器直接写入 JSON 响应，不抛出异常 | 想开箱即用 / 不想写异常处理器 |
+
+**异常模式**（默认）需要业务端配合全局异常处理器：
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(RepeatSubmitException.class)
+    public Result handleRepeatSubmit(RepeatSubmitException e) {
+        return Result.fail(e.getMessage());
+    }
+}
+```
+
+**JSON 模式**默认返回格式：
+
+```json
+{"code": 500, "msg": "您的请求过于频繁，请稍后再试", "timestamp": 1234567890}
+```
+
+如需适配项目统一返回格式，注册自定义 `RepeatSubmitResponseHandler` Bean 即可覆盖默认实现：
+
+```java
+@Bean
+public RepeatSubmitResponseHandler repeatSubmitResponseHandler() {
+    return (request, response, message) -> {
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(JSONUtil.toJsonStr(CommonResult.error(message)));
+    };
+}
+```
 
 ---
 
@@ -204,29 +244,13 @@ KeyEncrypt                       ← 加密 Key（可选 MD5）
   ▼
 Storage.tryAcquire()
   ├─ 成功 → 放行，Key 写入存储并设置 TTL
-  └─ 失败 → 抛出 RepeatSubmitException
-  │
+  └─ 失败 → 根据 response-mode 决定响应方式
+  │    ├─ exception → 抛出 RepeatSubmitException
+  │    └─ json → RepeatSubmitResponseHandler 写入 JSON 响应
   ▼
 业务执行
   ├─ 正常完成 → Key 自然过期
   └─ 异常 → afterCompletion 自动释放 Key
-```
-
----
-
-## 异常处理
-
-Guardian 抛出 `RepeatSubmitException`（继承 `RuntimeException`），**不内置异常处理器**，由你的业务统一处理：
-
-```java
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-
-    @ExceptionHandler(RepeatSubmitException.class)
-    public Result handleRepeatSubmit(RepeatSubmitException e) {
-        return Result.fail(e.getMessage());
-    }
-}
 ```
 
 ---
@@ -302,6 +326,24 @@ public RepeatSubmitStorage myStorage() {
 
 </details>
 
+<details>
+<summary><b>自定义响应处理器</b></summary>
+
+实现 `RepeatSubmitResponseHandler` 接口，注册为 Bean（仅 `response-mode: json` 时生效）：
+
+```java
+@Bean
+public RepeatSubmitResponseHandler repeatSubmitResponseHandler() {
+    return (request, response, message) -> {
+        response.setContentType("application/json;charset=UTF-8");
+        // 适配你的项目统一返回格式
+        response.getWriter().write(JSONUtil.toJsonStr(CommonResult.error(message)));
+    };
+}
+```
+
+</details>
+
 ---
 
 ## 模块结构
@@ -309,6 +351,7 @@ public RepeatSubmitStorage myStorage() {
 ```
 guardian-parent
 ├── guardian-core                                       # 公共基础模块
+├── guardian-example                                    # 示例工程
 └── guardian-repeat-submit/                             # 防重复提交功能
     ├── guardian-repeat-submit-core/                    # 防重核心：注解、拦截器、策略、存储接口
     ├── guardian-storage-redis/                         # Redis 存储实现

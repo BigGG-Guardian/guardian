@@ -1,0 +1,32 @@
+server:
+  port: 49999
+  servlet:
+    context-path: /guardian-example
+
+spring:
+  # Redis 相关配置
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    database: 0
+#    password:
+
+guardian:
+  # 防重复提交配置（也可使用 @RepeatSubmit 注解，YAML 优先级高于注解）
+  repeat-submit:
+    # 存储方式：redis（默认）/ local
+    storage: redis
+    # Key 加密策略：none（默认）/ md5
+    key-encrypt: md5
+    # 响应模式：exception（默认，抛异常）/ json（直接返回 JSON）
+    response-mode: json
+
+    # YAML 批量 URL 防重规则
+    urls:
+      - pattern: /guardian-example/repeat-submit/yml/**
+        interval: 50
+        key-scope: user
+
+    # 排除规则（白名单，优先级最高，命中直接放行）
+    exclude-urls:
+      - /guardian-example/repeat-submit/yml/getLimit/1
