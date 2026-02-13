@@ -9,7 +9,7 @@
 
     <name>Guardian</name>
     <description>轻量级接口防重复提交框架，为 Spring Boot 应用提供优雅的重复请求拦截能力</description>
-    <url>https://github.com/sunchengjie/guardian</url>
+    <url>https://github.com/BigGG-Guardian/guardian</url>
 
     <licenses>
         <license>
@@ -23,20 +23,20 @@
         <developer>
             <id>scj</id>
             <name>sunchengjie</name>
-            <url>https://github.com/sunchengjie</url>
+            <url>https://github.com/BigGG-Guardian</url>
         </developer>
     </developers>
 
     <scm>
-        <url>https://github.com/sunchengjie/guardian</url>
-        <connection>scm:git:https://github.com/sunchengjie/guardian.git</connection>
-        <developerConnection>scm:git:git@github.com:sunchengjie/guardian.git</developerConnection>
+        <url>https://github.com/BigGG-Guardian/guardian</url>
+        <connection>scm:git:https://github.com/BigGG-Guardian/guardian.git</connection>
+        <developerConnection>scm:git:git@github.com:BigGG-Guardian/guardian.git</developerConnection>
         <tag>v${project.version}</tag>
     </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/sunchengjie/guardian/issues</url>
+        <url>https://github.com/BigGG-Guardian/guardian/issues</url>
     </issueManagement>
 
     <!--  参数管理  -->
