@@ -13,6 +13,7 @@ package com.sun.guardian.repeat.submit.core.context;
  * @version java version 1.8
  * @since 2026-02-09 21:41
  */
+@FunctionalInterface
 public interface UserContextResolver {
 
     /**

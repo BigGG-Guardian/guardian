@@ -3,31 +3,21 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.sun.guardian</groupId>
-        <artifactId>guardian-repeat-submit</artifactId>
+        <artifactId>guardian-parent</artifactId>
         <version>1.0.0</version>
     </parent>
 
-    <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
+    <groupId>com.sun.guardian.example</groupId>
+    <artifactId>guardian-example</artifactId>
     <packaging>jar</packaging>
 
-    <name>guardian-spring-boot-starter</name>
+    <name>guardian-example</name>
     <description>
-        Guardian 防重复提交Spring Boot Starter
+        Guardian 示例模块
     </description>
 
+
     <dependencies>
-        <!-- 自定义模块-防重复提交核心模块 -->
-        <dependency>
-            <groupId>com.sun.guardian</groupId>
-            <artifactId>guardian-repeat-submit-core</artifactId>
-        </dependency>
-
-        <!-- 自定义模块-Redis存储模块 -->
-        <dependency>
-            <groupId>com.sun.guardian</groupId>
-            <artifactId>guardian-storage-redis</artifactId>
-        </dependency>
-
         <!-- Spring Data Redis（optional：不强制用户引入，用户配了 Redis 才生效） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -63,6 +53,20 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <!-- 自定义模块-Guardian 防重复提交Spring Boot Starter -->
+        <dependency>
+            <groupId>com.sun.guardian</groupId>
+            <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>3.8.1</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

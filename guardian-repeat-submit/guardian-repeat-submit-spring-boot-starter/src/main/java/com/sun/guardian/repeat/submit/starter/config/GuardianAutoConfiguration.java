@@ -10,11 +10,12 @@ import com.sun.guardian.repeat.submit.core.service.encrypt.strategy.KeyNoneEncry
 import com.sun.guardian.repeat.submit.core.service.key.KeyGenerator;
 import com.sun.guardian.repeat.submit.core.service.key.manager.KeyGeneratorManager;
 import com.sun.guardian.repeat.submit.core.service.key.strategy.DefaultKeyGenerator;
+import com.sun.guardian.repeat.submit.core.service.response.DefaultRepeatSubmitResponseHandler;
+import com.sun.guardian.repeat.submit.core.service.response.RepeatSubmitResponseHandler;
 import com.sun.guardian.repeat.submit.core.storage.RepeatSubmitLocalStorage;
 import com.sun.guardian.repeat.submit.core.storage.RepeatSubmitStorage;
 import com.sun.guardian.repeat.submit.redis.storage.RepeatSubmitRedisStorage;
 import com.sun.guardian.repeat.submit.starter.properties.GuardianProperties;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -27,7 +28,11 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Guardian 自动配置类
+ * Guardian 防重复提交自动配置类
+ * <p>
+ * 自动注册拦截器、过滤器及核心组件 Bean。
+ * 所有 Bean 均标注 {@code @ConditionalOnMissingBean}，
+ * 用户可通过注册同类型 Bean 覆盖默认实现。
  *
  * @author scj
  * @version java version 1.8
@@ -35,16 +40,32 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 @EnableConfigurationProperties(GuardianProperties.class)
-public class GuardianAutoConfiguration implements WebMvcConfigurer {
+public class GuardianAutoConfiguration {
 
-    @Autowired
-    private RepeatSubmitInterceptor repeatSubmitInterceptor;
+    /**
+     * WebMvc 配置：注册防重拦截器
+     * <p>
+     * 独立为静态内部类，通过构造器注入 RepeatSubmitInterceptor，
+     * 避免与外层 @Bean 定义产生循环依赖。
+     */
+    @Configuration
+    static class GuardianWebMvcConfiguration implements WebMvcConfigurer {
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(repeatSubmitInterceptor).addPathPatterns("/**");
+        private final RepeatSubmitInterceptor repeatSubmitInterceptor;
+
+        GuardianWebMvcConfiguration(RepeatSubmitInterceptor repeatSubmitInterceptor) {
+            this.repeatSubmitInterceptor = repeatSubmitInterceptor;
+        }
+
+        @Override
+        public void addInterceptors(InterceptorRegistry registry) {
+            registry.addInterceptor(repeatSubmitInterceptor).addPathPatterns("/**");
+        }
     }
 
+    /**
+     * 注册请求体缓存过滤器，使 JSON 请求体可重复读取（拦截器中需要读取参数生成防重 Key）
+     */
     @Bean
     public FilterRegistrationBean<RepeatableRequestFilter> repeatableRequestFilterRegistration() {
         FilterRegistrationBean<RepeatableRequestFilter> registration = new FilterRegistrationBean<>();
@@ -54,19 +75,23 @@ public class GuardianAutoConfiguration implements WebMvcConfigurer {
         return registration;
     }
 
+    /**
+     * 防重复提交拦截器
+     */
     @Bean
     @ConditionalOnMissingBean(RepeatSubmitInterceptor.class)
     public RepeatSubmitInterceptor repeatSubmitInterceptor(KeyGeneratorManager keyGeneratorManager,
                                                            RepeatSubmitStorage repeatSubmitStorage,
+                                                           RepeatSubmitResponseHandler repeatSubmitResponseHandler,
                                                            GuardianProperties guardianProperties) {
-        return new RepeatSubmitInterceptor(keyGeneratorManager, repeatSubmitStorage, guardianProperties.getUrls(), guardianProperties.getExcludeUrls());
+        return new RepeatSubmitInterceptor(keyGeneratorManager, repeatSubmitStorage, repeatSubmitResponseHandler, guardianProperties.getUrls(), guardianProperties.getExcludeUrls(), guardianProperties.getResponseMode());
     }
 
     /**
      * Redis 存储（默认）
      */
     @Bean
-    @ConditionalOnProperty(prefix = "guardian", name = "storage", havingValue = "redis", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "guardian.repeat-submit", name = "storage", havingValue = "redis", matchIfMissing = true)
     @ConditionalOnMissingBean(RepeatSubmitStorage.class)
     public RepeatSubmitRedisStorage repeatSubmitRedisStorage(StringRedisTemplate redisTemplate) {
         return new RepeatSubmitRedisStorage(redisTemplate);
@@ -76,7 +101,7 @@ public class GuardianAutoConfiguration implements WebMvcConfigurer {
      * 本地缓存存储（guardian.storage=local 时启用）
      */
     @Bean
-    @ConditionalOnProperty(prefix = "guardian", name = "storage", havingValue = "local")
+    @ConditionalOnProperty(prefix = "guardian.repeat-submit", name = "storage", havingValue = "local")
     @ConditionalOnMissingBean(RepeatSubmitStorage.class)
     public RepeatSubmitLocalStorage repeatSubmitLocalStorage() {
         return new RepeatSubmitLocalStorage();
@@ -101,6 +126,15 @@ public class GuardianAutoConfiguration implements WebMvcConfigurer {
     }
 
     /**
+     * 默认 JSON 响应处理器（用户未自定义时兜底）
+     */
+    @Bean
+    @ConditionalOnMissingBean(RepeatSubmitResponseHandler.class)
+    public RepeatSubmitResponseHandler repeatSubmitResponseHandler() {
+        return new DefaultRepeatSubmitResponseHandler();
+    }
+
+    /**
      * 默认用户上下文解析器（用户未自定义时兜底，返回 null 触发 sessionId/IP 降级）
      */
     @Bean
@@ -113,7 +147,7 @@ public class GuardianAutoConfiguration implements WebMvcConfigurer {
      * 默认生成策略（guardian.key-generator=default 或未配置时启用）
      */
     @Bean
-    @ConditionalOnProperty(prefix = "guardian", name = "key-generator", havingValue = "default", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "guardian.repeat-submit", name = "key-generator", havingValue = "default", matchIfMissing = true)
     @ConditionalOnMissingBean(KeyGenerator.class)
     public DefaultKeyGenerator defaultKeyGenerator(UserContextResolver userContextResolver, KeyEncryptManager keyEncryptManager) {
         return new DefaultKeyGenerator(userContextResolver, keyEncryptManager);
@@ -123,7 +157,7 @@ public class GuardianAutoConfiguration implements WebMvcConfigurer {
      * 不加密策略（默认）
      */
     @Bean
-    @ConditionalOnProperty(prefix = "guardian", name = "key-encrypt", havingValue = "none", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = "guardian.repeat-submit", name = "key-encrypt", havingValue = "none", matchIfMissing = true)
     @ConditionalOnMissingBean(AbstractKeyEncrypt.class)
     public KeyNoneEncrypt keyNoneEncrypt() {
         return new KeyNoneEncrypt();
@@ -133,7 +167,7 @@ public class GuardianAutoConfiguration implements WebMvcConfigurer {
      * MD5 加密策略（guardian.key-encrypt=md5 时启用）
      */
     @Bean
-    @ConditionalOnProperty(prefix = "guardian", name = "key-encrypt", havingValue = "md5")
+    @ConditionalOnProperty(prefix = "guardian.repeat-submit", name = "key-encrypt", havingValue = "md5")
     @ConditionalOnMissingBean(AbstractKeyEncrypt.class)
     public KeyMD5Encrypt keyMD5Encrypt() {
         return new KeyMD5Encrypt();
