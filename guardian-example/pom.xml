@@ -16,6 +16,14 @@
         Guardian 示例模块
     </description>
 
+    <properties>
+        <!-- 示例模块不发布到 Maven Central -->
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.install.skip>true</maven.install.skip>
+        <gpg.skip>true</gpg.skip>
+        <central.publishing.skip>true</central.publishing.skip>
+    </properties>
+
 
     <dependencies>
         <!-- Spring Data Redis（optional：不强制用户引入，用户配了 Redis 才生效） -->
