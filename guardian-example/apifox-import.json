@@ -1,0 +1,701 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Guardian Example API",
+    "description": "Guardian 框架示例接口",
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:49999/guardian-example"
+    }
+  ],
+  "tags": [
+    { "name": "防重复提交-YAML规则" },
+    { "name": "防重复提交-注解方式" },
+    { "name": "接口限流-YAML规则" },
+    { "name": "接口限流-注解（滑动窗口）" },
+    { "name": "接口限流-注解（令牌桶）" }
+  ],
+  "paths": {
+    "/repeat-submit/yml/whitelist": {
+      "get": {
+        "tags": ["防重复提交-YAML规则"],
+        "summary": "YAML-白名单放行",
+        "description": "此接口被 YAML exclude-urls 命中，不受防重限制。测试：快速连续请求多次，全部成功。",
+        "operationId": "repeatSubmitYmlWhitelist",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "guardian"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repeat-submit/yml/basic": {
+      "post": {
+        "tags": ["防重复提交-YAML规则"],
+        "summary": "YAML-POST防重（user维度，10s）",
+        "description": "YAML规则拦截，interval=10s。测试：提交一次后10秒内再提交相同参数被拦截。",
+        "operationId": "repeatSubmitYmlBasic",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "10001",
+                "amount": "99.9"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repeat-submit/yml/get": {
+      "get": {
+        "tags": ["防重复提交-YAML规则"],
+        "summary": "YAML-GET防重（user维度，10s）",
+        "description": "命中YAML通配规则，GET请求防重。测试：相同参数快速请求两次，第2次被拦截。",
+        "operationId": "repeatSubmitYmlGet",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "test"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repeat-submit/annotation/user-scope": {
+      "post": {
+        "tags": ["防重复提交-注解方式"],
+        "summary": "注解-用户维度防重（10s）",
+        "description": "@RepeatSubmit(interval=10, keyScope=USER)。测试：提交一次后10秒内再提交相同参数被拦截。",
+        "operationId": "repeatSubmitAnnotationUserScope",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "20001",
+                "remark": "用户维度测试"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repeat-submit/annotation/ip-scope": {
+      "post": {
+        "tags": ["防重复提交-注解方式"],
+        "summary": "注解-IP维度防重（10s）",
+        "description": "@RepeatSubmit(interval=10, keyScope=IP)。测试：提交一次后10秒内再提交相同参数被拦截。",
+        "operationId": "repeatSubmitAnnotationIpScope",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "20002",
+                "remark": "IP维度测试"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repeat-submit/annotation/global-scope": {
+      "post": {
+        "tags": ["防重复提交-注解方式"],
+        "summary": "注解-全局维度防重（10s）",
+        "description": "@RepeatSubmit(interval=10, keyScope=GLOBAL)。测试：提交一次后10秒内再提交相同参数被拦截。",
+        "operationId": "repeatSubmitAnnotationGlobalScope",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "20003",
+                "remark": "全局维度测试"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repeat-submit/annotation/long-interval": {
+      "post": {
+        "tags": ["防重复提交-注解方式"],
+        "summary": "注解-长窗口防重（30s）",
+        "description": "@RepeatSubmit(interval=30)。测试：提交一次后30秒内再提交相同参数被拦截。",
+        "operationId": "repeatSubmitAnnotationLongInterval",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "30001",
+                "productName": "iPhone",
+                "amount": "9999"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repeat-submit/annotation/exception-release": {
+      "post": {
+        "tags": ["防重复提交-注解方式"],
+        "summary": "注解-异常自动释放锁",
+        "description": "@RepeatSubmit(interval=10)。测试：第1次请求业务异常锁自动释放，第2次仍可通过。",
+        "operationId": "repeatSubmitAnnotationExceptionRelease",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "40001",
+                "remark": "异常释放测试"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（实际始终抛异常）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/yml/search": {
+      "get": {
+        "tags": ["接口限流-YAML规则"],
+        "summary": "YAML-全局限流（搜索接口，2QPS）",
+        "description": "qps=2, window=1s, scope=global。测试：快速连续请求3次，第3次被限流。",
+        "operationId": "rateLimitYmlSearch",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "guardian"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/yml/sms": {
+      "post": {
+        "tags": ["接口限流-YAML规则"],
+        "summary": "YAML-IP限流（短信接口，1QPS）",
+        "description": "qps=1, window=1s, scope=ip。测试：连续请求2次，第2次被限流。",
+        "operationId": "rateLimitYmlSms",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "phone": "13800138000",
+                "code": "123456"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/yml/seckill": {
+      "post": {
+        "tags": ["接口限流-YAML规则"],
+        "summary": "YAML-令牌桶秒杀（capacity=5，2令牌/秒）",
+        "description": "qps=2, capacity=5, token_bucket, global。初始5个令牌可突发，用完后0.5s恢复1个。",
+        "operationId": "rateLimitYmlSeckill",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/yml/whitelist": {
+      "get": {
+        "tags": ["接口限流-YAML规则"],
+        "summary": "YAML-白名单放行",
+        "description": "此接口被 exclude-urls 命中，不受限流限制。测试：快速连续请求多次，全部成功。",
+        "operationId": "rateLimitYmlWhitelist",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/annotation/global": {
+      "get": {
+        "tags": ["接口限流-注解（滑动窗口）"],
+        "summary": "注解-全局限流（2QPS）",
+        "description": "@RateLimit(qps=2)。测试：快速连续请求3次，第3次被限流。",
+        "operationId": "rateLimitAnnotationGlobal",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/annotation/ip": {
+      "get": {
+        "tags": ["接口限流-注解（滑动窗口）"],
+        "summary": "注解-IP限流（2QPS×5s）",
+        "description": "@RateLimit(qps=2, window=5, scope=IP)。测试：5秒内快速请求11次，第11次被限流。",
+        "operationId": "rateLimitAnnotationIp",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/annotation/user": {
+      "get": {
+        "tags": ["接口限流-注解（滑动窗口）"],
+        "summary": "注解-用户限流（3QPS×5s）",
+        "description": "@RateLimit(qps=3, window=5, scope=USER)。测试：5秒内快速请求16次，第16次被限流。",
+        "operationId": "rateLimitAnnotationUser",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/annotation/strict": {
+      "post": {
+        "tags": ["接口限流-注解（滑动窗口）"],
+        "summary": "注解-极低QPS（1QPS，方便测试）",
+        "description": "@RateLimit(qps=1)。测试：连续请求2次，第2次立即被限流。",
+        "operationId": "rateLimitAnnotationStrict",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "action": "submit",
+                "data": "strict-test"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/annotation/minute": {
+      "post": {
+        "tags": ["接口限流-注解（滑动窗口）"],
+        "summary": "注解-分钟级窗口（1QPS×60s）",
+        "description": "@RateLimit(qps=1, window=1min, scope=IP)。60s内同一IP最多60次。",
+        "operationId": "rateLimitAnnotationMinute",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/annotation/token-bucket/basic": {
+      "get": {
+        "tags": ["接口限流-注解（令牌桶）"],
+        "summary": "令牌桶-基本（qps=2, capacity=2）",
+        "description": "初始2个令牌，第3次请求被拒。每秒补充2个。",
+        "operationId": "rateLimitTokenBucketBasic",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/annotation/token-bucket/burst": {
+      "get": {
+        "tags": ["接口限流-注解（令牌桶）"],
+        "summary": "令牌桶-突发（qps=2, capacity=10）",
+        "description": "初始10个令牌可一次打完，之后0.5s恢复1个。",
+        "operationId": "rateLimitTokenBucketBurst",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/annotation/token-bucket/ip": {
+      "get": {
+        "tags": ["接口限流-注解（令牌桶）"],
+        "summary": "令牌桶-IP维度（qps=1, capacity=3）",
+        "description": "每个IP初始3个令牌，用完后每秒恢复1个。",
+        "operationId": "rateLimitTokenBucketIp",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/annotation/token-bucket/slow-refill": {
+      "get": {
+        "tags": ["接口限流-注解（令牌桶）"],
+        "summary": "令牌桶-分钟级补充（5令牌/min, capacity=5）",
+        "description": "初始5个令牌用完后约12秒恢复1个（5/60≈0.083/秒）。",
+        "operationId": "rateLimitTokenBucketSlowRefill",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

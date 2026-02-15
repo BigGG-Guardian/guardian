@@ -10,7 +10,7 @@
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
     <packaging>jar</packaging>
 
-    <name>guardian-spring-boot-starter</name>
+    <name>guardian-repeat-submit-spring-boot-starter</name>
     <description>
         Guardian 防重复提交Spring Boot Starter
     </description>
@@ -20,6 +20,11 @@
         <dependency>
             <groupId>io.github.biggg-guardian</groupId>
             <artifactId>guardian-repeat-submit-core</artifactId>
+        </dependency>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
 
         <!-- 自定义模块-Redis存储模块 -->

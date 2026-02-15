@@ -2,13 +2,6 @@ package com.sun.guardian.repeat.submit.core.enums.scope;
 
 /**
  * 防重键维度枚举
- * <p>
- * 控制防重 Key 的粒度，粒度越粗拦截范围越大：
- * <ul>
- *   <li>{@link #USER} — 每个用户独立判断，互不影响（默认）</li>
- *   <li>{@link #IP} — 同一 IP 下所有用户共享防重，适合防刷场景</li>
- *   <li>{@link #GLOBAL} — 全局共享，适合抢购/唯一资源创建场景</li>
- * </ul>
  *
  * @author scj
  * @version java version 1.8

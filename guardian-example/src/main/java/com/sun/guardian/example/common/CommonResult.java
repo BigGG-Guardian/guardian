@@ -6,8 +6,6 @@ import lombok.experimental.Accessors;
 
 /**
  * 通用返回结果封装
- * <p>
- * 模拟业务项目中的统一返回格式，用于演示 Guardian 与项目返回体系的集成。
  *
  * @author scj
  * @version java version 1.8
@@ -31,9 +29,6 @@ public class CommonResult<T> {
 
     /**
      * 成功响应
-     *
-     * @param data 业务数据
-     * @return 包含数据的成功结果
      */
     public static <T> CommonResult<T> success(T data) {
         return new CommonResult<T>()
@@ -45,9 +40,6 @@ public class CommonResult<T> {
 
     /**
      * 失败响应
-     *
-     * @param message 错误提示信息
-     * @return 不含数据的失败结果
      */
     public static <T> CommonResult<T> error(String message) {
         return new CommonResult<T>()

@@ -12,7 +12,8 @@ spring:
 #    password:
 
 guardian:
-  # 防重复提交配置（也可使用 @RepeatSubmit 注解，YAML 优先级高于注解）
+  # ==================== 防重复提交配置 ====================
+  # 也可使用 @RepeatSubmit 注解，YAML 优先级高于注解
   repeat-submit:
     # 存储方式：redis（默认）/ local
     storage: redis
@@ -26,18 +27,59 @@ guardian:
     # YAML 批量 URL 防重规则
     urls:
       - pattern: /guardian-example/repeat-submit/yml/**
-        interval: 50
+        interval: 10
         key-scope: user
 
     # 排除规则（白名单，优先级最高，命中直接放行）
     exclude-urls:
-      - /guardian-example/repeat-submit/yml/getLimit/1
+      - /guardian-example/repeat-submit/yml/whitelist
+
+  # ==================== 接口限流配置 ====================
+  # 也可使用 @RateLimit 注解，YAML 优先级高于注解
+  # 限流总量公式：maxCount = qps × window（秒）
+  rate-limit:
+    # 总开关（默认 true），设为 false 可完全关闭限流功能
+    enabled: true
+    # 存储方式：redis（默认）/ local
+    storage: redis
+    # 响应模式：exception（默认，抛异常）/ json（直接返回 JSON）
+    response-mode: json
+    # 是否打印拦截日志（默认 false）/ true
+    log-enabled: true
+
+    # YAML 批量 URL 限流规则
+    urls:
+      # 滑动窗口 — 模拟搜索接口 — 全局限流：2 QPS × 1s = 每秒最多 2 次
+      - pattern: /guardian-example/rate-limit/yml/search
+        qps: 2
+        window: 1
+        window-unit: seconds
+        rate-limit-scope: global
+
+      # 滑动窗口 — 模拟短信接口 — IP 限流：1 QPS × 1s = 同一 IP 每秒最多 1 次
+      - pattern: /guardian-example/rate-limit/yml/sms
+        qps: 1
+        window: 1
+        window-unit: seconds
+        rate-limit-scope: ip
+        message: "短信发送过于频繁"
+
+      # 令牌桶 — 模拟秒杀接口 — 全局限流：每秒补充 2 个令牌，桶容量 5（允许突发 5 次）
+      - pattern: /guardian-example/rate-limit/yml/seckill
+        qps: 2
+        capacity: 5
+        algorithm: token_bucket
+        rate-limit-scope: global
+        message: "抢购太火爆，请稍后重试"
+
+    # 排除规则（白名单，优先级最高，命中直接放行）
+    exclude-urls:
+      - /guardian-example/rate-limit/yml/whitelist
 
 # Actuator 监控端点的配置项
 management:
   endpoints:
     web:
-      base-path: /actuator # Actuator 提供的 API 接口的根目录。默认为 /actuator
+      base-path: /actuator
       exposure:
-        include: '*' # 需要开放的端点。默认值只打开 health 和 info 两个端点。通过设置 * ，可以开放所有端点。
-
+        include: '*'
