@@ -1,5 +1,6 @@
 package com.sun.guardian.repeat.submit.core.interceptor;
 
+import cn.hutool.extra.servlet.ServletUtil;
 import com.sun.guardian.core.exception.RepeatSubmitException;
 import com.sun.guardian.repeat.submit.core.annotation.RepeatSubmit;
 import com.sun.guardian.repeat.submit.core.domain.rule.RepeatSubmitRule;
@@ -8,8 +9,12 @@ import com.sun.guardian.repeat.submit.core.enums.response.ResponseMode;
 import com.sun.guardian.repeat.submit.core.service.key.KeyGenerator;
 import com.sun.guardian.repeat.submit.core.service.key.manager.KeyGeneratorManager;
 import com.sun.guardian.repeat.submit.core.service.response.RepeatSubmitResponseHandler;
+import com.sun.guardian.repeat.submit.core.service.statistics.RepeatSubmitStatistics;
 import com.sun.guardian.repeat.submit.core.storage.RepeatSubmitStorage;
+import com.sun.guardian.repeat.submit.core.utils.LogUtils;
 import com.sun.guardian.repeat.submit.core.utils.MatchUrlRuleUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -45,25 +50,69 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
      */
     private static final String TOKEN_ATTR = "guardian_repeat_submit_token";
 
-    private final KeyGeneratorManager keyGeneratorManager;
-    private final RepeatSubmitStorage repeatSubmitStorage;
-    private final RepeatSubmitResponseHandler repeatSubmitResponseHandler;
-    private final List<RepeatSubmitRule> urlRules;
-    private final List<String> excludeRules;
-    private final ResponseMode responseMode;
+    private static final Logger log = LoggerFactory.getLogger(RepeatSubmitInterceptor.class);
 
+    /**
+     * 防重键生成管理器
+     */
+    private final KeyGeneratorManager keyGeneratorManager;
+    /**
+     * 防重存储（Redis / Local）
+     */
+    private final RepeatSubmitStorage repeatSubmitStorage;
+    /**
+     * JSON 响应处理器（仅 {@link ResponseMode#JSON} 模式使用）
+     */
+    private final RepeatSubmitResponseHandler repeatSubmitResponseHandler;
+    /**
+     * YAML 配置的 URL 防重规则列表
+     */
+    private final List<RepeatSubmitRule> urlRules;
+    /**
+     * 排除规则（白名单）列表
+     */
+    private final List<String> excludeRules;
+    /**
+     * 响应模式：抛异常 / 直接返回 JSON
+     */
+    private final ResponseMode responseMode;
+    /**
+     * 是否开启拦截日志
+     */
+    private final boolean logEnable;
+    /**
+     * 拦截统计（内存，运行时监控）
+     */
+    private final RepeatSubmitStatistics statistics;
+
+    /**
+     * 构造防重复提交拦截器
+     *
+     * @param keyGeneratorManager         防重键生成管理器
+     * @param repeatSubmitStorage         防重存储实现
+     * @param repeatSubmitResponseHandler JSON 响应处理器
+     * @param urlRules                    YAML 配置的 URL 防重规则
+     * @param excludeRules                排除规则（白名单）
+     * @param responseMode                响应模式
+     * @param logEnable                   是否开启拦截日志
+     * @param statistics                  拦截统计
+     */
     public RepeatSubmitInterceptor(KeyGeneratorManager keyGeneratorManager,
                                    RepeatSubmitStorage repeatSubmitStorage,
                                    RepeatSubmitResponseHandler repeatSubmitResponseHandler,
                                    List<RepeatSubmitRule> urlRules,
                                    List<String> excludeRules,
-                                   ResponseMode responseMode) {
+                                   ResponseMode responseMode,
+                                   boolean logEnable,
+                                   RepeatSubmitStatistics statistics) {
         this.keyGeneratorManager = keyGeneratorManager;
         this.repeatSubmitStorage = repeatSubmitStorage;
         this.repeatSubmitResponseHandler = repeatSubmitResponseHandler;
         this.urlRules = urlRules;
         this.excludeRules = excludeRules;
         this.responseMode = responseMode;
+        this.logEnable = logEnable;
+        this.statistics = statistics;
     }
 
     /**
@@ -82,17 +131,23 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
         String requestUri = request.getRequestURI();
         String contextPath = request.getContextPath();
         String pathWithoutContext = MatchUrlRuleUtils.stripContextPath(requestUri, contextPath);
+        String ip = ServletUtil.getClientIP(request);
 
         if (MatchUrlRuleUtils.matchExcludeUrlRule(excludeRules, requestUri, pathWithoutContext)) {
+            LogUtils.excludeLog(logEnable, log, requestUri, ip);
             return true;
         }
 
         RepeatSubmitRule rule = MatchUrlRuleUtils.matchUrlRule(urlRules, requestUri, pathWithoutContext);
+        if (rule != null) {
+            LogUtils.hitYmlRuleLog(logEnable, log, requestUri, ip);
+        }
 
         if (rule == null && handler instanceof HandlerMethod) {
             RepeatSubmit annotation = ((HandlerMethod) handler).getMethodAnnotation(RepeatSubmit.class);
             if (annotation != null) {
                 rule = RepeatSubmitRule.fromAnnotation(annotation);
+                LogUtils.hitAnnotationRuleLog(logEnable, log, requestUri, ip);
             }
         }
 
@@ -104,6 +159,8 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
         RepeatSubmitToken token = keyGenerator.generate(rule, request);
 
         if (!repeatSubmitStorage.tryAcquire(token)) {
+            statistics.recordBlock(requestUri);
+            LogUtils.repeatSubmitLog(logEnable, log, requestUri, token.getKey(), ip);
             if (responseMode == ResponseMode.JSON) {
                 repeatSubmitResponseHandler.handle(request, response, rule.getMessage());
                 return false;
@@ -111,6 +168,8 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
             throw new RepeatSubmitException(rule.getMessage());
         }
 
+        statistics.recordPass();
+        LogUtils.passLog(logEnable, log, requestUri, token.getKey(), ip);
         request.setAttribute(TOKEN_ATTR, token);
         return true;
     }

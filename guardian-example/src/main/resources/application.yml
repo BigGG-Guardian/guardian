@@ -20,6 +20,8 @@ guardian:
     key-encrypt: md5
     # 响应模式：exception（默认，抛异常）/ json（直接返回 JSON）
     response-mode: json
+    # 是否打印拦截日志（默认 false）/ true
+    log-enabled: true
 
     # YAML 批量 URL 防重规则
     urls:
@@ -30,3 +32,12 @@ guardian:
     # 排除规则（白名单，优先级最高，命中直接放行）
     exclude-urls:
       - /guardian-example/repeat-submit/yml/getLimit/1
+
+# Actuator 监控端点的配置项
+management:
+  endpoints:
+    web:
+      base-path: /actuator # Actuator 提供的 API 接口的根目录。默认为 /actuator
+      exposure:
+        include: '*' # 需要开放的端点。默认值只打开 health 和 info 两个端点。通过设置 * ，可以开放所有端点。
+

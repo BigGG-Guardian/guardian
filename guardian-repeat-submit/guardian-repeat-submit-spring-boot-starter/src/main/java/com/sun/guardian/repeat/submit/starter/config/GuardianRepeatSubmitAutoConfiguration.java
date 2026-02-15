@@ -12,10 +12,13 @@ import com.sun.guardian.repeat.submit.core.service.key.manager.KeyGeneratorManag
 import com.sun.guardian.repeat.submit.core.service.key.strategy.DefaultKeyGenerator;
 import com.sun.guardian.repeat.submit.core.service.response.DefaultRepeatSubmitResponseHandler;
 import com.sun.guardian.repeat.submit.core.service.response.RepeatSubmitResponseHandler;
+import com.sun.guardian.repeat.submit.core.service.statistics.RepeatSubmitStatistics;
 import com.sun.guardian.repeat.submit.core.storage.RepeatSubmitLocalStorage;
 import com.sun.guardian.repeat.submit.core.storage.RepeatSubmitStorage;
 import com.sun.guardian.repeat.submit.redis.storage.RepeatSubmitRedisStorage;
-import com.sun.guardian.repeat.submit.starter.properties.GuardianProperties;
+import com.sun.guardian.repeat.submit.starter.endpoint.RepeatSubmitEndPoint;
+import com.sun.guardian.repeat.submit.starter.properties.GuardianRepeatSubmitProperties;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -28,7 +31,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Guardian 防重复提交自动配置类
+ * Guardian-Repeat-Submit 防重复提交自动配置类
  * <p>
  * 自动注册拦截器、过滤器及核心组件 Bean。
  * 所有 Bean 均标注 {@code @ConditionalOnMissingBean}，
@@ -39,8 +42,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @since 2026-02-09 23:00
  */
 @Configuration
-@EnableConfigurationProperties(GuardianProperties.class)
-public class GuardianAutoConfiguration {
+@EnableConfigurationProperties(GuardianRepeatSubmitProperties.class)
+public class GuardianRepeatSubmitAutoConfiguration {
 
     /**
      * WebMvc 配置：注册防重拦截器
@@ -49,11 +52,11 @@ public class GuardianAutoConfiguration {
      * 避免与外层 @Bean 定义产生循环依赖。
      */
     @Configuration
-    static class GuardianWebMvcConfiguration implements WebMvcConfigurer {
+    static class GuardianRepeatSubmitWebMvcConfiguration implements WebMvcConfigurer {
 
         private final RepeatSubmitInterceptor repeatSubmitInterceptor;
 
-        GuardianWebMvcConfiguration(RepeatSubmitInterceptor repeatSubmitInterceptor) {
+        GuardianRepeatSubmitWebMvcConfiguration(RepeatSubmitInterceptor repeatSubmitInterceptor) {
             this.repeatSubmitInterceptor = repeatSubmitInterceptor;
         }
 
@@ -83,8 +86,9 @@ public class GuardianAutoConfiguration {
     public RepeatSubmitInterceptor repeatSubmitInterceptor(KeyGeneratorManager keyGeneratorManager,
                                                            RepeatSubmitStorage repeatSubmitStorage,
                                                            RepeatSubmitResponseHandler repeatSubmitResponseHandler,
-                                                           GuardianProperties guardianProperties) {
-        return new RepeatSubmitInterceptor(keyGeneratorManager, repeatSubmitStorage, repeatSubmitResponseHandler, guardianProperties.getUrls(), guardianProperties.getExcludeUrls(), guardianProperties.getResponseMode());
+                                                           GuardianRepeatSubmitProperties guardianProperties,
+                                                           RepeatSubmitStatistics statistics) {
+        return new RepeatSubmitInterceptor(keyGeneratorManager, repeatSubmitStorage, repeatSubmitResponseHandler, guardianProperties.getUrls(), guardianProperties.getExcludeUrls(), guardianProperties.getResponseMode(), guardianProperties.isLogEnabled(), statistics);
     }
 
     /**
@@ -171,5 +175,24 @@ public class GuardianAutoConfiguration {
     @ConditionalOnMissingBean(AbstractKeyEncrypt.class)
     public KeyMD5Encrypt keyMD5Encrypt() {
         return new KeyMD5Encrypt();
+    }
+
+    /**
+     * 拦截统计（内存，始终注册）
+     */
+    @Bean
+    @ConditionalOnMissingBean(RepeatSubmitStatistics.class)
+    public RepeatSubmitStatistics repeatSubmitStatistics() {
+        return new RepeatSubmitStatistics();
+    }
+
+    /**
+     * Actuator 端点（仅当用户引入了 spring-boot-starter-actuator 时才注册）
+     */
+    @Bean
+    @ConditionalOnClass(name = "org.springframework.boot.actuate.endpoint.annotation.Endpoint")
+    @ConditionalOnMissingBean(RepeatSubmitEndPoint.class)
+    public RepeatSubmitEndPoint repeatSubmitEndPoint(RepeatSubmitStatistics statistics) {
+        return new RepeatSubmitEndPoint(statistics);
     }
 }

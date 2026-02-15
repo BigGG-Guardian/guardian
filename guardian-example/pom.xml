@@ -70,11 +70,11 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Spring Boot Actuator（optional：用户引了才生效） -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>3.8.1</version>
-            <scope>test</scope>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>
