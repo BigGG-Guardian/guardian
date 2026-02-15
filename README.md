@@ -11,6 +11,12 @@
 <p align="center"><b>轻量级 Spring Boot 接口防重复提交框架</b></p>
 <p align="center">一个注解、一行配置，为你的 API 提供优雅的重复请求拦截能力。</p>
 
+<p align="center">
+  <a href="https://github.com/BigGG-Guardian/guardian">GitHub</a> ·
+  <a href="https://gitee.com/BigGG-Guardian/guardian">Gitee</a> ·
+  <a href="https://central.sonatype.com/artifact/io.github.biggg-guardian/guardian-repeat-submit-spring-boot-starter">Maven Central</a>
+</p>
+
 ---
 
 ## 为什么选 Guardian？
@@ -436,6 +442,16 @@ guardian-parent
 - **JDK** 1.8+
 - **Spring Boot** 2.7.x
 - **Redis** 5.0+（使用 Redis 存储时）
+
+## 仓库地址
+
+| 平台 | 地址 |
+|------|------|
+| GitHub（主仓） | https://github.com/BigGG-Guardian/guardian |
+| Gitee（镜像同步） | https://gitee.com/BigGG-Guardian/guardian |
+| Maven Central | https://central.sonatype.com/artifact/io.github.biggg-guardian/guardian-repeat-submit-spring-boot-starter |
+
+> Gitee 仓库从 GitHub 自动同步，Issues 和 PR 请提交到 GitHub。
 
 ## 开源协议
 
