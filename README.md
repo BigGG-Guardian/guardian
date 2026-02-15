@@ -38,7 +38,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 </dependency>
 ```
 
@@ -100,6 +100,9 @@ guardian:
     # 响应模式：exception（默认）/ json
     response-mode: exception
 
+    # 拦截日志开关（默认 false）
+    log-enabled: true
+
     # 排除规则（白名单，优先级最高，命中直接跳过防重检查）
     exclude-urls:
       - /api/public/**
@@ -132,6 +135,7 @@ guardian:
 | `key-generator` | `default` | Key 生成策略 |
 | `key-encrypt` | `none` | Key 加密策略：`none` / `md5` |
 | `response-mode` | `exception` | 响应模式：`exception` / `json` |
+| `log-enabled` | `false` | 拦截日志开关，开启后打印防重检查全链路日志 |
 | `exclude-urls` | `[]` | 排除规则（白名单），支持 AntPath 通配符 |
 | `urls` | `[]` | YAML 批量 URL 防重规则 |
 
@@ -344,6 +348,64 @@ public RepeatSubmitResponseHandler repeatSubmitResponseHandler() {
 ```
 
 </details>
+
+---
+
+## 可观测性
+
+Guardian 内置运行时监控能力，帮助你了解防重拦截的实际工作情况。
+
+### 拦截日志
+
+开启 `log-enabled` 后，Guardian 会在防重检查的每个阶段打印日志：
+
+| 阶段 | 日志级别 | 说明 |
+|------|----------|------|
+| 排除放行 | `DEBUG` | 请求命中排除规则（白名单），跳过防重检查 |
+| 命中规则 | `DEBUG` | 请求命中 YAML 规则或 `@RepeatSubmit` 注解 |
+| 重复拦截 | `WARN` | 请求被判定为重复提交，已拦截 |
+| 正常放行 | `DEBUG` | 请求通过防重检查，正常放行 |
+
+```yaml
+guardian:
+  repeat-submit:
+    log-enabled: true
+```
+
+> 日志 Logger 名称为 `com.sun.guardian`，可在 `logback-spring.xml` 中单独控制其级别。
+
+### Actuator 监控端点
+
+引入 `spring-boot-starter-actuator` 后，Guardian 自动暴露 `guardian-repeat-submit` 端点，实时查看拦截统计：
+
+```yaml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: guardian-repeat-submit
+```
+
+访问 `GET /actuator/guardian-repeat-submit` 返回：
+
+```json
+{
+  "totalBlockCount": 6,
+  "totalPassCount": 3,
+  "topBlockedApis": {
+    "/api/order/submit": 4,
+    "/api/sms/send": 2
+  }
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `totalBlockCount` | 累计拦截次数 |
+| `totalPassCount` | 累计放行次数 |
+| `topBlockedApis` | 被拦截次数 Top N 的接口 |
+
+> 统计数据存储在内存中，应用重启后重置。
 
 ---
 

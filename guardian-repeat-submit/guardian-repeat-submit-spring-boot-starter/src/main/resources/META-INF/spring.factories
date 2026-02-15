@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.sun.guardian.repeat.submit.starter.config.GuardianAutoConfiguration
+  com.sun.guardian.repeat.submit.starter.config.GuardianRepeatSubmitAutoConfiguration

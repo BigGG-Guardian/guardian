@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Guardian 防重复提交配置属性
+ * Guardian-Repeat-Submit 防重复提交配置属性
  * <p>
  * 配置前缀：{@code guardian.repeat-submit}
  *
@@ -22,7 +22,7 @@ import java.util.List;
  */
 @Data
 @ConfigurationProperties(prefix = "guardian.repeat-submit")
-public class GuardianProperties {
+public class GuardianRepeatSubmitProperties {
 
     /**
      * 存储类型：redis / local（默认 redis）
@@ -75,4 +75,14 @@ public class GuardianProperties {
      * </pre>
      */
     private List<String> excludeUrls = new ArrayList<>();
+
+    /**
+     * 是否打印拦截日志（默认 false）
+     * <pre>
+     * guardian:
+     *   repeat-submit:
+     *     log-enabled: true
+     * </pre>
+     */
+    private boolean logEnabled = false;
 }
