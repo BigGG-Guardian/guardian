@@ -171,13 +171,80 @@ guardian:
 
 ### 扩展点
 
-| 组件 | 接口 | 说明 |
-|------|------|------|
-| 用户上下文 | `UserContext` | 返回当前用户 ID（所有模块共享） |
-| 键生成策略 | `KeyGenerator` | 自定义防重 Key 拼接逻辑 |
-| 键加密策略 | `AbstractKeyEncrypt` | 自定义 Key 加密方式 |
-| 存储 | `RepeatSubmitStorage` | 自定义存储后端 |
-| 响应处理 | `RepeatSubmitResponseHandler` | 自定义 JSON 响应格式 |
+Guardian 的核心组件均可替换，注册同类型 Bean 即可覆盖默认实现。
+
+**自定义用户上下文（所有模块共享）：**
+
+```java
+@Bean
+public UserContext userContext() {
+    // 从你的登录体系中获取当前用户 ID
+    return () -> SecurityUtils.getCurrentUserId();
+}
+```
+
+> 不实现也能用，框架会自动以 SessionId / IP 作为用户标识。
+
+**自定义 Key 生成策略：**
+
+```java
+public class MyKeyGenerator extends AbstractKeyGenerator {
+
+    public MyKeyGenerator(UserContext userContext, KeyEncryptManager encryptManager) {
+        super(userContext, encryptManager);
+    }
+
+    @Override
+    protected String buildKey(RepeatSubmitKey key) {
+        return key.getServletUri() + ":" + key.getUserId();
+    }
+}
+
+@Bean
+public MyKeyGenerator myKeyGenerator(UserContext userContext, KeyEncryptManager manager) {
+    return new MyKeyGenerator(userContext, manager);
+}
+```
+
+**自定义 Key 加密策略：**
+
+```java
+@Bean
+public AbstractKeyEncrypt sha256Encrypt() {
+    return new AbstractKeyEncrypt() {
+        @Override
+        public String encrypt(String key) {
+            return DigestUtil.sha256Hex(key);
+        }
+    };
+}
+```
+
+**自定义存储：**
+
+```java
+@Bean
+public RepeatSubmitStorage myStorage() {
+    return new RepeatSubmitStorage() {
+        @Override
+        public boolean tryAcquire(RepeatSubmitToken token) { /* ... */ }
+        @Override
+        public void release(RepeatSubmitToken token) { /* ... */ }
+    };
+}
+```
+
+**自定义响应处理器（仅 `response-mode: json` 时生效）：**
+
+```java
+@Bean
+public RepeatSubmitResponseHandler repeatSubmitResponseHandler() {
+    return (request, response, message) -> {
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(JSONUtil.toJsonStr(CommonResult.error(message)));
+    };
+}
+```
 
 </details>
 
@@ -301,12 +368,61 @@ guardian:
 
 ### 扩展点
 
-| 组件 | 接口 | 说明 |
-|------|------|------|
-| 用户上下文 | `UserContext` | 返回当前用户 ID（所有模块共享） |
-| 键生成策略 | `RateLimitKeyGenerator` | 自定义限流 Key 拼接逻辑 |
-| 存储 | `RateLimitStorage` | 自定义存储后端 |
-| 响应处理 | `RateLimitResponseHandler` | 自定义 JSON 响应格式 |
+注册同类型 Bean 即可覆盖默认实现。
+
+**自定义用户上下文（与防重模块共享）：**
+
+```java
+@Bean
+public UserContext userContext() {
+    return () -> SecurityUtils.getCurrentUserId();
+}
+```
+
+**自定义限流 Key 生成策略：**
+
+```java
+public class MyRateLimitKeyGenerator extends AbstractRateLimitKeyGenerator {
+
+    public MyRateLimitKeyGenerator(UserContext userContext) {
+        super(userContext);
+    }
+
+    @Override
+    protected String buildKey(RateLimitKey key) {
+        return key.getServletUri() + ":" + key.getUserId();
+    }
+}
+
+@Bean
+public MyRateLimitKeyGenerator myRateLimitKeyGenerator(UserContext userContext) {
+    return new MyRateLimitKeyGenerator(userContext);
+}
+```
+
+**自定义存储：**
+
+```java
+@Bean
+public RateLimitStorage myRateLimitStorage() {
+    return new RateLimitStorage() {
+        @Override
+        public boolean tryAcquire(RateLimitToken token) { /* ... */ }
+    };
+}
+```
+
+**自定义响应处理器（仅 `response-mode: json` 时生效）：**
+
+```java
+@Bean
+public RateLimitResponseHandler rateLimitResponseHandler() {
+    return (request, response, message) -> {
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(JSONUtil.toJsonStr(CommonResult.error(message)));
+    };
+}
+```
 
 </details>
 
