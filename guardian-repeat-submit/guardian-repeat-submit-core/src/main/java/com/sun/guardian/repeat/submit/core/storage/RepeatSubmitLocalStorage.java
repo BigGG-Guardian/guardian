@@ -3,10 +3,12 @@ package com.sun.guardian.repeat.submit.core.storage;
 import com.sun.guardian.repeat.submit.core.domain.token.RepeatSubmitToken;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
- * 防重提交存储-本地缓存
- * 基于 ConcurrentHashMap 实现，适用于单机部署场景
+ * 防重提交存储 - 本地缓存（ConcurrentHashMap）
  *
  * @author scj
  * @version java version 1.8
@@ -14,10 +16,17 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class RepeatSubmitLocalStorage implements RepeatSubmitStorage {
 
-    /**
-     * key -> 过期时间戳（毫秒）
-     */
+    /** key -> 过期时间戳（毫秒） */
     private final ConcurrentHashMap<String, Long> cache = new ConcurrentHashMap<>();
+
+    {
+        ScheduledExecutorService cleaner = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "guardian-repeat-submit-cleaner");
+            t.setDaemon(true);
+            return t;
+        });
+        cleaner.scheduleAtFixedRate(this::cleanup, 5, 5, TimeUnit.MINUTES);
+    }
 
     @Override
     public boolean tryAcquire(RepeatSubmitToken token) {
@@ -27,8 +36,10 @@ public class RepeatSubmitLocalStorage implements RepeatSubmitStorage {
             return true;
         }
         if (System.currentTimeMillis() > existing) {
-            cache.put(token.getKey(), expireAt);
-            return true;
+            if (cache.replace(token.getKey(), existing, expireAt)) {
+                return true;
+            }
+            return false;
         }
         return false;
     }
@@ -36,5 +47,14 @@ public class RepeatSubmitLocalStorage implements RepeatSubmitStorage {
     @Override
     public void release(RepeatSubmitToken token) {
         cache.remove(token.getKey());
+    }
+
+    private void cleanup() {
+        long now = System.currentTimeMillis();
+        cache.forEach((key, expireAt) -> {
+            if (now > expireAt) {
+                cache.remove(key, expireAt);
+            }
+        });
     }
 }

@@ -1,7 +1,7 @@
 package com.sun.guardian.repeat.submit.starter.config;
 
-import com.sun.guardian.repeat.submit.core.context.UserContextResolver;
-import com.sun.guardian.repeat.submit.core.filter.RepeatableRequestFilter;
+import com.sun.guardian.core.context.UserContext;
+import com.sun.guardian.core.filter.RepeatableRequestFilter;
 import com.sun.guardian.repeat.submit.core.interceptor.RepeatSubmitInterceptor;
 import com.sun.guardian.repeat.submit.core.service.encrypt.manager.KeyEncryptManager;
 import com.sun.guardian.repeat.submit.core.service.encrypt.strategy.AbstractKeyEncrypt;
@@ -15,7 +15,7 @@ import com.sun.guardian.repeat.submit.core.service.response.RepeatSubmitResponse
 import com.sun.guardian.repeat.submit.core.service.statistics.RepeatSubmitStatistics;
 import com.sun.guardian.repeat.submit.core.storage.RepeatSubmitLocalStorage;
 import com.sun.guardian.repeat.submit.core.storage.RepeatSubmitStorage;
-import com.sun.guardian.repeat.submit.redis.storage.RepeatSubmitRedisStorage;
+import com.sun.guardian.storage.redis.repeat.RepeatSubmitRedisStorage;
 import com.sun.guardian.repeat.submit.starter.endpoint.RepeatSubmitEndPoint;
 import com.sun.guardian.repeat.submit.starter.properties.GuardianRepeatSubmitProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -31,11 +31,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Guardian-Repeat-Submit 防重复提交自动配置类
- * <p>
- * 自动注册拦截器、过滤器及核心组件 Bean。
- * 所有 Bean 均标注 {@code @ConditionalOnMissingBean}，
- * 用户可通过注册同类型 Bean 覆盖默认实现。
+ * 防重复提交自动配置
  *
  * @author scj
  * @version java version 1.8
@@ -45,12 +41,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableConfigurationProperties(GuardianRepeatSubmitProperties.class)
 public class GuardianRepeatSubmitAutoConfiguration {
 
-    /**
-     * WebMvc 配置：注册防重拦截器
-     * <p>
-     * 独立为静态内部类，通过构造器注入 RepeatSubmitInterceptor，
-     * 避免与外层 @Bean 定义产生循环依赖。
-     */
+    /** 注册防重拦截器 */
     @Configuration
     static class GuardianRepeatSubmitWebMvcConfiguration implements WebMvcConfigurer {
 
@@ -66,10 +57,9 @@ public class GuardianRepeatSubmitAutoConfiguration {
         }
     }
 
-    /**
-     * 注册请求体缓存过滤器，使 JSON 请求体可重复读取（拦截器中需要读取参数生成防重 Key）
-     */
+    /** 请求体缓存过滤器，使 JSON body 可重复读取 */
     @Bean
+    @ConditionalOnMissingBean(RepeatableRequestFilter.class)
     public FilterRegistrationBean<RepeatableRequestFilter> repeatableRequestFilterRegistration() {
         FilterRegistrationBean<RepeatableRequestFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new RepeatableRequestFilter());
@@ -96,6 +86,7 @@ public class GuardianRepeatSubmitAutoConfiguration {
      */
     @Bean
     @ConditionalOnProperty(prefix = "guardian.repeat-submit", name = "storage", havingValue = "redis", matchIfMissing = true)
+    @ConditionalOnClass(StringRedisTemplate.class)
     @ConditionalOnMissingBean(RepeatSubmitStorage.class)
     public RepeatSubmitRedisStorage repeatSubmitRedisStorage(StringRedisTemplate redisTemplate) {
         return new RepeatSubmitRedisStorage(redisTemplate);
@@ -129,32 +120,26 @@ public class GuardianRepeatSubmitAutoConfiguration {
         return new KeyEncryptManager(applicationContext);
     }
 
-    /**
-     * 默认 JSON 响应处理器（用户未自定义时兜底）
-     */
+    /** 默认 JSON 响应处理器 */
     @Bean
     @ConditionalOnMissingBean(RepeatSubmitResponseHandler.class)
     public RepeatSubmitResponseHandler repeatSubmitResponseHandler() {
         return new DefaultRepeatSubmitResponseHandler();
     }
 
-    /**
-     * 默认用户上下文解析器（用户未自定义时兜底，返回 null 触发 sessionId/IP 降级）
-     */
+    /** 默认用户上下文（返回 null，降级为 sessionId/IP） */
     @Bean
-    @ConditionalOnMissingBean(UserContextResolver.class)
-    public UserContextResolver defaultUserContextResolver() {
+    @ConditionalOnMissingBean(UserContext.class)
+    public UserContext defaultUserContext() {
         return () -> null;
     }
 
-    /**
-     * 默认生成策略（guardian.key-generator=default 或未配置时启用）
-     */
+    /** 默认防重键生成策略 */
     @Bean
     @ConditionalOnProperty(prefix = "guardian.repeat-submit", name = "key-generator", havingValue = "default", matchIfMissing = true)
     @ConditionalOnMissingBean(KeyGenerator.class)
-    public DefaultKeyGenerator defaultKeyGenerator(UserContextResolver userContextResolver, KeyEncryptManager keyEncryptManager) {
-        return new DefaultKeyGenerator(userContextResolver, keyEncryptManager);
+    public DefaultKeyGenerator defaultKeyGenerator(UserContext userContext, KeyEncryptManager keyEncryptManager) {
+        return new DefaultKeyGenerator(userContext, keyEncryptManager);
     }
 
     /**
@@ -177,18 +162,14 @@ public class GuardianRepeatSubmitAutoConfiguration {
         return new KeyMD5Encrypt();
     }
 
-    /**
-     * 拦截统计（内存，始终注册）
-     */
+    /** 拦截统计 */
     @Bean
     @ConditionalOnMissingBean(RepeatSubmitStatistics.class)
     public RepeatSubmitStatistics repeatSubmitStatistics() {
         return new RepeatSubmitStatistics();
     }
 
-    /**
-     * Actuator 端点（仅当用户引入了 spring-boot-starter-actuator 时才注册）
-     */
+    /** Actuator 端点 */
     @Bean
     @ConditionalOnClass(name = "org.springframework.boot.actuate.endpoint.annotation.Endpoint")
     @ConditionalOnMissingBean(RepeatSubmitEndPoint.class)

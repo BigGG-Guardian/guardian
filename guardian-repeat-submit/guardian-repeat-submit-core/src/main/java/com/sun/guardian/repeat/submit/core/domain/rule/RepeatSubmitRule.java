@@ -1,9 +1,11 @@
 package com.sun.guardian.repeat.submit.core.domain.rule;
 
+import com.sun.guardian.core.domain.BaseRule;
 import com.sun.guardian.repeat.submit.core.annotation.RepeatSubmit;
 import com.sun.guardian.repeat.submit.core.enums.client.ClientType;
 import com.sun.guardian.repeat.submit.core.enums.scope.KeyScope;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
 import java.util.concurrent.TimeUnit;
@@ -14,14 +16,10 @@ import java.util.concurrent.TimeUnit;
  * @author scj
  * @since 2026-02-09
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
-public class RepeatSubmitRule {
-
-    /**
-     * URL 匹配模式（仅 yml 配置时使用，支持 AntPath 通配符）
-     */
-    private String pattern;
+public class RepeatSubmitRule extends BaseRule {
 
     /**
      * 防重时间间隔

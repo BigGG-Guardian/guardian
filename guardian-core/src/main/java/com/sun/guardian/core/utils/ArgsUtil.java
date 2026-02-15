@@ -28,13 +28,7 @@ public class ArgsUtil {
     private ArgsUtil() {
     }
 
-    /**
-     * 从 HttpServletRequest 中提取请求参数，排序后进行 Base64 编码
-     * 支持 query 参数和 JSON body（需要配合 RepeatableRequestWrapper 使用）
-     *
-     * @param request 当前请求
-     * @return Base64 编码后的参数字符串；无参数时返回空字符串 ""
-     */
+    /** 从 request 中提取参数，排序后 Base64 编码 */
     public static String toSortedJsonStr(HttpServletRequest request) {
         JSONObject result = new JSONObject(new TreeMap<>());
 
@@ -58,12 +52,7 @@ public class ArgsUtil {
         return result.isEmpty() ? "" : Base64.encode(JSONUtil.toJsonStr(result));
     }
 
-    /**
-     * 将方法参数数组转换为按字段首字母排序并 Base64 编码的字符串
-     *
-     * @param args 方法参数数组，可能为 null 或空数组
-     * @return Base64 编码后的参数字符串；无有效参数时返回空字符串 ""
-     */
+    /** 方法参数数组排序后 Base64 编码 */
     public static String toSortedJsonStr(Object[] args) {
         if (args == null || args.length == 0) {
             return "";
@@ -87,12 +76,7 @@ public class ArgsUtil {
         return Base64.encode(json);
     }
 
-    /**
-     * 将任意对象递归转换为字段按字典序排列的 JSON 结构
-     *
-     * @param obj 待转换的对象
-     * @return 排序后的 JSON 结构（JSONObject / JSONArray / 原始值）
-     */
+    /** 递归转为字段按字典序排列的 JSON */
     private static Object toSortedJsonElement(Object obj) {
         if (obj == null) {
             return null;
@@ -121,12 +105,7 @@ public class ArgsUtil {
         return sortJsonObject(srcObj);
     }
 
-    /**
-     * 对 JSONObject 的 key 按字典序排序（递归处理嵌套对象）
-     *
-     * @param jsonObject 原始 JSONObject
-     * @return key 已排序的 JSONObject
-     */
+    /** key 按字典序排序 */
     private static JSONObject sortJsonObject(JSONObject jsonObject) {
         Map<String, Object> sortedMap = new TreeMap<>();
         for (Map.Entry<String, Object> entry : jsonObject.entrySet()) {
@@ -135,12 +114,7 @@ public class ArgsUtil {
         return new JSONObject(sortedMap);
     }
 
-    /**
-     * 判断对象是否为不可序列化的类型（需要过滤）
-     *
-     * @param obj 待判断的对象
-     * @return true 表示需要过滤
-     */
+    /** 判断是否为不可序列化类型 */
     private static boolean isFilteredType(Object obj) {
         return obj instanceof ServletRequest
                 || obj instanceof ServletResponse

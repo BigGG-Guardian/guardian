@@ -8,18 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Guardian-Repeat-Submit Actuator 端点
- * <p>
- * 访问 GET /actuator/guardian-repeat-submit 查看拦截统计数据。
- * <p>
- * 需要在 application.yml 中暴露端点：
- * <pre>
- * management:
- *   endpoints:
- *     web:
- *       exposure:
- *         include: guardian-repeat-submit
- * </pre>
+ * 防重 Actuator 端点（GET /actuator/guardian-repeat-submit）
  *
  * @author scj
  */
@@ -31,21 +20,7 @@ public class RepeatSubmitEndPoint {
         this.statistics = statistics;
     }
 
-    /**
-     * GET /actuator/guardian-repeat-submit
-     * <p>
-     * 返回示例：
-     * <pre>
-     * {
-     *   "totalBlockCount": 128,
-     *   "totalPassCount": 5432,
-     *   "topBlockedApis": {
-     *     "/api/order/submit": 56,
-     *     "/api/sms/send": 42
-     *   }
-     * }
-     * </pre>
-     */
+    /** 防重统计数据 */
     @ReadOperation
     public Map<String, Object> info() {
         Map<String, Object> result = new LinkedHashMap<>();

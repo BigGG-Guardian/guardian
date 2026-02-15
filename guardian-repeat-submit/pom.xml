@@ -16,13 +16,18 @@
     </description>
 
     <modules>
-        <module>guardian-storage-redis</module>
         <module>guardian-repeat-submit-spring-boot-starter</module>
         <module>guardian-repeat-submit-core</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
+            <!-- 自定义模块-核心模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
             <!-- 自定义模块-防重复提交核心模块 -->
             <dependency>
                 <groupId>io.github.biggg-guardian</groupId>

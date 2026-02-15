@@ -22,10 +22,6 @@ import java.nio.charset.StandardCharsets;
 @Getter
 public class RepeatableRequestWrapper extends HttpServletRequestWrapper {
 
-    /**
-     * -- GETTER --
-     * 获取缓存的请求体字节数组
-     */
     private final byte[] cachedBody;
 
     public RepeatableRequestWrapper(HttpServletRequest request) throws IOException {

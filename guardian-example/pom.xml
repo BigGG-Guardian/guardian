@@ -26,55 +26,32 @@
 
 
     <dependencies>
-        <!-- Spring Data Redis（optional：不强制用户引入，用户配了 Redis 才生效） -->
+        <!-- Lombok -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
-            <optional>true</optional>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
-
-        <!--
-            Spring Boot核心启动器，提供自动配置、属性绑定等机制。
-            这是Starter模块的基础。
-        -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <!--
-            Spring Boot Web 启动器（optional：消费方项目必然已引入）
-        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <optional>true</optional>
         </dependency>
-
-        <!--
-            Spring Boot配置处理器，在编译时生成配置元数据（META-INF/spring-configuration-metadata.json）。
-            作用：当用户在 application.yml 中输入配置时，IDE会提供智能提示和补全。
-            optional=true 表示此依赖不会传递给使用本框架的项目。
-        -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-
-        <!-- 自定义模块-Guardian 防重复提交Spring Boot Starter -->
-        <dependency>
-            <groupId>io.github.biggg-guardian</groupId>
-            <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-            <optional>true</optional>
-        </dependency>
-
-        <!-- Spring Boot Actuator（optional：用户引了才生效） -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
-            <optional>true</optional>
+        </dependency>
+        <!-- Guardian 防重复提交 -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- Guardian 接口限流 -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
         </dependency>
     </dependencies>
 </project>

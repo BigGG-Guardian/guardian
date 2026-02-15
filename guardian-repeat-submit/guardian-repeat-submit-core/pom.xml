@@ -18,17 +18,12 @@
 
 
     <dependencies>
-        <!--
-                     Spring上下文核心
-                 -->
+        <!-- 自定义模块-核心模块 -->
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <scope>provided</scope>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-core</artifactId>
         </dependency>
-        <!--
-           Spring WebMVC
-       -->
+        <!-- Spring WebMVC（provided：由消费方提供） -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-webmvc</artifactId>
@@ -40,16 +35,10 @@
             <artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
         </dependency>
-        <!-- SLF4J 日志门面 -->
+        <!-- Lombok -->
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <!-- 自定义模块-核心模块 -->
-        <dependency>
-            <groupId>io.github.biggg-guardian</groupId>
-            <artifactId>guardian-core</artifactId>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
         </dependency>
     </dependencies>
 </project>
