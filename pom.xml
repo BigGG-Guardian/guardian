@@ -41,7 +41,7 @@
 
     <!--  参数管理  -->
     <properties>
-        <revision>1.4.1</revision>
+        <revision>1.4.2</revision>
         <java.version>1.8</java.version>
         <spring-boot.version>2.7.18</spring-boot.version>
         <servlet.version>4.0.1</servlet.version>
@@ -60,9 +60,10 @@
         <module>guardian-repeat-submit</module>
         <!--    接口限流模块    -->
         <module>guardian-rate-limit</module>
+        <!--    接口幂等模块    -->
+        <module>guardian-idempotent</module>
         <!--    示例模块    -->
         <module>guardian-example</module>
-        <module>guardian-idempotent</module>
     </modules>
 
     <!--  依赖管理  -->

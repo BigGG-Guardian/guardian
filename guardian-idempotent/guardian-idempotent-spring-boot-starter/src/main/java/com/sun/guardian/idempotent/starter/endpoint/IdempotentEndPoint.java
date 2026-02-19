@@ -8,13 +8,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 接口幂等 Actuator 端点（GET /actuator/guardian-idempotent）
+ * 接口幂等 Actuator 端点（GET /actuator/guardianIdempotent）
  *
  * @author scj
  * @version java version 1.8
  * @since 2026-02-18 19:48
  */
-@Endpoint(id = "guardian-idempotent")
+@Endpoint(id = "guardianIdempotent")
 public class IdempotentEndPoint {
     private final IdempotentStatistics statistics;
 

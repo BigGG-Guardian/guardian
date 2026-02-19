@@ -8,11 +8,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 限流 Actuator 端点（GET /actuator/guardian-rate-limit）
+ * 限流 Actuator 端点（GET /actuator/guardianRateLimit）
  *
  * @author scj
  */
-@Endpoint(id = "guardian-rate-limit")
+@Endpoint(id = "guardianRateLimit")
 public class RateLimitEndPoint {
     private final RateLimitStatistics statistics;
 

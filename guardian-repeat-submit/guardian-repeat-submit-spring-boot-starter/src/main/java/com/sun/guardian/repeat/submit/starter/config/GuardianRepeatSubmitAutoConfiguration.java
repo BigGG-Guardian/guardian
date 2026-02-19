@@ -15,6 +15,7 @@ import com.sun.guardian.repeat.submit.core.storage.RepeatSubmitLocalStorage;
 import com.sun.guardian.repeat.submit.core.storage.RepeatSubmitStorage;
 import com.sun.guardian.storage.redis.repeat.RepeatSubmitRedisStorage;
 import com.sun.guardian.repeat.submit.starter.endpoint.RepeatSubmitEndPoint;
+import com.sun.guardian.core.properties.GuardianCoreProperties;
 import com.sun.guardian.repeat.submit.starter.properties.GuardianRepeatSubmitProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -35,7 +36,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @since 2026-02-09 23:00
  */
 @Configuration
-@EnableConfigurationProperties(GuardianRepeatSubmitProperties.class)
+@EnableConfigurationProperties({GuardianRepeatSubmitProperties.class, GuardianCoreProperties.class})
 public class GuardianRepeatSubmitAutoConfiguration {
 
     /**
@@ -63,11 +64,11 @@ public class GuardianRepeatSubmitAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(RepeatableRequestFilter.class)
-    public FilterRegistrationBean<RepeatableRequestFilter> repeatableRequestFilterRegistration() {
+    public FilterRegistrationBean<RepeatableRequestFilter> repeatableRequestFilterRegistration(GuardianCoreProperties coreProperties) {
         FilterRegistrationBean<RepeatableRequestFilter> registration = new FilterRegistrationBean<>();
         registration.setFilter(new RepeatableRequestFilter());
         registration.addUrlPatterns("/*");
-        registration.setOrder(-1);
+        registration.setOrder(coreProperties.getRepeatableFilterOrder());
         return registration;
     }
 

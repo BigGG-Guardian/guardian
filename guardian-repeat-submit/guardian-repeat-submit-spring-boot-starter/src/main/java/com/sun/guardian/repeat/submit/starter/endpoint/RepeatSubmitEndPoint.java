@@ -8,11 +8,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * 防重 Actuator 端点（GET /actuator/guardian-repeat-submit）
+ * 防重 Actuator 端点（GET /actuator/guardianRepeatSubmit）
  *
  * @author scj
  */
-@Endpoint(id = "guardian-repeat-submit")
+@Endpoint(id = "guardianRepeatSubmit")
 public class RepeatSubmitEndPoint {
     private final RepeatSubmitStatistics statistics;
 

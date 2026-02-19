@@ -18,6 +18,14 @@
 
     <dependencies>
         <!--
+            Spring Boot（提供 @ConfigurationProperties 等）
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!--
             Spring WebMVC（提供 HandlerInterceptor、OncePerRequestFilter 等）
         -->
         <dependency>

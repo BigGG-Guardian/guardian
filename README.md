@@ -39,7 +39,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.4.1</version>
+    <version>1.4.2</version>
 </dependency>
 ```
 
@@ -57,7 +57,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.4.1</version>
+    <version>1.4.2</version>
 </dependency>
 ```
 
@@ -99,7 +99,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.4.1</version>
+    <version>1.4.2</version>
 </dependency>
 ```
 
@@ -151,6 +151,7 @@ guardian:
 
 ```yaml
 guardian:
+  repeatable-filter-order: -100       # 请求体缓存过滤器排序（全局共享，仅需配置一次）
   repeat-submit:
     storage: redis                    # redis / local
     key-encrypt: md5                  # none / md5
@@ -185,7 +186,7 @@ guardian:
 ### 可观测性
 
 - **拦截日志**：`log-enabled: true`，前缀 `[Guardian-Repeat-Submit]`
-- **Actuator**：`GET /actuator/guardian-repeat-submit`
+- **Actuator**：`GET /actuator/guardianRepeatSubmit`
 
 ```json
 {
@@ -379,7 +380,7 @@ guardian:
 ### 可观测性
 
 - **拦截日志**：`log-enabled: true`，前缀 `[Guardian-Rate-Limit]`
-- **Actuator**：`GET /actuator/guardian-rate-limit`
+- **Actuator**：`GET /actuator/guardianRateLimit`
 
 ```json
 {
@@ -482,6 +483,7 @@ public RateLimitResponseHandler rateLimitResponseHandler() {
 
 ```yaml
 guardian:
+  repeatable-filter-order: -100       # 请求体缓存过滤器排序（全局共享，仅需配置一次）
   idempotent:
     enabled: true                     # 总开关
     storage: redis                    # redis / local
@@ -501,7 +503,7 @@ guardian:
 ### 可观测性
 
 - **拦截日志**：`log-enabled: true`，前缀 `[Guardian-Idempotent]`
-- **Actuator**：`GET /actuator/guardian-idempotent`
+- **Actuator**：`GET /actuator/guardianIdempotent`
 
 ```json
 {
@@ -581,6 +583,7 @@ guardian-parent
 
 | 类 | 作用 |
 |----|------|
+| `GuardianCoreProperties` | 全局共享配置（repeatableFilterOrder），prefix = `guardian` |
 | `BaseGuardianProperties` | 模块配置基类（storage / responseMode / logEnabled / interceptorOrder） |
 | `UserContext` | 用户上下文接口，实现一次所有模块共享 |
 | `GuardianResponseHandler` | 统一响应处理器接口 |
@@ -603,6 +606,7 @@ guardian-parent
 
 ```yaml
 guardian:
+  repeatable-filter-order: -100   # 请求体缓存过滤器排序（全局）
   rate-limit:
     interceptor-order: 1000
   repeat-submit:
@@ -622,15 +626,19 @@ guardian:
 
 ## 更新日志
 
-### v1.4.1
+### v1.4.2
 
 - **新增**：接口幂等模块（`guardian-idempotent-spring-boot-starter`），Token 机制保证接口幂等性
 - **新增**：幂等结果缓存，开启后重复请求返回首次执行结果
 - **新增**：幂等 Actuator 端点、拦截统计、Token 生成器可插拔
+- **新增**：幂等 PARAM 模式支持从 JSON Body 解析 Token（兼容 form-data / x-www-form-urlencoded / JSON 三种 POST 传参）
+- **优化**：`RepeatableRequestFilter` 排序提升到全局配置 `GuardianCoreProperties`（`guardian.repeatable-filter-order`），仅需配置一次
 - **优化**：拦截器执行顺序可配置（`interceptor-order`），默认：限流 1000 → 防重 2000 → 幂等 3000
 - **优化**：三模块 Properties 提取公共基类 `BaseGuardianProperties`，统一 storage / responseMode / logEnabled / interceptorOrder
 - **优化**：移除 Manager 中间层（`KeyGeneratorManager`、`RateLimitKeyGeneratorManager`、`KeyEncryptManager`、`IdempotentTokenGeneratorManager`），改为构造函数直接注入
 - **优化**：删除未使用的异常类（`TokenGeneratorNotFoundException`、`KeyGeneratorNotFoundException`、`KeyEncryptNotFoundException`）
+- **修复**：幂等 null 返回值处理，与 Spring 原生行为保持一致
+- **修复**：`BaseResult.error()` 状态码错误（200 → 500）
 
 ### v1.3.0
 

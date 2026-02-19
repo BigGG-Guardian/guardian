@@ -12,6 +12,9 @@ spring:
 #    password:
 
 guardian:
+  # 请求体缓存过滤器排序（全局共享，防重 / 幂等模块共用，默认 -100）
+  repeatable-filter-order: -100
+
   # ==================== 防重复提交配置 ====================
   # 也可使用 @RepeatSubmit 注解，YAML 优先级高于注解
   repeat-submit:
