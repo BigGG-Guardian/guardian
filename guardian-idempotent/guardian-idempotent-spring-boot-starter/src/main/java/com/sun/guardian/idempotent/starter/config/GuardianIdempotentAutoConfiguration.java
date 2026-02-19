@@ -1,5 +1,6 @@
 package com.sun.guardian.idempotent.starter.config;
 
+import com.sun.guardian.core.filter.RepeatableRequestFilter;
 import com.sun.guardian.idempotent.core.advice.IdempotentResultCacheAdvice;
 import com.sun.guardian.idempotent.core.interceptor.IdempotentInterceptor;
 import com.sun.guardian.idempotent.core.service.response.DefaultIdempotentResponseHandler;
@@ -15,11 +16,13 @@ import com.sun.guardian.idempotent.core.storage.IdempotentResultCache;
 import com.sun.guardian.idempotent.core.storage.IdempotentStorage;
 import com.sun.guardian.idempotent.starter.controller.IdempotentTokenController;
 import com.sun.guardian.idempotent.starter.endpoint.IdempotentEndPoint;
+import com.sun.guardian.core.properties.GuardianCoreProperties;
 import com.sun.guardian.idempotent.starter.properties.GuardianIdempotentProperties;
 import com.sun.guardian.storage.redis.idempotent.IdempotentRedisResultCache;
 import com.sun.guardian.storage.redis.idempotent.IdempotentRedisStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -37,7 +40,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @since 2026-02-18 17:09
  */
 @Configuration
-@EnableConfigurationProperties(GuardianIdempotentProperties.class)
+@EnableConfigurationProperties({GuardianIdempotentProperties.class, GuardianCoreProperties.class})
 @ConditionalOnProperty(prefix = "guardian.idempotent", name = "enabled", havingValue = "true", matchIfMissing = true)
 public class GuardianIdempotentAutoConfiguration {
 
@@ -56,6 +59,19 @@ public class GuardianIdempotentAutoConfiguration {
         public void addInterceptors(InterceptorRegistry registry) {
             registry.addInterceptor(idempotentInterceptor).addPathPatterns("/**").order(properties.getInterceptorOrder());
         }
+    }
+
+    /**
+     * 请求体缓存过滤器，使 JSON body 可重复读取（PARAM 模式解析 JSON Body Token 需要）
+     */
+    @Bean
+    @ConditionalOnMissingBean(RepeatableRequestFilter.class)
+    public FilterRegistrationBean<RepeatableRequestFilter> idempotentRepeatableRequestFilterRegistration(GuardianCoreProperties coreProperties) {
+        FilterRegistrationBean<RepeatableRequestFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(new RepeatableRequestFilter());
+        registration.addUrlPatterns("/*");
+        registration.setOrder(coreProperties.getRepeatableFilterOrder());
+        return registration;
     }
 
     /**

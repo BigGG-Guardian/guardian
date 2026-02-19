@@ -29,6 +29,11 @@ public class RepeatableRequestWrapper extends HttpServletRequestWrapper {
         this.cachedBody = IoUtil.readBytes(request.getInputStream());
     }
 
+    protected RepeatableRequestWrapper(HttpServletRequest request, byte[] body) throws IOException {
+        super(request);
+        this.cachedBody = body;
+    }
+
     @Override
     public ServletInputStream getInputStream() {
         ByteArrayInputStream bais = new ByteArrayInputStream(cachedBody);
