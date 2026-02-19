@@ -27,12 +27,12 @@ public class RateLimitBeanConfig {
      */
     @Bean
     public RateLimitResponseHandler rateLimitResponseHandler() {
-        return (request, response, message) -> {
+        return (request, response, code, data, message) -> {
             JSONConfig jsonConfig = new JSONConfig();
             jsonConfig.setIgnoreNullValue(false);
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write(JSONUtil.toJsonStr(CommonResult.error(message), jsonConfig));
+            response.getWriter().write(JSONUtil.toJsonStr(CommonResult.result(code, data, message), jsonConfig));
         };
     }
 }

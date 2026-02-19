@@ -9,7 +9,7 @@
 
 <h1 align="center">Guardian</h1>
 <p align="center"><b>轻量级 Spring Boot API 请求层防护框架</b></p>
-<p align="center">防重提交、接口限流 —— 一个 Starter 搞定 API 请求防护。</p>
+<p align="center">防重提交、接口限流、接口幂等 —— 一个 Starter 搞定 API 请求防护。</p>
 
 <p align="center">
   <a href="https://github.com/BigGG-Guardian/guardian">GitHub</a> ·
@@ -25,6 +25,7 @@
 |------|---------|------|------|------|
 | 防重复提交 | `guardian-repeat-submit-spring-boot-starter` | `@RepeatSubmit` | ✅ | 防止用户重复提交表单/请求 |
 | 接口限流 | `guardian-rate-limit-spring-boot-starter` | `@RateLimit` | ✅ | 滑动窗口 + 令牌桶，双算法可选 |
+| 接口幂等 | `guardian-idempotent-spring-boot-starter` | `@Idempotent` | — | Token 机制保证接口幂等性，支持结果缓存 |
 
 每个功能独立模块、独立 Starter，**用哪个引哪个，互不依赖**。
 
@@ -38,7 +39,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 
@@ -56,7 +57,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.3.0</version>
+    <version>1.4.0</version>
 </dependency>
 ```
 
@@ -92,6 +93,34 @@ guardian:
         rate-limit-scope: global
 ```
 
+### 接口幂等
+
+```xml
+<dependency>
+    <groupId>io.github.biggg-guardian</groupId>
+    <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
+    <version>1.4.0</version>
+</dependency>
+```
+
+**1. 获取 Token：**
+
+```
+GET /guardian/idempotent/token?key=order-submit
+```
+
+**2. 业务接口携带 Token：**
+
+```java
+@Idempotent("order-submit")
+@PostMapping("/order/submit")
+public Result submitOrder(@RequestBody OrderDTO order) {
+    return orderService.submit(order);
+}
+```
+
+请求头带上 `X-Idempotent-Token: {token}`，首次请求正常处理，重复请求直接拒绝。
+
 ---
 
 ## 防重复提交
@@ -124,10 +153,10 @@ guardian:
 guardian:
   repeat-submit:
     storage: redis                    # redis / local
-    key-generator: default
     key-encrypt: md5                  # none / md5
     response-mode: exception          # exception / json
     log-enabled: false
+    interceptor-order: 2000           # 拦截器排序（值越小越先执行）
     exclude-urls:
       - /api/public/**
     urls:
@@ -190,8 +219,8 @@ public UserContext userContext() {
 ```java
 public class MyKeyGenerator extends AbstractKeyGenerator {
 
-    public MyKeyGenerator(UserContext userContext, KeyEncryptManager encryptManager) {
-        super(userContext, encryptManager);
+    public MyKeyGenerator(UserContext userContext, AbstractKeyEncrypt keyEncrypt) {
+        super(userContext, keyEncrypt);
     }
 
     @Override
@@ -201,8 +230,8 @@ public class MyKeyGenerator extends AbstractKeyGenerator {
 }
 
 @Bean
-public MyKeyGenerator myKeyGenerator(UserContext userContext, KeyEncryptManager manager) {
-    return new MyKeyGenerator(userContext, manager);
+public MyKeyGenerator myKeyGenerator(UserContext userContext, AbstractKeyEncrypt keyEncrypt) {
+    return new MyKeyGenerator(userContext, keyEncrypt);
 }
 ```
 
@@ -239,9 +268,9 @@ public RepeatSubmitStorage myStorage() {
 ```java
 @Bean
 public RepeatSubmitResponseHandler repeatSubmitResponseHandler() {
-    return (request, response, message) -> {
+    return (request, response, code, data, message) -> {
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(JSONUtil.toJsonStr(CommonResult.error(message)));
+        response.getWriter().write(JSONUtil.toJsonStr(CommonResult.result(code, data, message)));
     };
 }
 ```
@@ -306,9 +335,9 @@ guardian:
   rate-limit:
     enabled: true                     # 总开关
     storage: redis                    # redis / local
-    key-generator: default
     response-mode: exception          # exception / json
     log-enabled: false
+    interceptor-order: 1000           # 拦截器排序（值越小越先执行）
     exclude-urls:
       - /api/public/**
     urls:
@@ -417,9 +446,109 @@ public RateLimitStorage myRateLimitStorage() {
 ```java
 @Bean
 public RateLimitResponseHandler rateLimitResponseHandler() {
-    return (request, response, message) -> {
+    return (request, response, code, data, message) -> {
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(JSONUtil.toJsonStr(CommonResult.error(message)));
+        response.getWriter().write(JSONUtil.toJsonStr(CommonResult.result(code, data, message)));
+    };
+}
+```
+
+</details>
+
+---
+
+## 接口幂等
+
+<details>
+<summary><b>展开查看完整文档</b></summary>
+
+### 工作流程
+
+1. 客户端调用 `GET /guardian/idempotent/token?key=order-submit` 获取一次性 Token
+2. 客户端携带 Token 发起业务请求（Header 或 Param 方式）
+3. 拦截器校验 Token：存在则消费放行，不存在或已消费则拒绝
+4. （可选）开启结果缓存后，重复请求返回首次执行结果而非拒绝
+
+### 注解参数
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `value` | **必填** | 接口唯一标识，用于隔离不同接口的 Token |
+| `from` | `HEADER` | Token 来源：`HEADER` / `PARAM` |
+| `tokenName` | `X-Idempotent-Token` | Header 名或请求参数名 |
+| `message` | `幂等Token无效或已消费` | 拒绝时的提示信息 |
+
+### 全量配置
+
+```yaml
+guardian:
+  idempotent:
+    enabled: true                     # 总开关
+    storage: redis                    # redis / local
+    timeout: 300                      # Token 有效期（默认 300）
+    time-unit: seconds                # 有效期单位
+    response-mode: exception          # exception / json
+    log-enabled: false
+    interceptor-order: 3000           # 拦截器排序（值越小越先执行）
+    token-endpoint: true              # 是否注册内置 Token 获取接口
+    result-cache: false               # 是否启用结果缓存
+```
+
+### 结果缓存
+
+开启 `result-cache: true` 后，首次请求的返回值会被缓存，重复请求直接返回缓存结果（而非拒绝）。
+
+### 可观测性
+
+- **拦截日志**：`log-enabled: true`，前缀 `[Guardian-Idempotent]`
+- **Actuator**：`GET /actuator/guardian-idempotent`
+
+```json
+{
+  "totalRequestCount": 1200,
+  "totalPassCount": 1100,
+  "totalBlockCount": 100,
+  "blockRate": "8.33%",
+  "topBlockedApis": {
+    "/order/submit": 60,
+    "/pay/confirm": 40
+  }
+}
+```
+
+### 扩展点
+
+**自定义 Token 生成器：**
+
+```java
+@Bean
+public IdempotentTokenGenerator idempotentTokenGenerator() {
+    return () -> "custom-" + UUID.randomUUID().toString();
+}
+```
+
+**自定义存储：**
+
+```java
+@Bean
+public IdempotentStorage myIdempotentStorage() {
+    return new IdempotentStorage() {
+        @Override
+        public void save(IdempotentToken token) { /* ... */ }
+        @Override
+        public boolean tryConsume(String tokenKey) { /* ... */ }
+    };
+}
+```
+
+**自定义响应处理器（仅 `response-mode: json` 时生效）：**
+
+```java
+@Bean
+public IdempotentResponseHandler idempotentResponseHandler() {
+    return (request, response, code, data, message) -> {
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(JSONUtil.toJsonStr(CommonResult.result(code, data, message)));
     };
 }
 ```
@@ -441,6 +570,9 @@ guardian-parent
 ├── guardian-rate-limit/                   # 接口限流
 │   ├── guardian-rate-limit-core/
 │   └── guardian-rate-limit-spring-boot-starter/
+├── guardian-idempotent/                   # 接口幂等
+│   ├── guardian-idempotent-core/
+│   └── guardian-idempotent-spring-boot-starter/
 ├── guardian-storage-redis/                # Redis 存储（多模块共享）
 └── guardian-example/                      # 示例工程
 ```
@@ -449,12 +581,35 @@ guardian-parent
 
 | 类 | 作用 |
 |----|------|
+| `BaseGuardianProperties` | 模块配置基类（storage / responseMode / logEnabled / interceptorOrder） |
 | `UserContext` | 用户上下文接口，实现一次所有模块共享 |
 | `GuardianResponseHandler` | 统一响应处理器接口 |
 | `DefaultGuardianResponseHandler` | 默认 JSON 响应实现 |
 | `BaseStatistics` | 拦截统计基类 |
 | `GuardianLogUtils` | 参数化日志工具 |
 | `RepeatableRequestFilter` | 请求体缓存过滤器 |
+
+### 拦截器执行顺序
+
+三个拦截器注册时通过 `interceptor-order` 控制执行优先级，**值越小越先执行**。默认顺序：
+
+| 顺序 | 模块 | 默认 order | 说明 |
+|------|------|-----------|------|
+| 1 | 限流 | 1000 | 最先执行，流量超限直接拒绝，避免后续无意义计算 |
+| 2 | 防重 | 2000 | 通过限流后，判断是否短时间重复请求 |
+| 3 | 幂等 | 3000 | 最后执行，消费 Token（不可逆），确保前面的校验都通过 |
+
+每个模块的 order 均可通过 YAML 自定义，方便与项目中其他拦截器协调：
+
+```yaml
+guardian:
+  rate-limit:
+    interceptor-order: 1000
+  repeat-submit:
+    interceptor-order: 2000
+  idempotent:
+    interceptor-order: 3000
+```
 
 ## 存储对比
 
@@ -466,6 +621,16 @@ guardian-parent
 | 额外依赖 | 需要 Redis | 无 |
 
 ## 更新日志
+
+### v1.4.0
+
+- **新增**：接口幂等模块（`guardian-idempotent-spring-boot-starter`），Token 机制保证接口幂等性
+- **新增**：幂等结果缓存，开启后重复请求返回首次执行结果
+- **新增**：幂等 Actuator 端点、拦截统计、Token 生成器可插拔
+- **优化**：拦截器执行顺序可配置（`interceptor-order`），默认：限流 1000 → 防重 2000 → 幂等 3000
+- **优化**：三模块 Properties 提取公共基类 `BaseGuardianProperties`，统一 storage / responseMode / logEnabled / interceptorOrder
+- **优化**：移除 Manager 中间层（`KeyGeneratorManager`、`RateLimitKeyGeneratorManager`、`KeyEncryptManager`、`IdempotentTokenGeneratorManager`），改为构造函数直接注入
+- **优化**：删除未使用的异常类（`TokenGeneratorNotFoundException`、`KeyGeneratorNotFoundException`、`KeyEncryptNotFoundException`）
 
 ### v1.3.0
 

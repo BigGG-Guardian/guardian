@@ -28,6 +28,12 @@
             <artifactId>guardian-rate-limit-core</artifactId>
         </dependency>
 
+        <!-- 自定义模块-接口幂等核心模块 -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-idempotent-core</artifactId>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>

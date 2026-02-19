@@ -1,18 +1,18 @@
 package com.sun.guardian.repeat.submit.core.interceptor;
 
 import cn.hutool.extra.servlet.ServletUtil;
+import com.sun.guardian.core.enums.response.ResponseMode;
 import com.sun.guardian.core.exception.RepeatSubmitException;
 import com.sun.guardian.core.utils.GuardianLogUtils;
+import com.sun.guardian.core.utils.MatchUrlRuleUtils;
+import com.sun.guardian.core.utils.ResponseUtils;
 import com.sun.guardian.repeat.submit.core.annotation.RepeatSubmit;
 import com.sun.guardian.repeat.submit.core.domain.rule.RepeatSubmitRule;
 import com.sun.guardian.repeat.submit.core.domain.token.RepeatSubmitToken;
-import com.sun.guardian.core.enums.response.ResponseMode;
 import com.sun.guardian.repeat.submit.core.service.key.KeyGenerator;
-import com.sun.guardian.repeat.submit.core.service.key.manager.KeyGeneratorManager;
 import com.sun.guardian.repeat.submit.core.service.response.RepeatSubmitResponseHandler;
 import com.sun.guardian.repeat.submit.core.service.statistics.RepeatSubmitStatistics;
 import com.sun.guardian.repeat.submit.core.storage.RepeatSubmitStorage;
-import com.sun.guardian.core.utils.MatchUrlRuleUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.method.HandlerMethod;
@@ -37,15 +37,15 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
     private static final Logger log = LoggerFactory.getLogger(RepeatSubmitInterceptor.class);
     private static final GuardianLogUtils logUtils = new GuardianLogUtils("[Guardian-Repeat-Submit]", "@RepeatSubmit");
 
-    private final KeyGeneratorManager keyGeneratorManager;
+    private final KeyGenerator keyGenerator;
     private final RepeatSubmitStorage repeatSubmitStorage;
-    private final RepeatSubmitResponseHandler repeatSubmitResponseHandler;
+    private final ResponseUtils responseUtils;
     private final List<RepeatSubmitRule> urlRules;
     private final List<String> excludeRules;
-    private final ResponseMode responseMode;
     private final boolean logEnable;
     private final RepeatSubmitStatistics statistics;
-    public RepeatSubmitInterceptor(KeyGeneratorManager keyGeneratorManager,
+
+    public RepeatSubmitInterceptor(KeyGenerator keyGenerator,
                                    RepeatSubmitStorage repeatSubmitStorage,
                                    RepeatSubmitResponseHandler repeatSubmitResponseHandler,
                                    List<RepeatSubmitRule> urlRules,
@@ -53,12 +53,11 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
                                    ResponseMode responseMode,
                                    boolean logEnable,
                                    RepeatSubmitStatistics statistics) {
-        this.keyGeneratorManager = keyGeneratorManager;
+        this.keyGenerator = keyGenerator;
         this.repeatSubmitStorage = repeatSubmitStorage;
-        this.repeatSubmitResponseHandler = repeatSubmitResponseHandler;
+        this.responseUtils = new ResponseUtils(responseMode, repeatSubmitResponseHandler, RepeatSubmitException::new);
         this.urlRules = urlRules;
         this.excludeRules = excludeRules;
-        this.responseMode = responseMode;
         this.logEnable = logEnable;
         this.statistics = statistics;
     }
@@ -93,17 +92,12 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        KeyGenerator keyGenerator = keyGeneratorManager.getKeyGenerator();
         RepeatSubmitToken token = keyGenerator.generate(rule, request);
 
         if (!repeatSubmitStorage.tryAcquire(token)) {
             statistics.recordBlock(requestUri);
             logUtils.blockLog(logEnable, log, requestUri, token.getKey(), ip);
-            if (responseMode == ResponseMode.JSON) {
-                repeatSubmitResponseHandler.handle(request, response, rule.getMessage());
-                return false;
-            }
-            throw new RepeatSubmitException(rule.getMessage());
+            return responseUtils.reject(request, response, rule.getMessage());
         }
 
         statistics.recordPass();

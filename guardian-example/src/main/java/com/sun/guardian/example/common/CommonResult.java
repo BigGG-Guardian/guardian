@@ -15,17 +15,36 @@ import lombok.experimental.Accessors;
 @Data
 public class CommonResult<T> {
 
-    /** 状态码：200 成功，500 失败 */
+    /**
+     * 状态码：200 成功，500 失败
+     */
     private Integer code;
 
-    /** 提示信息 */
+    /**
+     * 提示信息
+     */
     private String message;
 
-    /** 业务数据 */
+    /**
+     * 业务数据
+     */
     private T data;
 
-    /** 时间戳（毫秒） */
+    /**
+     * 时间戳（毫秒）
+     */
     private long timestamp;
+
+    /**
+     * 响应
+     */
+    public static <T> CommonResult<T> result(Integer code, T data, String message) {
+        return new CommonResult<T>()
+                .setCode(code)
+                .setData(data)
+                .setMessage(message)
+                .setTimestamp(DateUtil.current());
+    }
 
     /**
      * 成功响应

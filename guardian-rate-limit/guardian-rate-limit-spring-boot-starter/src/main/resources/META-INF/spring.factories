@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  com.sun.guardian.rate.limit.starter.starter.config.GuardianRateLimitAutoConfiguration
+  com.sun.guardian.rate.limit.starter.config.GuardianRateLimitAutoConfiguration

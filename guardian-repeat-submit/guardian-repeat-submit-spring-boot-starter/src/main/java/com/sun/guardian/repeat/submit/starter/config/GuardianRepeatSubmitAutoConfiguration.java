@@ -3,12 +3,10 @@ package com.sun.guardian.repeat.submit.starter.config;
 import com.sun.guardian.core.context.UserContext;
 import com.sun.guardian.core.filter.RepeatableRequestFilter;
 import com.sun.guardian.repeat.submit.core.interceptor.RepeatSubmitInterceptor;
-import com.sun.guardian.repeat.submit.core.service.encrypt.manager.KeyEncryptManager;
 import com.sun.guardian.repeat.submit.core.service.encrypt.strategy.AbstractKeyEncrypt;
 import com.sun.guardian.repeat.submit.core.service.encrypt.strategy.KeyMD5Encrypt;
 import com.sun.guardian.repeat.submit.core.service.encrypt.strategy.KeyNoneEncrypt;
 import com.sun.guardian.repeat.submit.core.service.key.KeyGenerator;
-import com.sun.guardian.repeat.submit.core.service.key.manager.KeyGeneratorManager;
 import com.sun.guardian.repeat.submit.core.service.key.strategy.DefaultKeyGenerator;
 import com.sun.guardian.repeat.submit.core.service.response.DefaultRepeatSubmitResponseHandler;
 import com.sun.guardian.repeat.submit.core.service.response.RepeatSubmitResponseHandler;
@@ -23,7 +21,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -41,23 +38,29 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableConfigurationProperties(GuardianRepeatSubmitProperties.class)
 public class GuardianRepeatSubmitAutoConfiguration {
 
-    /** 注册防重拦截器 */
+    /**
+     * 注册防重拦截器
+     */
     @Configuration
     static class GuardianRepeatSubmitWebMvcConfiguration implements WebMvcConfigurer {
 
         private final RepeatSubmitInterceptor repeatSubmitInterceptor;
+        private final GuardianRepeatSubmitProperties properties;
 
-        GuardianRepeatSubmitWebMvcConfiguration(RepeatSubmitInterceptor repeatSubmitInterceptor) {
+        GuardianRepeatSubmitWebMvcConfiguration(RepeatSubmitInterceptor repeatSubmitInterceptor, GuardianRepeatSubmitProperties properties) {
             this.repeatSubmitInterceptor = repeatSubmitInterceptor;
+            this.properties = properties;
         }
 
         @Override
         public void addInterceptors(InterceptorRegistry registry) {
-            registry.addInterceptor(repeatSubmitInterceptor).addPathPatterns("/**");
+            registry.addInterceptor(repeatSubmitInterceptor).addPathPatterns("/**").order(properties.getInterceptorOrder());
         }
     }
 
-    /** 请求体缓存过滤器，使 JSON body 可重复读取 */
+    /**
+     * 请求体缓存过滤器，使 JSON body 可重复读取
+     */
     @Bean
     @ConditionalOnMissingBean(RepeatableRequestFilter.class)
     public FilterRegistrationBean<RepeatableRequestFilter> repeatableRequestFilterRegistration() {
@@ -73,12 +76,12 @@ public class GuardianRepeatSubmitAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(RepeatSubmitInterceptor.class)
-    public RepeatSubmitInterceptor repeatSubmitInterceptor(KeyGeneratorManager keyGeneratorManager,
+    public RepeatSubmitInterceptor repeatSubmitInterceptor(KeyGenerator keyGenerator,
                                                            RepeatSubmitStorage repeatSubmitStorage,
                                                            RepeatSubmitResponseHandler repeatSubmitResponseHandler,
                                                            GuardianRepeatSubmitProperties guardianProperties,
                                                            RepeatSubmitStatistics statistics) {
-        return new RepeatSubmitInterceptor(keyGeneratorManager, repeatSubmitStorage, repeatSubmitResponseHandler, guardianProperties.getUrls(), guardianProperties.getExcludeUrls(), guardianProperties.getResponseMode(), guardianProperties.isLogEnabled(), statistics);
+        return new RepeatSubmitInterceptor(keyGenerator, repeatSubmitStorage, repeatSubmitResponseHandler, guardianProperties.getUrls(), guardianProperties.getExcludeUrls(), guardianProperties.getResponseMode(), guardianProperties.isLogEnabled(), statistics);
     }
 
     /**
@@ -103,31 +106,17 @@ public class GuardianRepeatSubmitAutoConfiguration {
     }
 
     /**
-     * 防重键生成管理器
+     * 默认 JSON 响应处理器
      */
-    @Bean
-    @ConditionalOnMissingBean(KeyGeneratorManager.class)
-    public KeyGeneratorManager keyGeneratorManager(ApplicationContext applicationContext) {
-        return new KeyGeneratorManager(applicationContext);
-    }
-
-    /**
-     * 防重键加密管理器
-     */
-    @Bean
-    @ConditionalOnMissingBean(KeyEncryptManager.class)
-    public KeyEncryptManager keyEncryptManager(ApplicationContext applicationContext) {
-        return new KeyEncryptManager(applicationContext);
-    }
-
-    /** 默认 JSON 响应处理器 */
     @Bean
     @ConditionalOnMissingBean(RepeatSubmitResponseHandler.class)
     public RepeatSubmitResponseHandler repeatSubmitResponseHandler() {
         return new DefaultRepeatSubmitResponseHandler();
     }
 
-    /** 默认用户上下文（返回 null，降级为 sessionId/IP） */
+    /**
+     * 默认用户上下文（返回 null，降级为 sessionId/IP）
+     */
     @Bean
     @ConditionalOnMissingBean(UserContext.class)
     public UserContext defaultUserContext() {
@@ -136,10 +125,9 @@ public class GuardianRepeatSubmitAutoConfiguration {
 
     /** 默认防重键生成策略 */
     @Bean
-    @ConditionalOnProperty(prefix = "guardian.repeat-submit", name = "key-generator", havingValue = "default", matchIfMissing = true)
     @ConditionalOnMissingBean(KeyGenerator.class)
-    public DefaultKeyGenerator defaultKeyGenerator(UserContext userContext, KeyEncryptManager keyEncryptManager) {
-        return new DefaultKeyGenerator(userContext, keyEncryptManager);
+    public DefaultKeyGenerator defaultKeyGenerator(UserContext userContext, AbstractKeyEncrypt keyEncrypt) {
+        return new DefaultKeyGenerator(userContext, keyEncrypt);
     }
 
     /**
@@ -162,14 +150,18 @@ public class GuardianRepeatSubmitAutoConfiguration {
         return new KeyMD5Encrypt();
     }
 
-    /** 拦截统计 */
+    /**
+     * 拦截统计
+     */
     @Bean
     @ConditionalOnMissingBean(RepeatSubmitStatistics.class)
     public RepeatSubmitStatistics repeatSubmitStatistics() {
         return new RepeatSubmitStatistics();
     }
 
-    /** Actuator 端点 */
+    /**
+     * Actuator 端点
+     */
     @Bean
     @ConditionalOnClass(name = "org.springframework.boot.actuate.endpoint.annotation.Endpoint")
     @ConditionalOnMissingBean(RepeatSubmitEndPoint.class)

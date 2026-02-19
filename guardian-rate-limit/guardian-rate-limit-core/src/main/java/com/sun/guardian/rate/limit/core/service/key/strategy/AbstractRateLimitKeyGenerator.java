@@ -12,6 +12,9 @@ import com.sun.guardian.rate.limit.core.service.key.RateLimitKeyGenerator;
 
 import javax.servlet.http.HttpServletRequest;
 
+import static com.sun.guardian.rate.limit.core.constants.RateLimitKeyPrefixConstants.SW_KEY_PREFIX;
+import static com.sun.guardian.rate.limit.core.constants.RateLimitKeyPrefixConstants.TB_KEY_PREFIX;
+
 /**
  * 限流键生成基类（模板方法）
  *
@@ -20,16 +23,6 @@ import javax.servlet.http.HttpServletRequest;
  * @since 2026-02-15 17:01
  */
 public abstract class AbstractRateLimitKeyGenerator implements RateLimitKeyGenerator {
-
-    /**
-     * 滑动窗口 Key 前缀（Redis 中使用 ZSET 结构）
-     */
-    private static final String SW_KEY_PREFIX = "guardian:rate-limit:sw:{}";
-
-    /**
-     * 令牌桶 Key 前缀（Redis 中使用 HASH 结构）
-     */
-    private static final String TB_KEY_PREFIX = "guardian:rate-limit:tb:{}";
 
     private final UserContextUtils userContextUtils;
 

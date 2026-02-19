@@ -5,11 +5,11 @@ import com.sun.guardian.core.enums.response.ResponseMode;
 import com.sun.guardian.core.exception.RateLimitException;
 import com.sun.guardian.core.utils.GuardianLogUtils;
 import com.sun.guardian.core.utils.MatchUrlRuleUtils;
+import com.sun.guardian.core.utils.ResponseUtils;
 import com.sun.guardian.rate.limit.core.annotation.RateLimit;
 import com.sun.guardian.rate.limit.core.domain.rule.RateLimitRule;
 import com.sun.guardian.rate.limit.core.domain.token.RateLimitToken;
 import com.sun.guardian.rate.limit.core.service.key.RateLimitKeyGenerator;
-import com.sun.guardian.rate.limit.core.service.key.manager.RateLimitKeyGeneratorManager;
 import com.sun.guardian.rate.limit.core.service.response.RateLimitResponseHandler;
 import com.sun.guardian.rate.limit.core.statistics.RateLimitStatistics;
 import com.sun.guardian.rate.limit.core.storage.RateLimitStorage;
@@ -37,15 +37,15 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     private static final GuardianLogUtils logUtils = new GuardianLogUtils("[Guardian-Rate-Limit]", "@RateLimit");
 
-    private final RateLimitKeyGeneratorManager keyGeneratorManager;
+    private final RateLimitKeyGenerator keyGenerator;
     private final RateLimitStorage rateLimitStorage;
-    private final RateLimitResponseHandler rateLimitResponseHandler;
+    private final ResponseUtils responseUtils;
     private final List<RateLimitRule> urlRules;
     private final List<String> excludeRules;
-    private final ResponseMode responseMode;
     private final boolean logEnable;
     private final RateLimitStatistics statistics;
-    public RateLimitInterceptor(RateLimitKeyGeneratorManager keyGeneratorManager,
+
+    public RateLimitInterceptor(RateLimitKeyGenerator keyGenerator,
                                 RateLimitStorage rateLimitStorage,
                                 RateLimitResponseHandler rateLimitResponseHandler,
                                 List<RateLimitRule> urlRules,
@@ -53,12 +53,11 @@ public class RateLimitInterceptor implements HandlerInterceptor {
                                 ResponseMode responseMode,
                                 boolean logEnable,
                                 RateLimitStatistics statistics) {
-        this.keyGeneratorManager = keyGeneratorManager;
+        this.keyGenerator = keyGenerator;
         this.rateLimitStorage = rateLimitStorage;
-        this.rateLimitResponseHandler = rateLimitResponseHandler;
+        this.responseUtils = new ResponseUtils(responseMode, rateLimitResponseHandler, RateLimitException::new);
         this.urlRules = urlRules;
         this.excludeRules = excludeRules;
-        this.responseMode = responseMode;
         this.logEnable = logEnable;
         this.statistics = statistics;
     }
@@ -93,17 +92,12 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        RateLimitKeyGenerator keyGenerator = keyGeneratorManager.getKeyGenerator();
         RateLimitToken token = keyGenerator.generate(rule, request);
 
         if (!rateLimitStorage.tryAcquire(token)) {
             statistics.recordBlock(requestUri);
             logUtils.blockLog(logEnable, log, requestUri, token.getKey(), ip);
-            if (responseMode == ResponseMode.JSON) {
-                rateLimitResponseHandler.handle(request, response, rule.getMessage());
-                return false;
-            }
-            throw new RateLimitException(rule.getMessage());
+            return responseUtils.reject(request, response, rule.getMessage());
         }
 
         statistics.recordPass(requestUri);

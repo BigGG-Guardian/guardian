@@ -76,6 +76,25 @@ guardian:
     exclude-urls:
       - /guardian-example/rate-limit/yml/whitelist
 
+  # ==================== 接口幂等配置 ====================
+  idempotent:
+    # 总开关（默认 true）
+    enabled: true
+    # 存储方式：redis（默认）/ local
+    storage: redis
+    # Token 有效期（默认 300）
+    timeout: 10
+    # Token 有效期单位（默认秒）
+    time-unit: seconds
+    # 响应模式：exception（默认，抛异常）/ json（直接返回 JSON）
+    response-mode: json
+    # 是否打印拦截日志（默认 false）/ true
+    log-enabled: true
+    # 是否注册内置 Token 获取接口（默认 true）
+    token-endpoint: true
+    # 是否启用结果缓存（默认 false，启用后重复请求返回首次结果而非拒绝）
+    result-cache: true
+
 # Actuator 监控端点的配置项
 management:
   endpoints:

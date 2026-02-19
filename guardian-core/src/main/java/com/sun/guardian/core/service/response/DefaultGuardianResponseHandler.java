@@ -1,8 +1,7 @@
 package com.sun.guardian.core.service.response;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import com.sun.guardian.core.domain.BaseResult;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,12 +19,8 @@ import java.io.IOException;
 public class DefaultGuardianResponseHandler implements GuardianResponseHandler {
 
     @Override
-    public void handle(HttpServletRequest request, HttpServletResponse response, String message) throws IOException {
-        JSONObject result = new JSONObject();
-        result.set("code", 500);
-        result.set("msg", message);
-        result.set("timestamp", DateUtil.current());
-
+    public void handle(HttpServletRequest request, HttpServletResponse response, Integer code, Object data, String message) throws IOException {
+        BaseResult result = BaseResult.result(code, data, message);
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json;charset=UTF-8");
         response.getWriter().write(JSONUtil.toJsonStr(result));
