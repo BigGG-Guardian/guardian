@@ -13,7 +13,7 @@ public enum IdempotentTokenFrom {
      */
     HEADER,
     /**
-     * 从请求参数获取
+     * 从请求参数获取（优先 URL 参数 / 表单字段，其次解析 JSON Body）
      */
     PARAM;
 

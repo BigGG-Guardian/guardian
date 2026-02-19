@@ -40,6 +40,17 @@ public class IdempotentController {
     }
 
     /**
+     * JSON Body 方式传 Token — from=PARAM，Token 放在 JSON 请求体中
+     * <p>
+     * 请求示例：POST /idempotent/body-token  Body: {"token":"xxx","orderId":"123"}
+     */
+    @Idempotent(value = "body-token", from = IdempotentTokenFrom.PARAM, tokenName = "token")
+    @PostMapping("/body-token")
+    public CommonResult<String> bodyToken(@RequestBody Map<String, String> body) {
+        return CommonResult.success("JSON Body Token 接口调用成功，参数：" + body);
+    }
+
+    /**
      * 自定义 tokenName — Header 名改为 X-Pay-Token
      */
     @Idempotent(value = "custom-token", tokenName = "X-Pay-Token")

@@ -2,10 +2,12 @@ package com.sun.guardian.idempotent.core.interceptor;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.servlet.ServletUtil;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.sun.guardian.core.enums.response.ResponseMode;
 import com.sun.guardian.core.exception.IdempotentException;
 import com.sun.guardian.core.utils.GuardianLogUtils;
+import com.sun.guardian.core.utils.RepeatableRequestWrapper;
 import com.sun.guardian.core.utils.ResponseUtils;
 import com.sun.guardian.idempotent.core.advice.IdempotentResultCacheAdvice;
 import com.sun.guardian.idempotent.core.annotation.Idempotent;
@@ -24,6 +26,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -71,7 +74,7 @@ public class IdempotentInterceptor implements HandlerInterceptor {
 
         String token = (annotation.from() == IdempotentTokenFrom.HEADER)
                 ? request.getHeader(annotation.tokenName())
-                : request.getParameter(annotation.tokenName());
+                : resolveParamToken(request, annotation.tokenName());
 
         if (StrUtil.isBlank(token)) {
             statistics.recordBlock(requestURI);
@@ -109,5 +112,26 @@ public class IdempotentInterceptor implements HandlerInterceptor {
         }
 
         return true;
+    }
+
+    /**
+     * PARAM 模式解析 Token：先查 URL 参数 / 表单字段，查不到再从 JSON Body 中按 tokenName 取值
+     */
+    private String resolveParamToken(HttpServletRequest request, String tokenName) {
+        String token = request.getParameter(tokenName);
+        if (StrUtil.isNotBlank(token)) {
+            return token;
+        }
+        if (request instanceof RepeatableRequestWrapper) {
+            try {
+                String body = new String(((RepeatableRequestWrapper) request).getCachedBody(), StandardCharsets.UTF_8);
+                if (StrUtil.isNotBlank(body) && JSONUtil.isTypeJSON(body)) {
+                    JSONObject json = JSONUtil.parseObj(body);
+                    return json.getStr(tokenName);
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
     }
 }

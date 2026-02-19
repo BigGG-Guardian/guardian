@@ -27,7 +27,7 @@ public @interface Idempotent {
     IdempotentTokenFrom from() default IdempotentTokenFrom.HEADER;
 
     /**
-     * Token参数名(Header或请求参数名)
+     * Token 参数名（Header 名 / URL 参数名 / JSON Body 字段名）
      */
     String tokenName() default "X-Idempotent-Token";
 

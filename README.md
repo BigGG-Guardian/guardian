@@ -39,7 +39,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
 </dependency>
 ```
 
@@ -57,7 +57,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
 </dependency>
 ```
 
@@ -99,7 +99,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.4.0</version>
+    <version>1.4.1</version>
 </dependency>
 ```
 
@@ -474,8 +474,8 @@ public RateLimitResponseHandler rateLimitResponseHandler() {
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
 | `value` | **必填** | 接口唯一标识，用于隔离不同接口的 Token |
-| `from` | `HEADER` | Token 来源：`HEADER` / `PARAM` |
-| `tokenName` | `X-Idempotent-Token` | Header 名或请求参数名 |
+| `from` | `HEADER` | Token 来源：`HEADER` / `PARAM`（PARAM 模式依次查找 URL 参数、表单字段、JSON Body） |
+| `tokenName` | `X-Idempotent-Token` | Header 名 / URL 参数名 / JSON Body 字段名 |
 | `message` | `幂等Token无效或已消费` | 拒绝时的提示信息 |
 
 ### 全量配置
@@ -622,7 +622,7 @@ guardian:
 
 ## 更新日志
 
-### v1.4.0
+### v1.4.1
 
 - **新增**：接口幂等模块（`guardian-idempotent-spring-boot-starter`），Token 机制保证接口幂等性
 - **新增**：幂等结果缓存，开启后重复请求返回首次执行结果
