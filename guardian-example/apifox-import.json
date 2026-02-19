@@ -834,6 +834,46 @@
         }
       }
     },
+    "/idempotent/body-token": {
+      "post": {
+        "tags": ["接口幂等-业务接口"],
+        "summary": "JSON Body方式传Token",
+        "description": "Token 嵌在 JSON 请求体中，PARAM 模式自动解析 Body 中的 token 字段。先调用 GET /guardian/idempotent/token?key=body-token 获取 Token。",
+        "operationId": "idempotentBodyToken",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": { "type": "string", "example": "从Token接口获取" },
+                  "orderId": { "type": "string", "example": "ORD-002" },
+                  "amount": { "type": "string", "example": "199.99" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/idempotent/custom-token-name": {
       "post": {
         "tags": ["接口幂等-业务接口"],
