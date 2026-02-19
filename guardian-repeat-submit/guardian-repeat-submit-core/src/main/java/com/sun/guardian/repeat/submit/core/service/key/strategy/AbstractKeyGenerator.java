@@ -9,7 +9,6 @@ import com.sun.guardian.core.utils.UserContextUtils;
 import com.sun.guardian.repeat.submit.core.domain.key.RepeatSubmitKey;
 import com.sun.guardian.repeat.submit.core.domain.rule.RepeatSubmitRule;
 import com.sun.guardian.repeat.submit.core.domain.token.RepeatSubmitToken;
-import com.sun.guardian.repeat.submit.core.service.encrypt.manager.KeyEncryptManager;
 import com.sun.guardian.repeat.submit.core.service.encrypt.strategy.AbstractKeyEncrypt;
 import com.sun.guardian.repeat.submit.core.service.key.KeyGenerator;
 
@@ -27,11 +26,11 @@ import static com.sun.guardian.repeat.submit.core.constants.KeyPrefixConstants.D
 public abstract class AbstractKeyGenerator implements KeyGenerator {
 
     private final UserContextUtils userContextUtils;
-    private final KeyEncryptManager keyEncryptManager;
+    private final AbstractKeyEncrypt keyEncrypt;
 
-    protected AbstractKeyGenerator(UserContext userContext, KeyEncryptManager keyEncryptManager) {
+    protected AbstractKeyGenerator(UserContext userContext, AbstractKeyEncrypt keyEncrypt) {
         this.userContextUtils = new UserContextUtils(userContext);
-        this.keyEncryptManager = keyEncryptManager;
+        this.keyEncrypt = keyEncrypt;
     }
 
     @Override
@@ -39,7 +38,6 @@ public abstract class AbstractKeyGenerator implements KeyGenerator {
         RepeatSubmitKey repeatSubmitKey = buildRepeatSubmitKey(rule, request);
         String key = buildKey(repeatSubmitKey);
 
-        AbstractKeyEncrypt keyEncrypt = keyEncryptManager.getKeyEncrypt();
         String finishKey = StrUtil.format(DEFAULT_KEY_PREFIX, keyEncrypt.encrypt(key));
 
         return new RepeatSubmitToken()

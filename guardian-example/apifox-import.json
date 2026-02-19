@@ -15,7 +15,9 @@
     { "name": "防重复提交-注解方式" },
     { "name": "接口限流-YAML规则" },
     { "name": "接口限流-注解（滑动窗口）" },
-    { "name": "接口限流-注解（令牌桶）" }
+    { "name": "接口限流-注解（令牌桶）" },
+    { "name": "接口幂等-Token获取" },
+    { "name": "接口幂等-业务接口" }
   ],
   "paths": {
     "/repeat-submit/yml/whitelist": {
@@ -678,6 +680,257 @@
         "summary": "令牌桶-分钟级补充（5令牌/min, capacity=5）",
         "description": "初始5个令牌用完后约12秒恢复1个（5/60≈0.083/秒）。",
         "operationId": "rateLimitTokenBucketSlowRefill",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/guardian/idempotent/token": {
+      "get": {
+        "tags": ["接口幂等-Token获取"],
+        "summary": "获取幂等Token",
+        "description": "传入接口唯一标识 key，返回一次性幂等 Token。Token 默认有效期 300 秒，消费一次后失效。",
+        "operationId": "getIdempotentToken",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "order-submit" },
+            "description": "接口唯一标识，对应 @Idempotent(value)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "token": { "type": "string", "example": "a1b2c3d4e5f6" },
+                        "expireIn": { "type": "integer", "example": 300 },
+                        "expireUnit": { "type": "string", "example": "SECONDS" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/idempotent/header": {
+      "post": {
+        "tags": ["接口幂等-业务接口"],
+        "summary": "Header方式传Token",
+        "description": "请求头携带 X-Idempotent-Token，首次消费成功，重复请求被拒绝。先调用 GET /guardian/idempotent/token?key=order-submit 获取 Token。",
+        "operationId": "idempotentHeader",
+        "parameters": [
+          {
+            "name": "X-Idempotent-Token",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "幂等Token"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "orderId": { "type": "string", "example": "ORD-001" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/idempotent/param": {
+      "post": {
+        "tags": ["接口幂等-业务接口"],
+        "summary": "Param方式传Token",
+        "description": "通过请求参数传递 Token。先调用 GET /guardian/idempotent/token?key=pay-confirm 获取 Token。",
+        "operationId": "idempotentParam",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "幂等Token（请求参数方式）"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "amount": { "type": "string", "example": "99.99" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/idempotent/custom-token-name": {
+      "post": {
+        "tags": ["接口幂等-业务接口"],
+        "summary": "自定义tokenName",
+        "description": "Header 名改为 X-Pay-Token。先调用 GET /guardian/idempotent/token?key=custom-token 获取 Token。",
+        "operationId": "idempotentCustomTokenName",
+        "parameters": [
+          {
+            "name": "X-Pay-Token",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "自定义名称的幂等Token"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": { "type": "string", "example": "test" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/idempotent/null-return": {
+      "post": {
+        "tags": ["接口幂等-业务接口"],
+        "summary": "返回null（验证缓存null场景）",
+        "description": "Controller 返回 null，验证结果缓存对 null 的处理。先调用 GET /guardian/idempotent/token?key=null-return 获取 Token。",
+        "operationId": "idempotentNullReturn",
+        "parameters": [
+          {
+            "name": "X-Idempotent-Token",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "幂等Token"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功（返回 null）"
+          }
+        }
+      }
+    },
+    "/idempotent/custom-message": {
+      "post": {
+        "tags": ["接口幂等-业务接口"],
+        "summary": "自定义拒绝提示",
+        "description": "自定义 message 提示信息。先调用 GET /guardian/idempotent/token?key=custom-msg 获取 Token。",
+        "operationId": "idempotentCustomMessage",
+        "parameters": [
+          {
+            "name": "X-Idempotent-Token",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "幂等Token"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "data": { "type": "string", "example": "test" }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "成功",

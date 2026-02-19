@@ -14,6 +14,8 @@ import java.io.IOException;
 @FunctionalInterface
 public interface GuardianResponseHandler {
 
-    /** 处理拦截后的响应输出 */
-    void handle(HttpServletRequest request, HttpServletResponse response, String message) throws IOException;
+    /**
+     * 处理拦截后的响应输出
+     */
+    void handle(HttpServletRequest request, HttpServletResponse response, Integer code, Object data, String message) throws IOException;
 }

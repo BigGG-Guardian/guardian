@@ -14,19 +14,35 @@ import static com.sun.guardian.rate.limit.core.enums.scope.RateLimitKeyScope.*;
  */
 public interface RateLimitKeyPrefixConstants {
 
-    /** 外层前缀模板 */
-    String DEFAULT_KEY_PREFIX = "guardian:rate-limit:{}";
+    /**
+     * 滑动窗口 Key 前缀（Redis 中使用 ZSET 结构）
+     */
+    String SW_KEY_PREFIX = "guardian:rate-limit:sw:{}";
 
-    /** 用户级：uri + method + userId */
+    /**
+     * 令牌桶 Key 前缀（Redis 中使用 HASH 结构）
+     */
+    String TB_KEY_PREFIX = "guardian:rate-limit:tb:{}";
+
+
+    /**
+     * 用户级：uri + method + userId
+     */
     String USER_KEY_SUFFIX = "{servletUri}:{method}:{userId}";
 
-    /** IP 级：uri + method + clientIp */
+    /**
+     * IP 级：uri + method + clientIp
+     */
     String IP_KEY_SUFFIX = "{servletUri}:{method}:{clientIp}";
 
-    /** 全局级：uri + method */
+    /**
+     * 全局级：uri + method
+     */
     String GLOBAL_KEY_SUFFIX = "{servletUri}:{method}";
 
-    /** 按维度获取 Key 模板 */
+    /**
+     * 按维度获取 Key 模板
+     */
     static String getSuffixByKeyScope(String keyScope) {
         if (StrUtil.equals(IP.key, keyScope)) {
             return IP_KEY_SUFFIX;
