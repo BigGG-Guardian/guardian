@@ -11,7 +11,6 @@ import java.util.Collections;
 
 /**
  * 限流存储 - Redis
- * <p>
  * 滑动窗口：ZSET（score=时间戳，member=时间戳-随机数），令牌桶：HASH（tokens + lastRefill）
  *
  * @author scj
@@ -23,11 +22,9 @@ public class RateLimitRedisStorage implements RateLimitStorage {
 
     private final StringRedisTemplate redisTemplate;
 
-    // ==================== 滑动窗口 Lua ====================
-
     /**
      * KEYS[1]=限流Key, ARGV[1]=now, ARGV[2]=windowStart, ARGV[3]=maxCount, ARGV[4]=expireSeconds
-     * <br>返回 1=放行 0=拒绝
+     * 返回 1=放行 0=拒绝
      */
     private static final DefaultRedisScript<Long> SLIDING_WINDOW_SCRIPT;
 
@@ -52,11 +49,9 @@ public class RateLimitRedisStorage implements RateLimitStorage {
         SLIDING_WINDOW_SCRIPT.setResultType(Long.class);
     }
 
-    // ==================== 令牌桶 Lua ====================
-
     /**
      * KEYS[1]=限流Key, ARGV[1]=ratePerSecond, ARGV[2]=capacity, ARGV[3]=now(ms), ARGV[4]=expireSeconds
-     * <br>返回 1=放行 0=拒绝
+     * 返回 1=放行 0=拒绝
      */
     private static final DefaultRedisScript<Long> TOKEN_BUCKET_SCRIPT;
 
@@ -89,6 +84,9 @@ public class RateLimitRedisStorage implements RateLimitStorage {
         TOKEN_BUCKET_SCRIPT.setResultType(Long.class);
     }
 
+    /**
+     * 尝试获取限流许可
+     */
     @Override
     public boolean tryAcquire(RateLimitToken token) {
         if (token.getAlgorithm() == RateLimitAlgorithm.TOKEN_BUCKET) {
@@ -97,6 +95,9 @@ public class RateLimitRedisStorage implements RateLimitStorage {
         return tryAcquireSlidingWindow(token);
     }
 
+    /**
+     * 滑动窗口限流判定
+     */
     private boolean tryAcquireSlidingWindow(RateLimitToken token) {
         long now = System.currentTimeMillis();
         long windowStart = now - token.getWindowMillis();
@@ -111,6 +112,9 @@ public class RateLimitRedisStorage implements RateLimitStorage {
         return result != null && result == 1L;
     }
 
+    /**
+     * 令牌桶限流判定
+     */
     private boolean tryAcquireTokenBucket(RateLimitToken token) {
         long now = System.currentTimeMillis();
 

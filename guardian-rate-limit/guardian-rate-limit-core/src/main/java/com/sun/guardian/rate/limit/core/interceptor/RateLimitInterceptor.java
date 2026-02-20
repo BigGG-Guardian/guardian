@@ -25,10 +25,11 @@ import java.util.List;
 
 /**
  * 接口限流拦截器
- * <p>
- * 优先级：排除规则 → YAML 规则 → {@link RateLimit @RateLimit} 注解 → 放行
+ *
+ * 优先级：排除规则 → YAML 规则 → @RateLimit 注解 → 放行
  *
  * @author scj
+ * @version java version 1.8
  * @since 2026-02-09
  */
 public class RateLimitInterceptor implements HandlerInterceptor {
@@ -45,6 +46,9 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     private final boolean logEnable;
     private final RateLimitStatistics statistics;
 
+    /**
+     * 构造限流拦截器
+     */
     public RateLimitInterceptor(RateLimitKeyGenerator keyGenerator,
                                 RateLimitStorage rateLimitStorage,
                                 RateLimitResponseHandler rateLimitResponseHandler,
@@ -62,6 +66,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         this.statistics = statistics;
     }
 
+    /** 请求预处理：执行限流判定 */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler) throws IOException {

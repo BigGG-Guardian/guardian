@@ -21,6 +21,7 @@ public class ResponseUtils {
     private final GuardianResponseHandler responseHandler;
     private final Function<String, RuntimeException> exceptionFactory;
 
+    /** 构造响应处理工具 */
     public ResponseUtils(ResponseMode responseMode,
                          GuardianResponseHandler responseHandler,
                          Function<String, RuntimeException> exceptionFactory) {

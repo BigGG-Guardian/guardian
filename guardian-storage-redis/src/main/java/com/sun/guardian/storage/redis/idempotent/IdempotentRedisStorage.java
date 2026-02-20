@@ -17,11 +17,17 @@ public class IdempotentRedisStorage implements IdempotentStorage {
 
     private final StringRedisTemplate redisTemplate;
 
+    /**
+     * 保存幂等令牌
+     */
     @Override
     public void save(IdempotentToken token) {
         redisTemplate.opsForValue().set(token.getKey(), String.valueOf(token.getCreateTime()), token.getTimeout(), token.getTimeUnit());
     }
 
+    /**
+     * 尝试消费幂等令牌
+     */
     @Override
     public boolean tryConsume(String tokenKey) {
         return Boolean.TRUE.equals(redisTemplate.delete(tokenKey));

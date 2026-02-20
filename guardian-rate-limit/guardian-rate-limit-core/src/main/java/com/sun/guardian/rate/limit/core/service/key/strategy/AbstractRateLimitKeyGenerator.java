@@ -26,6 +26,9 @@ public abstract class AbstractRateLimitKeyGenerator implements RateLimitKeyGener
 
     private final UserContextUtils userContextUtils;
 
+    /**
+     * 构造限流键生成基类
+     */
     protected AbstractRateLimitKeyGenerator(UserContext userContext) {
         this.userContextUtils = new UserContextUtils(userContext);
     }

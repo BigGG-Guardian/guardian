@@ -20,6 +20,9 @@ public class DefaultIdempotentTokenService implements IdempotentTokenService {
     private final long timeout;
     private final TimeUnit timeUnit;
 
+    /**
+     * 构造默认幂等Token服务
+     */
     public DefaultIdempotentTokenService(IdempotentTokenGenerator tokenGenerator, IdempotentStorage idempotentStorage, long timeout, TimeUnit timeUnit) {
         this.tokenGenerator = tokenGenerator;
         this.idempotentStorage = idempotentStorage;

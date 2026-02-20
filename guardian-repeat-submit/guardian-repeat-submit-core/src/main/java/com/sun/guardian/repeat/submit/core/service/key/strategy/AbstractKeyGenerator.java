@@ -28,11 +28,17 @@ public abstract class AbstractKeyGenerator implements KeyGenerator {
     private final UserContextUtils userContextUtils;
     private final AbstractKeyEncrypt keyEncrypt;
 
+    /**
+     * 构造防重键生成基类
+     */
     protected AbstractKeyGenerator(UserContext userContext, AbstractKeyEncrypt keyEncrypt) {
         this.userContextUtils = new UserContextUtils(userContext);
         this.keyEncrypt = keyEncrypt;
     }
 
+    /**
+     * 生成防重提交令牌
+     */
     @Override
     public RepeatSubmitToken generate(RepeatSubmitRule rule, HttpServletRequest request) {
         RepeatSubmitKey repeatSubmitKey = buildRepeatSubmitKey(rule, request);
@@ -47,7 +53,9 @@ public abstract class AbstractKeyGenerator implements KeyGenerator {
                 .setCreateTime(DateUtil.date().getTime());
     }
 
-    /** 组装防重键数据 */
+    /**
+     * 组装防重键数据
+     */
     private RepeatSubmitKey buildRepeatSubmitKey(RepeatSubmitRule rule, HttpServletRequest request) {
         return new RepeatSubmitKey()
                 .setUserId(userContextUtils.resolveUserId(request))
@@ -59,6 +67,8 @@ public abstract class AbstractKeyGenerator implements KeyGenerator {
                 .setArgs(ArgsUtil.toSortedJsonStr(request));
     }
 
-    /** 子类实现：拼接防重 Key */
+    /**
+     * 子类实现：拼接防重 Key
+     */
     protected abstract String buildKey(RepeatSubmitKey repeatSubmitKey);
 }

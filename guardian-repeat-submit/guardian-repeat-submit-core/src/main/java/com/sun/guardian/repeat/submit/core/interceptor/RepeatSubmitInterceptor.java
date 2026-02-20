@@ -24,11 +24,10 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * 防重复提交拦截器
- * <p>
- * 优先级：排除规则 → YAML 规则 → {@link RepeatSubmit @RepeatSubmit} 注解 → 放行
+ * 防重复提交拦截器，优先级：排除规则 → YAML 规则 → @RepeatSubmit 注解 → 放行
  *
  * @author scj
+ * @version java version 1.8
  * @since 2026-02-09
  */
 public class RepeatSubmitInterceptor implements HandlerInterceptor {
@@ -45,6 +44,9 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
     private final boolean logEnable;
     private final RepeatSubmitStatistics statistics;
 
+    /**
+     * 构造防重复提交拦截器
+     */
     public RepeatSubmitInterceptor(KeyGenerator keyGenerator,
                                    RepeatSubmitStorage repeatSubmitStorage,
                                    RepeatSubmitResponseHandler repeatSubmitResponseHandler,
@@ -62,6 +64,9 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
         this.statistics = statistics;
     }
 
+    /**
+     * 前置拦截防重复提交
+     */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler) throws IOException {
@@ -107,7 +112,9 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
         return true;
     }
 
-    /** 异常时释放防重锁 */
+    /**
+     * 异常时释放防重锁
+     */
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
                                 Object handler, Exception ex) {

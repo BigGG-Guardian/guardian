@@ -11,16 +11,23 @@ import java.util.Map;
  * 防重 Actuator 端点（GET /actuator/guardianRepeatSubmit）
  *
  * @author scj
+ * @version java version 1.8
+ * @since 2026-02-20
  */
 @Endpoint(id = "guardianRepeatSubmit")
 public class RepeatSubmitEndPoint {
     private final RepeatSubmitStatistics statistics;
 
+    /**
+     * 构造防重 Actuator 端点
+     */
     public RepeatSubmitEndPoint(RepeatSubmitStatistics statistics) {
         this.statistics = statistics;
     }
 
-    /** 防重统计数据 */
+    /**
+     * 防重统计数据
+     */
     @ReadOperation
     public Map<String, Object> info() {
         Map<String, Object> result = new LinkedHashMap<>();

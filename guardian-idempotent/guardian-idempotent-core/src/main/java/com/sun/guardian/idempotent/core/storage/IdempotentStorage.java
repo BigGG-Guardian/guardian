@@ -22,7 +22,7 @@ public interface IdempotentStorage {
      * 消费Token（原子操作，成功一次后删除）
      *
      * @param tokenKey 存储Key
-     * @return {@code true} 首次消费成功，{@code false} 不存在或已消费
+     * @return true 首次消费成功，false 不存在或已消费
      */
     boolean tryConsume(String tokenKey);
 }

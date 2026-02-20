@@ -11,7 +11,7 @@ public enum ResponseMode {
 
     /**
      * 异常模式（默认），
-     * 由业务 {@code @RestControllerAdvice} 全局异常处理器捕获并统一返回
+     * 由业务 @RestControllerAdvice 全局异常处理器捕获并统一返回
      */
     EXCEPTION,
 

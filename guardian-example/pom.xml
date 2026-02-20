@@ -58,5 +58,20 @@
             <groupId>io.github.biggg-guardian</groupId>
             <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
         </dependency>
+        <!-- Guardian 请求参数自动trim -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- Guardian 慢接口检测 -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- Guardian 请求链路 TraceId -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-trace-spring-boot-starter</artifactId>
+        </dependency>
     </dependencies>
 </project>

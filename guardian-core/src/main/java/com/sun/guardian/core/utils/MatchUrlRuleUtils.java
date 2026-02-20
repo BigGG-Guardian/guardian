@@ -8,7 +8,6 @@ import java.util.List;
 
 /**
  * URL 规则匹配工具类（AntPath 通配符，兼容 context-path）
- * <p>
  * 每条规则先用完整 requestUri 匹配，未命中再用去掉 context-path 后的路径匹配。
  *
  * @author scj
@@ -22,7 +21,9 @@ public class MatchUrlRuleUtils {
 
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
 
-    /** 去除 context-path 前缀 */
+    /**
+     * 去除 context-path 前缀
+     */
     public static String stripContextPath(String requestUri, String contextPath) {
         if (contextPath != null && !contextPath.isEmpty() && requestUri.startsWith(contextPath)) {
             return requestUri.substring(contextPath.length());
@@ -30,7 +31,9 @@ public class MatchUrlRuleUtils {
         return requestUri;
     }
 
-    /** 匹配排除规则（白名单），命中则跳过 */
+    /**
+     * 匹配排除规则（白名单），命中则跳过
+     */
     public static boolean matchExcludeUrlRule(List<String> excludeUrlRules,
                                               String requestUri, String pathWithoutContext) {
         if (excludeUrlRules == null || excludeUrlRules.isEmpty()) {
@@ -51,7 +54,9 @@ public class MatchUrlRuleUtils {
         return false;
     }
 
-    /** 匹配 URL 规则，命中返回对应规则 */
+    /**
+     * 匹配 URL 规则，命中返回对应规则
+     */
     public static <T extends BaseRule> T matchUrlRule(List<T> urlRules,
                                                       String requestUri, String pathWithoutContext) {
         if (urlRules == null || urlRules.isEmpty()) {

@@ -28,15 +28,24 @@ public class IdempotentResultCacheAdvice implements ResponseBodyAdvice<Object> {
 
     public static final String ATTR_KEY = "guardian_idempotent_result";
 
+    /**
+     * 构造幂等返回值缓存切面
+     */
     public IdempotentResultCacheAdvice(IdempotentResultCache resultCache) {
         this.resultCache = resultCache;
     }
 
+    /**
+     * 判断是否支持返回值缓存
+     */
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
         return true;
     }
 
+    /**
+     * 写入响应体前缓存幂等返回值
+     */
     @Override
     public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
         if (!(request instanceof ServletServerHttpRequest)) {

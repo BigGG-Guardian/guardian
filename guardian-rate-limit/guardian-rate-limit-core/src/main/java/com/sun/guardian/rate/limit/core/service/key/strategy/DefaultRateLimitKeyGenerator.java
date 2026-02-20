@@ -15,10 +15,14 @@ import static com.sun.guardian.rate.limit.core.constants.RateLimitKeyPrefixConst
  */
 public class DefaultRateLimitKeyGenerator extends AbstractRateLimitKeyGenerator {
 
+    /**
+     * 构造默认限流键生成器
+     */
     public DefaultRateLimitKeyGenerator(UserContext userContext) {
         super(userContext);
     }
 
+    /** 拼接限流 Key */
     @Override
     protected String buildKey(RateLimitKey key) {
         return TemplateUtil.formatByBean(getSuffixByKeyScope(key.getKeyScope()), key);

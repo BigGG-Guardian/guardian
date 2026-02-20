@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.sun.guardian.slow.api.starter.config.GuardianSlowApiAutoConfiguration

@@ -9,6 +9,7 @@ package com.sun.guardian.core.exception;
  */
 public class RateLimitException extends RuntimeException {
 
+    /** 构造限流异常 */
     public RateLimitException(String message) {
         super(message);
     }

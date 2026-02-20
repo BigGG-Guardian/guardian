@@ -17,6 +17,9 @@ public class RepeatSubmitRedisStorage implements RepeatSubmitStorage {
 
     private final StringRedisTemplate redisTemplate;
 
+    /**
+     * 尝试获取防重提交锁
+     */
     @Override
     public boolean tryAcquire(RepeatSubmitToken token) {
         Boolean success = redisTemplate.opsForValue()
@@ -27,6 +30,9 @@ public class RepeatSubmitRedisStorage implements RepeatSubmitStorage {
         return Boolean.TRUE.equals(success);
     }
 
+    /**
+     * 释放防重提交锁
+     */
     @Override
     public void release(RepeatSubmitToken token) {
         redisTemplate.delete(token.getKey());

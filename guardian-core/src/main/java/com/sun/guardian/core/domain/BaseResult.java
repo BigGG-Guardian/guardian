@@ -21,6 +21,7 @@ public class BaseResult {
 
     private long timestamp;
 
+    /** 构建成功响应 */
     public static BaseResult success(Object data) {
         return new BaseResult()
                 .setCode(200)
@@ -29,6 +30,7 @@ public class BaseResult {
                 .setTimestamp(System.currentTimeMillis());
     }
 
+    /** 构建失败响应 */
     public static BaseResult error(String msg) {
         return new BaseResult()
                 .setCode(500)
@@ -37,6 +39,7 @@ public class BaseResult {
                 .setTimestamp(System.currentTimeMillis());
     }
 
+    /** 构建自定义响应 */
     public static BaseResult result(int code, Object data, String msg) {
         return new BaseResult()
                 .setCode(code)

@@ -17,6 +17,7 @@ public class UserContextUtils {
 
     private final UserContext userContext;
 
+    /** 构造用户上下文工具 */
     public UserContextUtils(UserContext userContext) {
         this.userContext = userContext;
     }

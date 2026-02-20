@@ -9,6 +9,7 @@ package com.sun.guardian.core.exception;
  */
 public class IdempotentException extends RuntimeException {
 
+    /** 构造幂等异常 */
     public IdempotentException(String message) {
         super(message);
     }

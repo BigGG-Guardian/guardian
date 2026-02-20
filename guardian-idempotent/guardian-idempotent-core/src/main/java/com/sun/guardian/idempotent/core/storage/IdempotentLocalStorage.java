@@ -27,11 +27,17 @@ public class IdempotentLocalStorage implements IdempotentStorage {
         cleaner.scheduleAtFixedRate(this::cleanup, 5, 5, TimeUnit.MINUTES);
     }
 
+    /**
+     * 保存幂等Token
+     */
     @Override
     public void save(IdempotentToken token) {
         cache.put(token.getKey(), System.currentTimeMillis() + token.getTimeUnit().toMillis(token.getTimeout()));
     }
 
+    /**
+     * 尝试消费幂等Token
+     */
     @Override
     public boolean tryConsume(String tokenKey) {
         Long expireAt = cache.remove(tokenKey);

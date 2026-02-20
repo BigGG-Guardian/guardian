@@ -7,7 +7,7 @@ import cn.hutool.json.JSONUtil;
 import com.sun.guardian.core.enums.response.ResponseMode;
 import com.sun.guardian.core.exception.IdempotentException;
 import com.sun.guardian.core.utils.GuardianLogUtils;
-import com.sun.guardian.core.utils.RepeatableRequestWrapper;
+import com.sun.guardian.core.wrapper.RepeatableRequestWrapper;
 import com.sun.guardian.core.utils.ResponseUtils;
 import com.sun.guardian.idempotent.core.advice.IdempotentResultCacheAdvice;
 import com.sun.guardian.idempotent.core.annotation.Idempotent;
@@ -48,6 +48,9 @@ public class IdempotentInterceptor implements HandlerInterceptor {
     private final long timeout;
     private final TimeUnit timeoutUnit;
 
+    /**
+     * 构造接口幂等拦截器
+     */
     public IdempotentInterceptor(IdempotentStorage storage, IdempotentResultCache resultCache, IdempotentResponseHandler idempotentResponseHandler, IdempotentStatistics statistics, boolean logEnabled, ResponseMode responseMode, long timeout, TimeUnit timeoutUnit) {
         this.responseUtils = new ResponseUtils(responseMode, idempotentResponseHandler, IdempotentException::new);
         this.storage = storage;

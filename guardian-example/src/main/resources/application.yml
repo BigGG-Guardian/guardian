@@ -79,6 +79,46 @@ guardian:
     exclude-urls:
       - /guardian-example/rate-limit/yml/whitelist
 
+  # ==================== 请求参数自动trim配置 ====================
+  auto-trim:
+    # 总开关（默认 true）
+    enabled: true
+    # Filter 排序（值越小越先执行，默认 -10000）
+    filter-order: -10000
+    # 排除字段列表（表单参数 + JSON body 字段统一生效，这些字段不会被 trim）
+    exclude-fields:
+      - password
+      - signature
+    # 字符替换规则（先替换后 trim，from 支持转义：\\r \\n \\t \\uXXXX）
+    character-replacements:
+      - from: "\\r"
+        to: ""
+      - from: "\\u200B"
+        to: ""
+      - from: "\\uFEFF"
+        to: ""
+
+  # ==================== 慢接口检测配置 ====================
+  slow-api:
+    # 总开关（默认 true）
+    enabled: true
+    # 慢接口阈值（毫秒，默认 3000）
+    threshold: 3000
+    # 拦截器排序（值越小越先执行，默认 -1000）
+    interceptor-order: -1000
+    # 排除规则（白名单，命中直接跳过检测）
+    exclude-urls:
+      - /guardian-example/slow-api/health
+
+  # ==================== 请求链路 TraceId 配置 ====================
+  trace:
+    # 总开关（默认 true）
+    enabled: true
+    # Filter 排序（值越小越先执行，默认 -20000，最先执行以覆盖全链路）
+    filter-order: -20000
+    # TraceId 请求头/响应头名称（默认 X-Trace-Id）
+    header-name: X-Trace-Id
+
   # ==================== 接口幂等配置 ====================
   idempotent:
     # 总开关（默认 true）

@@ -17,7 +17,10 @@
     { "name": "接口限流-注解（滑动窗口）" },
     { "name": "接口限流-注解（令牌桶）" },
     { "name": "接口幂等-Token获取" },
-    { "name": "接口幂等-业务接口" }
+    { "name": "接口幂等-业务接口" },
+    { "name": "参数自动trim" },
+    { "name": "慢接口检测" },
+    { "name": "请求链路TraceId" }
   ],
   "paths": {
     "/repeat-submit/yml/whitelist": {
@@ -982,6 +985,546 @@
                     "code": { "type": "integer", "example": 200 },
                     "message": { "type": "string", "example": "success" },
                     "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auto-trim/form": {
+      "get": {
+        "tags": ["参数自动trim"],
+        "summary": "表单参数trim",
+        "description": "GET 请求，query 参数前后空格自动去除。测试：传入 name=\" guardian \"&email=\" test@test.com \"，返回值中空格被去除。",
+        "operationId": "autoTrimForm",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "  guardian  " },
+            "description": "姓名（前后带空格，验证trim效果）"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "  test@test.com  " },
+            "description": "邮箱（前后带空格，验证trim效果）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string", "example": "guardian" },
+                        "email": { "type": "string", "example": "test@test.com" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auto-trim/json": {
+      "post": {
+        "tags": ["参数自动trim"],
+        "summary": "JSON Body trim",
+        "description": "POST 请求，JSON 字段值前后空格自动去除。测试：传入带空格的 JSON 字段值，返回值中空格被去除。",
+        "operationId": "autoTrimJson",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": { "type": "string", "example": "  admin  " },
+                  "nickname": { "type": "string", "example": "  测试用户  " },
+                  "remark": { "type": "string", "example": "  这是一条备注  " }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "username": { "type": "string", "example": "admin" },
+                        "nickname": { "type": "string", "example": "测试用户" },
+                        "remark": { "type": "string", "example": "这是一条备注" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auto-trim/exclude": {
+      "post": {
+        "tags": ["参数自动trim"],
+        "summary": "排除字段验证（表单）",
+        "description": "password 字段配置在 exclude-fields 中，不会被 trim。测试：username 和 password 都传带空格的值，username 被 trim，password 保持原样。",
+        "operationId": "autoTrimExclude",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "  admin  " },
+            "description": "用户名（会被trim）"
+          },
+          {
+            "name": "password",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "  abc 123  " },
+            "description": "密码（exclude-fields，不会被trim）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "username": { "type": "string", "example": "admin" },
+                        "password": { "type": "string", "example": "  abc 123  " }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auto-trim/json-exclude": {
+      "post": {
+        "tags": ["参数自动trim"],
+        "summary": "排除字段验证（JSON）",
+        "description": "JSON body 中 signature 字段配置在 exclude-fields 中，不会被 trim。测试：name 被 trim，signature 保持原样。",
+        "operationId": "autoTrimJsonExclude",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "  guardian  " },
+                  "signature": { "type": "string", "example": "  abc123==  " }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string", "example": "guardian" },
+                        "signature": { "type": "string", "example": "  abc123==  " }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auto-trim/sanitize": {
+      "post": {
+        "tags": ["参数自动trim"],
+        "summary": "特殊字符替换验证",
+        "description": "零宽空格(\\u200B)和BOM(\\uFEFF)会被替换为空字符串。测试：传入包含零宽字符的值，返回值中零宽字符被移除。",
+        "operationId": "autoTrimSanitize",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "content": { "type": "string", "example": "hello\u200Bworld" },
+                  "title": { "type": "string", "example": "\uFEFF标题文字" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "content": { "type": "string", "example": "helloworld" },
+                        "title": { "type": "string", "example": "标题文字" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auto-trim/mixed": {
+      "post": {
+        "tags": ["参数自动trim"],
+        "summary": "综合验证（trim+排除+替换）",
+        "description": "表单参数 trim + 排除字段 + 特殊字符替换同时生效。name 被 trim，password（exclude-fields）保持原样，code 被 trim。",
+        "operationId": "autoTrimMixed",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "  guardian  " },
+            "description": "姓名（会被trim）"
+          },
+          {
+            "name": "password",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "  secret123  " },
+            "description": "密码（exclude-fields，不会被trim）"
+          },
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "  ABC123  " },
+            "description": "验证码（会被trim）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string", "example": "guardian" },
+                        "password": { "type": "string", "example": "  secret123  " },
+                        "code": { "type": "string", "example": "ABC123" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slow-api/fast": {
+      "get": {
+        "tags": ["慢接口检测"],
+        "summary": "正常接口（立即返回）",
+        "description": "立即返回，不触发慢接口检测。验证正常接口不会被记录。",
+        "operationId": "slowApiFast",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slow-api/slow": {
+      "get": {
+        "tags": ["慢接口检测"],
+        "summary": "模拟慢接口（超全局阈值3000ms）",
+        "description": "sleep 指定时间，默认 4000ms，超过全局阈值 3000ms 触发慢接口检测。查看控制台 WARN 日志及 /actuator/guardianSlowApi 端点。",
+        "operationId": "slowApiSlow",
+        "parameters": [
+          {
+            "name": "sleepMs",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 4000 },
+            "description": "模拟耗时（毫秒），默认 4000"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slow-api/custom-threshold": {
+      "get": {
+        "tags": ["慢接口检测"],
+        "summary": "注解自定义阈值（@SlowApiThreshold 1000ms）",
+        "description": "@SlowApiThreshold(1000)，阈值设为 1000ms。默认 sleep 1500ms 触发检测。",
+        "operationId": "slowApiCustomThreshold",
+        "parameters": [
+          {
+            "name": "sleepMs",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 1500 },
+            "description": "模拟耗时（毫秒），默认 1500"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slow-api/health": {
+      "get": {
+        "tags": ["慢接口检测"],
+        "summary": "白名单接口（exclude-urls）",
+        "description": "配置在 exclude-urls 中，无论耗时多长都不触发慢接口检测。默认 sleep 5000ms 验证白名单生效。",
+        "operationId": "slowApiHealth",
+        "parameters": [
+          {
+            "name": "sleepMs",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 5000 },
+            "description": "模拟耗时（毫秒），默认 5000"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slow-api/boundary": {
+      "get": {
+        "tags": ["慢接口检测"],
+        "summary": "临界值验证（恰好3000ms）",
+        "description": "sleep 恰好 3000ms，等于全局阈值。验证 duration >= threshold 时触发检测。",
+        "operationId": "slowApiBoundary",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trace/basic": {
+      "get": {
+        "tags": ["请求链路TraceId"],
+        "summary": "基本TraceId",
+        "description": "自动生成 TraceId，查看响应头 X-Trace-Id 和响应体中返回的 traceId。同时查看控制台日志中的 [traceId] 字段。",
+        "operationId": "traceBasic",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "traceId": { "type": "string", "example": "143000a1b2c3d4e5" },
+                        "description": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trace/multi-log": {
+      "get": {
+        "tags": ["请求链路TraceId"],
+        "summary": "模拟多层调用（Controller→Service→Dao）",
+        "description": "同一请求内 Controller、Service、Dao 三层分别打日志，验证控制台输出的 traceId 完全一致。",
+        "operationId": "traceMultiLog",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "traceId": { "type": "string", "example": "143000a1b2c3d4e5" },
+                        "description": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trace/passthrough": {
+      "get": {
+        "tags": ["请求链路TraceId"],
+        "summary": "透传TraceId（请求头传入）",
+        "description": "请求头携带 X-Trace-Id: my-custom-trace-123，验证 Filter 复用而非重新生成。响应头和响应体中的 traceId 应与传入值一致。",
+        "operationId": "tracePassthrough",
+        "parameters": [
+          {
+            "name": "X-Trace-Id",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string", "example": "my-custom-trace-123" },
+            "description": "自定义 TraceId（模拟上游服务传递）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "traceId": { "type": "string", "example": "my-custom-trace-123" },
+                        "description": { "type": "string" }
+                      }
+                    }
                   }
                 }
               }
