@@ -47,4 +47,13 @@ public class GuardianIdempotentProperties extends BaseGuardianProperties {
     public GuardianIdempotentProperties() {
         setInterceptorOrder(3000);
     }
+
+    /**
+     * 校验参数合法性，不合法时抛出 IllegalArgumentException
+     */
+    public void validate() {
+        if (timeout <= 0) {
+            throw new IllegalArgumentException("[Guardian-Idempotent] timeout 必须大于 0，当前值：" + timeout);
+        }
+    }
 }

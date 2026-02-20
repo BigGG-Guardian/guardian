@@ -57,4 +57,13 @@ public class RepeatSubmitRule extends BaseRule {
                 .setKeyScope(annotation.keyScope())
                 .setClientType(annotation.clientType());
     }
+
+    /**
+     * 校验参数合法性，不合法时抛出 IllegalArgumentException
+     */
+    public void validate(String uri) {
+        if (interval <= 0) {
+            throw new IllegalArgumentException("[Guardian-Repeat-Submit] interval 必须大于 0，当前值：" + interval + "，URI：" + uri);
+        }
+    }
 }

@@ -79,7 +79,7 @@ public class RateLimitLocalStorage implements RateLimitStorage {
 
         synchronized (bucket) {
             long now = System.currentTimeMillis();
-            double elapsedSeconds = (now - bucket.lastRefillTime) / 1000.0;
+            double elapsedSeconds = Math.max(0, (now - bucket.lastRefillTime) / 1000.0);
             bucket.tokens = Math.min(effectiveCapacity, bucket.tokens + elapsedSeconds * ratePerSecond);
             bucket.lastRefillTime = now;
 

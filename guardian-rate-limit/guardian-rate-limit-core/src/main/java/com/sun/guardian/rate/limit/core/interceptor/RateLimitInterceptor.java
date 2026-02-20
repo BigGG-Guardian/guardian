@@ -92,6 +92,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        rule.validate(requestUri);
         RateLimitToken token = keyGenerator.generate(rule, request);
 
         if (!rateLimitStorage.tryAcquire(token)) {

@@ -42,4 +42,16 @@ public class RateLimitRule extends BaseRule {
                 .setAlgorithm(annotation.algorithm())
                 .setCapacity(annotation.capacity());
     }
+
+    /**
+     * 校验参数合法性，不合法时抛出 IllegalArgumentException
+     */
+    public void validate(String uri) {
+        if (qps <= 0) {
+            throw new IllegalArgumentException("[Guardian-Rate-Limit] qps 必须大于 0，当前值：" + qps + "，URI：" + uri);
+        }
+        if (window <= 0) {
+            throw new IllegalArgumentException("[Guardian-Rate-Limit] window 必须大于 0，当前值：" + window + "，URI：" + uri);
+        }
+    }
 }
