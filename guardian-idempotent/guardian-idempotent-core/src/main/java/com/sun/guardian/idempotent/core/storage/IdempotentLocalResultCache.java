@@ -27,6 +27,9 @@ public class IdempotentLocalResultCache implements IdempotentResultCache {
         cleaner.scheduleAtFixedRate(this::cleanup, 5, 5, TimeUnit.MINUTES);
     }
 
+    /**
+     * 缓存幂等返回值
+     */
     @Override
     public void cacheResult(IdempotentResult result) {
         String resultKey = result.getKey() + ":result";
@@ -36,6 +39,9 @@ public class IdempotentLocalResultCache implements IdempotentResultCache {
                 .setExpireAt(expireAt));
     }
 
+    /**
+     * 获取缓存的幂等返回值
+     */
     @Override
     public String getCacheResult(String key) {
         String resultKey = key + ":result";
@@ -50,6 +56,9 @@ public class IdempotentLocalResultCache implements IdempotentResultCache {
         return resultEntity.getJsonResult();
     }
 
+    /**
+     * 清除过期缓存
+     */
     private void cleanup() {
         long now = System.currentTimeMillis();
         cache.forEach((key, entry) -> {

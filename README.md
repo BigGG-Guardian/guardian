@@ -9,7 +9,7 @@
 
 <h1 align="center">Guardian</h1>
 <p align="center"><b>轻量级 Spring Boot API 请求层防护框架</b></p>
-<p align="center">防重提交、接口限流、接口幂等 —— 一个 Starter 搞定 API 请求防护。</p>
+<p align="center">防重提交、接口限流、接口幂等、参数自动Trim、慢接口检测、请求链路追踪 —— 一个 Starter 搞定 API 请求防护。</p>
 
 <p align="center">
   <a href="https://github.com/BigGG-Guardian/guardian">GitHub</a> ·
@@ -26,6 +26,9 @@
 | 防重复提交 | `guardian-repeat-submit-spring-boot-starter` | `@RepeatSubmit` | ✅ | 防止用户重复提交表单/请求 |
 | 接口限流 | `guardian-rate-limit-spring-boot-starter` | `@RateLimit` | ✅ | 滑动窗口 + 令牌桶，双算法可选 |
 | 接口幂等 | `guardian-idempotent-spring-boot-starter` | `@Idempotent` | — | Token 机制保证接口幂等性，支持结果缓存 |
+| 参数自动Trim | `guardian-auto-trim-spring-boot-starter` | — | ✅ | 自动去除请求参数首尾空格 + 不可见字符替换 |
+| 慢接口检测 | `guardian-slow-api-spring-boot-starter` | `@SlowApiThreshold` | ✅ | 慢接口检测 + Top N 统计 + Actuator 端点 |
+| 请求链路追踪 | `guardian-trace-spring-boot-starter` | — | ✅ | 自动生成/透传 TraceId，MDC 日志串联 |
 
 每个功能独立模块、独立 Starter，**用哪个引哪个，互不依赖**。
 
@@ -39,7 +42,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.4.3</version>
+    <version>1.5.0</version>
 </dependency>
 ```
 
@@ -57,7 +60,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.4.3</version>
+    <version>1.5.0</version>
 </dependency>
 ```
 
@@ -99,7 +102,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.4.3</version>
+    <version>1.5.0</version>
 </dependency>
 ```
 
@@ -120,6 +123,69 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 ```
 
 请求头带上 `X-Idempotent-Token: {token}`，首次请求正常处理，重复请求直接拒绝。
+
+### 参数自动Trim
+
+```xml
+<dependency>
+    <groupId>io.github.biggg-guardian</groupId>
+    <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
+    <version>1.5.0</version>
+</dependency>
+```
+
+零配置即可使用，所有请求参数（表单 + JSON Body）自动去除首尾空格。可选配置不可见字符替换：
+
+```yaml
+guardian:
+  auto-trim:
+    exclude-fields:
+      - password
+      - signature
+    character-replacements:
+      - from: "\\u200B"
+        to: ""
+```
+
+### 慢接口检测
+
+```xml
+<dependency>
+    <groupId>io.github.biggg-guardian</groupId>
+    <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
+    <version>1.5.0</version>
+</dependency>
+```
+
+零配置即可使用（默认阈值 3000ms），也可通过注解为单个接口自定义阈值：
+
+```java
+@SlowApiThreshold(1000)
+@GetMapping("/detail")
+public Result getDetail(@RequestParam Long id) {
+    return detailService.query(id);
+}
+```
+
+超过阈值自动打印 WARN 日志，通过 `GET /actuator/guardianSlowApi` 查看 Top N 慢接口排行。
+
+### 请求链路追踪
+
+```xml
+<dependency>
+    <groupId>io.github.biggg-guardian</groupId>
+    <artifactId>guardian-trace-spring-boot-starter</artifactId>
+    <version>1.5.0</version>
+</dependency>
+```
+
+零配置即可使用，每个请求自动生成 TraceId 并写入 MDC。只需在 logback pattern 中加入 `%X{traceId}`：
+
+```xml
+<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{traceId}] [%thread] %-5level %logger{36} - %msg%n</pattern>
+```
+
+上游服务通过请求头 `X-Trace-Id` 传递 TraceId，下游自动复用，实现跨服务链路串联。
 
 ---
 
@@ -559,6 +625,191 @@ public IdempotentResponseHandler idempotentResponseHandler() {
 
 ---
 
+## 参数自动Trim
+
+<details>
+<summary><b>展开查看完整文档</b></summary>
+
+### 功能说明
+
+自动去除所有请求参数的首尾空格，同时支持不可见字符替换（如零宽空格、BOM、回车符等从复制粘贴混入的脏字符）。同时作用于表单参数（Query / Form）和 JSON Body。
+
+### 全量配置
+
+```yaml
+guardian:
+  auto-trim:
+    enabled: true                      # 总开关（默认 true）
+    filter-order: -10000               # Filter 排序（值越小越先执行）
+    exclude-fields:                    # 排除字段（表单 + JSON Body 统一生效）
+      - password
+      - signature
+    character-replacements:            # 字符替换规则（先替换后 trim）
+      - from: "\\r"                    # 回车符
+        to: ""
+      - from: "\\u200B"               # 零宽空格
+        to: ""
+      - from: "\\uFEFF"               # BOM
+        to: ""
+```
+
+### 字符替换规则
+
+`character-replacements` 支持以下转义格式：
+
+| 转义写法 | 实际字符 | 说明 |
+|---------|---------|------|
+| `\\r` | `\r` | 回车符 |
+| `\\n` | `\n` | 换行符 |
+| `\\t` | `\t` | 制表符 |
+| `\\0` | `\0` | 空字符 |
+| `\\uXXXX` | Unicode 字符 | 如 `\\u200B` = 零宽空格 |
+
+执行顺序：**先执行字符替换，再执行 trim**。
+
+### 排除字段
+
+密码、签名等不应被 trim 的字段可加入 `exclude-fields`，同时作用于表单参数名和 JSON Body 字段名：
+
+```yaml
+guardian:
+  auto-trim:
+    exclude-fields:
+      - password
+      - signature
+```
+
+</details>
+
+---
+
+## 慢接口检测
+
+<details>
+<summary><b>展开查看完整文档</b></summary>
+
+### 功能说明
+
+自动检测响应时间超过阈值的接口，打印 WARN 日志并记录统计数据。支持全局阈值 + 注解覆盖，通过 Actuator 端点查看 Top N 排行。
+
+### 使用方式
+
+**零配置**：引入 Starter 即可使用，默认阈值 3000ms。
+
+**注解自定义阈值**：
+
+```java
+@SlowApiThreshold(1000)
+@GetMapping("/detail")
+public Result getDetail(@RequestParam Long id) {
+    return detailService.query(id);
+}
+```
+
+注解优先级高于全局配置。没有注解的接口使用全局阈值。
+
+### 全量配置
+
+```yaml
+guardian:
+  slow-api:
+    enabled: true                      # 总开关（默认 true）
+    threshold: 3000                    # 全局阈值（毫秒，默认 3000）
+    interceptor-order: -1000           # 拦截器排序（值越小越先执行）
+    exclude-urls:                      # 排除规则（白名单，命中跳过检测）
+      - /api/health
+      - /api/public/**
+```
+
+### 可观测性
+
+**日志输出**：超过阈值自动打印 WARN 日志，前缀 `[Guardian-Slow-Api]`：
+
+```
+WARN [Guardian-Slow-Api] @SlowApiThreshold 慢接口检测 | Method=GET | URI=/api/detail | 耗时=3521ms | 阈值=3000ms
+```
+
+**Actuator 端点**：`GET /actuator/guardianSlowApi`
+
+```json
+{
+  "totalSlowCount": 15,
+  "topSlowApis": {
+    "/api/detail": { "count": 8, "maxDuration": 5230 },
+    "/api/export": { "count": 7, "maxDuration": 12500 }
+  }
+}
+```
+
+</details>
+
+---
+
+## 请求链路追踪
+
+<details>
+<summary><b>展开查看完整文档</b></summary>
+
+### 功能说明
+
+自动为每个请求生成唯一的 TraceId，写入 MDC 和响应头。上游服务通过请求头传递 TraceId，下游自动复用，实现跨服务日志串联。
+
+### 使用方式
+
+**零配置**：引入 Starter 即可使用。
+
+在 Logback 配置中加入 `%X{traceId}` 即可在日志中打印 TraceId：
+
+```xml
+<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{traceId}] [%thread] %-5level %logger{36} - %msg%n</pattern>
+```
+
+### 工作流程
+
+```
+请求进入
+  │
+  ▼
+TraceIdFilter（OncePerRequestFilter）
+  ├─ 请求头有 X-Trace-Id → 复用（上游透传）
+  └─ 请求头没有 → 自动生成（时分秒 + 10位随机字符串）
+  │
+  ▼
+MDC.put("traceId", traceId)     ← 写入 MDC，日志自动携带
+response.setHeader(headerName)  ← 写入响应头，客户端可获取
+  │
+  ▼
+业务执行（同一线程内所有日志都带 traceId）
+  │
+  ▼
+MDC.remove("traceId")           ← 请求结束清理
+```
+
+### 跨服务链路串联
+
+上游服务调用下游时，把响应头中的 TraceId 传递到下游请求头即可：
+
+```
+服务 A 收到请求 → 生成 traceId=abc123 → 调用服务 B 时带上 X-Trace-Id: abc123
+服务 B 收到请求 → 从请求头取出 abc123 → 复用同一个 traceId
+```
+
+同一条链路上所有服务的日志都带 `abc123`，排查问题时按 TraceId 搜索即可。
+
+### 全量配置
+
+```yaml
+guardian:
+  trace:
+    enabled: true                      # 总开关（默认 true）
+    filter-order: -20000               # Filter 排序（值越小越先执行，确保最先执行）
+    header-name: X-Trace-Id            # 请求头/响应头名称（默认 X-Trace-Id）
+```
+
+</details>
+
+---
+
 ## 架构
 
 ### 模块结构
@@ -575,6 +826,15 @@ guardian-parent
 ├── guardian-idempotent/                   # 接口幂等
 │   ├── guardian-idempotent-core/
 │   └── guardian-idempotent-spring-boot-starter/
+├── guardian-auto-trim/                    # 参数自动Trim
+│   ├── guardian-auto-trim-core/
+│   └── guardian-auto-trim-spring-boot-starter/
+├── guardian-slow-api/                     # 慢接口检测
+│   ├── guardian-slow-api-core/
+│   └── guardian-slow-api-spring-boot-starter/
+├── guardian-trace/                        # 请求链路追踪
+│   ├── guardian-trace-core/
+│   └── guardian-trace-spring-boot-starter/
 ├── guardian-storage-redis/                # Redis 存储（多模块共享）
 └── guardian-example/                      # 示例工程
 ```
@@ -625,6 +885,18 @@ guardian:
 | 额外依赖 | 需要 Redis | 无 |
 
 ## 更新日志
+
+### v1.5.0
+
+- **新增**：参数自动Trim模块（`guardian-auto-trim-spring-boot-starter`），自动去除请求参数首尾空格，支持表单参数 + JSON Body
+- **新增**：不可见字符替换功能（`character-replacements`），可清除零宽空格、BOM、回车符等从复制粘贴混入的不可见字符
+- **新增**：排除字段配置（`exclude-fields`），密码、签名等敏感字段可跳过 Trim
+- **新增**：慢接口检测模块（`guardian-slow-api-spring-boot-starter`），超过阈值自动记录并打印 WARN 日志
+- **新增**：`@SlowApiThreshold` 注解，支持为单个接口自定义慢接口阈值
+- **新增**：慢接口 Actuator 端点（`GET /actuator/guardianSlowApi`），展示触发次数 + Top N 排行 + 最大耗时
+- **新增**：请求链路追踪模块（`guardian-trace-spring-boot-starter`），自动生成/透传 TraceId
+- **新增**：TraceId 写入 MDC + 响应头，Logback pattern 加 `%X{traceId}` 即可串联全链路日志
+- **新增**：上游服务通过 `X-Trace-Id` 请求头透传 TraceId，支持跨服务链路追踪
 
 ### v1.4.3
 

@@ -12,9 +12,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 限流存储 - 本地缓存（单机）
- * <p>
- * 滑动窗口：{@link LinkedList} + synchronized 记录时间戳
- * <br>令牌桶：惰性补充，请求时按时间差计算令牌
+ *
+ * 滑动窗口：LinkedList + synchronized 记录时间戳，令牌桶：惰性补充，请求时按时间差计算令牌
  *
  * @author scj
  * @version java version 1.8
@@ -38,6 +37,9 @@ public class RateLimitLocalStorage implements RateLimitStorage {
         cleaner.scheduleAtFixedRate(this::cleanup, 5, 5, TimeUnit.MINUTES);
     }
 
+    /**
+     * 尝试获取限流许可
+     */
     @Override
     public boolean tryAcquire(RateLimitToken token) {
         if (token.getAlgorithm() == RateLimitAlgorithm.TOKEN_BUCKET) {
@@ -46,8 +48,9 @@ public class RateLimitLocalStorage implements RateLimitStorage {
         return tryAcquireSlidingWindow(token);
     }
 
-    // ==================== 滑动窗口 ====================
-
+    /**
+     * 滑动窗口限流判定
+     */
     private boolean tryAcquireSlidingWindow(RateLimitToken token) {
         long now = System.currentTimeMillis();
         long windowStart = now - token.getWindowMillis();
@@ -69,8 +72,9 @@ public class RateLimitLocalStorage implements RateLimitStorage {
         }
     }
 
-    // ==================== 令牌桶 ====================
-
+    /**
+     * 令牌桶限流判定
+     */
     private boolean tryAcquireTokenBucket(RateLimitToken token) {
         int effectiveCapacity = token.getEffectiveCapacity();
         double ratePerSecond = token.getRefillRatePerSecond();
@@ -91,6 +95,9 @@ public class RateLimitLocalStorage implements RateLimitStorage {
         }
     }
 
+    /**
+     * 清理空闲超时的限流 Key
+     */
     private void cleanup() {
         long threshold = System.currentTimeMillis() - IDLE_THRESHOLD_MS;
 
@@ -115,6 +122,9 @@ public class RateLimitLocalStorage implements RateLimitStorage {
         double tokens;
         long lastRefillTime;
 
+        /**
+         * 构造令牌桶
+         */
         TokenBucket(int capacity) {
             this.tokens = capacity;
             this.lastRefillTime = System.currentTimeMillis();

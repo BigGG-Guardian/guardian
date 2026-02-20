@@ -28,6 +28,9 @@ public class RepeatSubmitLocalStorage implements RepeatSubmitStorage {
         cleaner.scheduleAtFixedRate(this::cleanup, 5, 5, TimeUnit.MINUTES);
     }
 
+    /**
+     * 尝试获取防重锁
+     */
     @Override
     public boolean tryAcquire(RepeatSubmitToken token) {
         long expireAt = System.currentTimeMillis() + token.getTimeoutUnit().toMillis(token.getTimeout());
@@ -44,11 +47,17 @@ public class RepeatSubmitLocalStorage implements RepeatSubmitStorage {
         return false;
     }
 
+    /**
+     * 释放防重锁
+     */
     @Override
     public void release(RepeatSubmitToken token) {
         cache.remove(token.getKey());
     }
 
+    /**
+     * 清理过期缓存
+     */
     private void cleanup() {
         long now = System.currentTimeMillis();
         cache.forEach((key, expireAt) -> {

@@ -16,7 +16,7 @@ public interface RateLimitStorage {
      * 尝试获取限流许可
      *
      * @param token 限流令牌
-     * @return {@code true} 允许通过，{@code false} 触发限流
+     * @return true 允许通过，false 触发限流
      */
     boolean tryAcquire(RateLimitToken token);
 }

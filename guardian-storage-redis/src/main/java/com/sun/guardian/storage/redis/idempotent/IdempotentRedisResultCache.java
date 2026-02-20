@@ -16,11 +16,17 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 public class IdempotentRedisResultCache implements IdempotentResultCache {
     private final StringRedisTemplate redisTemplate;
 
+    /**
+     * 缓存幂等结果
+     */
     @Override
     public void cacheResult(IdempotentResult result) {
         redisTemplate.opsForValue().set(result.getKey() + ":result", result.getJsonResult(), result.getTimeout(), result.getTimeUnit());
     }
 
+    /**
+     * 获取缓存的幂等结果
+     */
     @Override
     public String getCacheResult(String key) {
         return redisTemplate.opsForValue().get(key + ":result");

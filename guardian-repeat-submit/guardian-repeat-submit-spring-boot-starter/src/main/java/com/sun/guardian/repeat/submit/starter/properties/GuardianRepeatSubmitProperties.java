@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 防重配置属性（{@code guardian.repeat-submit}）
+ * 防重配置属性（guardian.repeat-submit）
  *
  * @author scj
  * @version java version 1.8

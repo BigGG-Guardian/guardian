@@ -6,6 +6,7 @@ import org.slf4j.Logger;
  * 统一日志工具（debug=正常流程，warn=拦截事件）
  *
  * @author scj
+ * @version java version 1.8
  * @since 2026-02-09
  */
 public class GuardianLogUtils {
@@ -13,6 +14,9 @@ public class GuardianLogUtils {
     private final String moduleTag;
     private final String annotationName;
 
+    /**
+     * 构造日志工具
+     */
     public GuardianLogUtils(String moduleTag, String annotationName) {
         this.moduleTag = moduleTag;
         this.annotationName = annotationName;
@@ -72,10 +76,19 @@ public class GuardianLogUtils {
         }
     }
 
-    /** 返回缓存结果 */
+    /**
+     * 返回缓存结果
+     */
     public void cacheResultLog(boolean logEnable, Logger log, String uri, String key, String ip) {
         if (logEnable) {
             log.debug("{} 返回缓存结果 | URI: {} | Key: {} | IP: {}", moduleTag, uri, key, ip);
         }
+    }
+
+    /**
+     * 慢接口检测日志
+     */
+    public void slowApiLog(Logger log, String method, String uri, long duration, long threshold) {
+        log.warn("{} 慢接口检测 | {} {} | 耗时: {}ms | 阈值: {}ms", moduleTag, method, uri, duration, threshold);
     }
 }

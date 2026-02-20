@@ -24,6 +24,9 @@ public class IdempotentTokenController {
     private final IdempotentTokenService tokenService;
     private final GuardianIdempotentProperties properties;
 
+    /**
+     * 获取幂等Token
+     */
     @GetMapping("/token")
     public BaseResult getToken(@RequestParam String key) {
         String token = tokenService.createToken(key);

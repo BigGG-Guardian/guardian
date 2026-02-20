@@ -28,7 +28,7 @@ public class RateLimitRule extends BaseRule {
     private String message = "请求过于频繁，请稍后再试";
     private RateLimitKeyScope rateLimitScope = RateLimitKeyScope.GLOBAL;
     private RateLimitAlgorithm algorithm = RateLimitAlgorithm.SLIDING_WINDOW;
-    /** 令牌桶容量，{@code <= 0} 时取 qps */
+    /** 令牌桶容量，<= 0 时取 qps */
     private int capacity = -1;
 
     /** 从注解创建规则 */

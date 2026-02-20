@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
  * 防重提交规则（注解和 yml 配置的统一抽象）
  *
  * @author scj
+ * @version java version 1.8
  * @since 2026-02-09
  */
 @EqualsAndHashCode(callSuper = true)

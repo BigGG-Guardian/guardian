@@ -20,16 +20,15 @@ public @interface RateLimit {
 
     /**
      * 限流数量
-     * <p>
-     * 滑动窗口：QPS，窗口内最大请求数 = qps × window(秒)
-     * <br>令牌桶：每 window 补充的令牌数，补充速率 = qps / window(秒)
+     *
+     * 滑动窗口：QPS，窗口内最大请求数 = qps × window(秒)，令牌桶：每 window 补充的令牌数，补充速率 = qps / window(秒)
      */
     int qps() default 10;
 
     /**
      * 时间窗口
-     * <p>
-     * 滑动窗口：窗口跨度。令牌桶：补充周期
+     *
+     * 滑动窗口：窗口跨度，令牌桶：补充周期
      */
     int window() default 1;
 
@@ -52,7 +51,7 @@ public @interface RateLimit {
     RateLimitAlgorithm algorithm() default RateLimitAlgorithm.SLIDING_WINDOW;
 
     /**
-     * 令牌桶容量（仅令牌桶算法），{@code <= 0} 时取 qps 值
+     * 令牌桶容量（仅令牌桶算法），<= 0 时取 qps 值
      */
     int capacity() default -1;
 

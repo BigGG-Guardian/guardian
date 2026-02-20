@@ -81,7 +81,7 @@ public class GuardianRateLimitAutoConfiguration {
     }
 
     /**
-     * 本地缓存存储（{@code guardian.rate-limit.storage=local} 时启用）
+     * 本地缓存存储（guardian.rate-limit.storage=local 时启用）
      */
     @Bean
     @ConditionalOnProperty(prefix = "guardian.rate-limit", name = "storage", havingValue = "local")

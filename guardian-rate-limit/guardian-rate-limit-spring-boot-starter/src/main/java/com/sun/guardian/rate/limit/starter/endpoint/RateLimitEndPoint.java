@@ -11,16 +11,22 @@ import java.util.Map;
  * 限流 Actuator 端点（GET /actuator/guardianRateLimit）
  *
  * @author scj
+ * @version java version 1.8
  */
 @Endpoint(id = "guardianRateLimit")
 public class RateLimitEndPoint {
     private final RateLimitStatistics statistics;
 
+    /**
+     * 构造限流端点
+     */
     public RateLimitEndPoint(RateLimitStatistics statistics) {
         this.statistics = statistics;
     }
 
-    /** 限流监控数据 */
+    /**
+     * 限流监控数据
+     */
     @ReadOperation
     public Map<String, Object> info() {
         Map<String, Object> result = new LinkedHashMap<>();

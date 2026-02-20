@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 限流配置属性（{@code guardian.rate-limit}）
+ * 限流配置属性（guardian.rate-limit）
  *
  * @author scj
  * @version java version 1.8

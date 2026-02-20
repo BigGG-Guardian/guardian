@@ -2,7 +2,6 @@ package com.sun.guardian.core.context;
 
 /**
  * 用户上下文接口，获取当前登录用户 ID
- * <p>
  * 实现此接口并注册为 Bean，所有模块共享。
  * 未注册时框架默认返回 null，降级为 SessionId / IP。
  *

@@ -13,7 +13,7 @@ public interface IdempotentTokenService {
     /**
      * 创建接口幂等Token
      *
-     * @param key 接口唯一标识（对应 {@link com.sun.guardian.idempotent.core.annotation.Idempotent#value()}）
+     * @param key 接口唯一标识（对应 @Idempotent.value()）
      * @return token
      */
     String createToken(String key);

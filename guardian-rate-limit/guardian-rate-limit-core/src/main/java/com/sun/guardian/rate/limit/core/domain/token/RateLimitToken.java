@@ -8,9 +8,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 限流令牌，承载一次限流判定的全部参数
- * <p>
- * 滑动窗口：{@code maxCount = qps × windowSeconds}
- * <br>令牌桶：{@code refillRate = qps / windowSeconds} 令牌/秒
+ *
+ * 滑动窗口：maxCount = qps × windowSeconds，令牌桶：refillRate = qps / windowSeconds 令牌/秒
  *
  * @author scj
  * @version java version 1.8
@@ -26,8 +25,7 @@ public class RateLimitToken {
     private String key;
 
     /**
-     * 限流数量
-     * <br>滑动窗口 = QPS，令牌桶 = 每 window 补充的令牌数
+     * 限流数量，滑动窗口 = QPS，令牌桶 = 每 window 补充的令牌数
      */
     private int qps;
 
@@ -47,11 +45,9 @@ public class RateLimitToken {
     private RateLimitAlgorithm algorithm = RateLimitAlgorithm.SLIDING_WINDOW;
 
     /**
-     * 令牌桶容量，{@code <= 0} 时取 {@link #qps}
+     * 令牌桶容量，<= 0 时取 qps
      */
     private int capacity;
-
-    // ==================== 公共计算 ====================
 
     /**
      * 窗口时长（毫秒）
@@ -67,16 +63,12 @@ public class RateLimitToken {
         return Math.max(1, windowUnit.toSeconds(window));
     }
 
-    // ==================== 滑动窗口 ====================
-
     /**
-     * 窗口内最大请求数：{@code qps × windowSeconds}
+     * 窗口内最大请求数：qps × windowSeconds
      */
     public long getMaxCount() {
         return (long) qps * getWindowSeconds();
     }
-
-    // ==================== 令牌桶 ====================
 
     /**
      * 有效桶容量
@@ -86,8 +78,8 @@ public class RateLimitToken {
     }
 
     /**
-     * 每秒令牌补充速率：{@code qps / windowSeconds}
-     * <p>
+     * 每秒令牌补充速率：qps / windowSeconds
+     *
      * 如 qps=5, window=1min → 5/60 ≈ 0.083/秒
      */
     public double getRefillRatePerSecond() {

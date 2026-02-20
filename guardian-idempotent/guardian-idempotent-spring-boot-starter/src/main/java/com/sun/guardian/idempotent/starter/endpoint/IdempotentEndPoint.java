@@ -18,10 +18,16 @@ import java.util.Map;
 public class IdempotentEndPoint {
     private final IdempotentStatistics statistics;
 
+    /**
+     * 构造幂等 Actuator 端点
+     */
     public IdempotentEndPoint(IdempotentStatistics statistics) {
         this.statistics = statistics;
     }
 
+    /**
+     * 获取幂等拦截统计信息
+     */
     @ReadOperation
     public Map<String, Object> info() {
         long block = statistics.getTotalBlockCount();

@@ -9,10 +9,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 接口限流拦截统计
- * <p>
- * 在 {@link BaseStatistics} 基础上增加：每 URI 请求量、命中率、Top N、各接口详情。
+ *
+ * 在 BaseStatistics 基础上增加：每 URI 请求量、命中率、Top N、各接口详情。
  *
  * @author scj
+ * @version java version 1.8
  * @see com.sun.guardian.rate.limit.core.interceptor.RateLimitInterceptor
  * @since 2026-02-15
  */
@@ -23,25 +24,33 @@ public class RateLimitStatistics extends BaseStatistics {
      */
     private final ConcurrentHashMap<String, AtomicLong> uriRequestCount = new ConcurrentHashMap<>();
 
-    /** 记录一次拦截 */
+    /**
+     * 记录一次拦截
+     */
     @Override
     public void recordBlock(String uri) {
         super.recordBlock(uri);
         uriRequestCount.computeIfAbsent(uri, k -> new AtomicLong(0)).incrementAndGet();
     }
 
-    /** 记录一次放行 */
+    /**
+     * 记录一次放行
+     */
     public void recordPass(String uri) {
         super.recordPass();
         uriRequestCount.computeIfAbsent(uri, k -> new AtomicLong(0)).incrementAndGet();
     }
 
-    /** 总请求次数（放行 + 拦截） */
+    /**
+     * 总请求次数（放行 + 拦截）
+     */
     public long getTotalRequestCount() {
         return getTotalBlockCount() + getTotalPassCount();
     }
 
-    /** 限流命中率，如 "12.50%" */
+    /**
+     * 限流命中率，如 "12.50%"
+     */
     public String getBlockRate() {
         long total = getTotalRequestCount();
         if (total == 0) {
@@ -51,7 +60,9 @@ public class RateLimitStatistics extends BaseStatistics {
         return String.format("%.2f%%", rate);
     }
 
-    /** 请求量 Top N 接口 */
+    /**
+     * 请求量 Top N 接口
+     */
     public LinkedHashMap<String, Long> getTopRequestApis(int n) {
         LinkedHashMap<String, Long> result = new LinkedHashMap<>();
         uriRequestCount.entrySet().stream()
@@ -61,7 +72,9 @@ public class RateLimitStatistics extends BaseStatistics {
         return result;
     }
 
-    /** 各接口限流详情（请求数、拦截数、限流率） */
+    /**
+     * 各接口限流详情（请求数、拦截数、限流率）
+     */
     public LinkedHashMap<String, Map<String, Object>> getApiDetails(int n) {
         LinkedHashMap<String, Map<String, Object>> result = new LinkedHashMap<>();
         uriRequestCount.entrySet().stream()

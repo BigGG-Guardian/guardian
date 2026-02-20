@@ -9,7 +9,6 @@ import static com.sun.guardian.repeat.submit.core.constants.KeyPrefixConstants.g
 
 /**
  * 防重键默认生成策略
- * <p>
  * 根据 keyScope 维度选取对应模板，按字段名填充生成最终 Key
  *
  * @author scj
@@ -18,10 +17,16 @@ import static com.sun.guardian.repeat.submit.core.constants.KeyPrefixConstants.g
  */
 public class DefaultKeyGenerator extends AbstractKeyGenerator {
 
+    /**
+     * 构造防重键默认生成策略
+     */
     public DefaultKeyGenerator(UserContext userContext, AbstractKeyEncrypt keyEncrypt) {
         super(userContext, keyEncrypt);
     }
 
+    /**
+     * 根据 keyScope 维度拼接防重 Key
+     */
     @Override
     protected String buildKey(RepeatSubmitKey key) {
         return TemplateUtil.formatByBean(getSuffixByKeyScope(key.getKeyScope()), key);
