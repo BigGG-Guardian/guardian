@@ -85,6 +85,7 @@ public class GuardianIdempotentAutoConfiguration {
                                                        IdempotentStatistics statistics,
                                                        GuardianIdempotentProperties properties) {
 
+        properties.validate();
         return new IdempotentInterceptor(storage, resultCache, idempotentResponseHandler, statistics, properties.isLogEnabled(), properties.getResponseMode(), properties.getTimeout(), properties.getTimeUnit());
     }
 

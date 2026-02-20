@@ -75,7 +75,7 @@ public class RateLimitRedisStorage implements RateLimitStorage {
                 "    tokens = capacity\n" +
                 "    lastRefill = now\n" +
                 "end\n" +
-                "local elapsed = (now - lastRefill) / 1000\n" +
+                "local elapsed = math.max(0, (now - lastRefill) / 1000)\n" +
                 "tokens = math.min(capacity, tokens + elapsed * ratePerSecond)\n" +
                 "local allowed = 0\n" +
                 "if tokens >= 1 then\n" +

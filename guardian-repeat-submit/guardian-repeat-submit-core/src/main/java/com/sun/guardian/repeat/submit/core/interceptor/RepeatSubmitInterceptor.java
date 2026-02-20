@@ -92,6 +92,7 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
             return true;
         }
 
+        rule.validate(requestUri);
         RepeatSubmitToken token = keyGenerator.generate(rule, request);
 
         if (!repeatSubmitStorage.tryAcquire(token)) {

@@ -39,7 +39,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.4.2</version>
+    <version>1.4.3</version>
 </dependency>
 ```
 
@@ -57,7 +57,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.4.2</version>
+    <version>1.4.3</version>
 </dependency>
 ```
 
@@ -99,7 +99,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.4.2</version>
+    <version>1.4.3</version>
 </dependency>
 ```
 
@@ -626,7 +626,7 @@ guardian:
 
 ## 更新日志
 
-### v1.4.2
+### v1.4.3
 
 - **新增**：接口幂等模块（`guardian-idempotent-spring-boot-starter`），Token 机制保证接口幂等性
 - **新增**：幂等结果缓存，开启后重复请求返回首次执行结果
@@ -639,6 +639,9 @@ guardian:
 - **优化**：删除未使用的异常类（`TokenGeneratorNotFoundException`、`KeyGeneratorNotFoundException`、`KeyEncryptNotFoundException`）
 - **修复**：幂等 null 返回值处理，与 Spring 原生行为保持一致
 - **修复**：`BaseResult.error()` 状态码错误（200 → 500）
+- **修复**：Actuator Endpoint ID 改为驼峰命名，消除 Spring Boot 启动 WARN
+- **修复**：三模块参数校验（`qps`、`window`、`interval`、`timeout` ≤ 0 时抛出明确异常）
+- **修复**：令牌桶算法时间回拨防护（Redis Lua + 本地存储均加 `max(0, elapsed)`）
 
 ### v1.3.0
 
