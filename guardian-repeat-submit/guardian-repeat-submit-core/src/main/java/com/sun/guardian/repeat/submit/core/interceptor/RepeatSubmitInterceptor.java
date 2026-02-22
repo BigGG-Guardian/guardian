@@ -1,12 +1,12 @@
 package com.sun.guardian.repeat.submit.core.interceptor;
 
 import cn.hutool.extra.servlet.ServletUtil;
-import com.sun.guardian.core.enums.response.ResponseMode;
 import com.sun.guardian.core.exception.RepeatSubmitException;
 import com.sun.guardian.core.utils.GuardianLogUtils;
 import com.sun.guardian.core.utils.MatchUrlRuleUtils;
 import com.sun.guardian.core.utils.ResponseUtils;
 import com.sun.guardian.repeat.submit.core.annotation.RepeatSubmit;
+import com.sun.guardian.repeat.submit.core.config.RepeatSubmitConfig;
 import com.sun.guardian.repeat.submit.core.domain.rule.RepeatSubmitRule;
 import com.sun.guardian.repeat.submit.core.domain.token.RepeatSubmitToken;
 import com.sun.guardian.repeat.submit.core.service.key.KeyGenerator;
@@ -21,7 +21,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * 防重复提交拦截器，优先级：排除规则 → YAML 规则 → @RepeatSubmit 注解 → 放行
@@ -39,9 +38,7 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
     private final KeyGenerator keyGenerator;
     private final RepeatSubmitStorage repeatSubmitStorage;
     private final ResponseUtils responseUtils;
-    private final List<RepeatSubmitRule> urlRules;
-    private final List<String> excludeRules;
-    private final boolean logEnable;
+    private final RepeatSubmitConfig repeatSubmitConfig;
     private final RepeatSubmitStatistics statistics;
 
     /**
@@ -50,17 +47,12 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
     public RepeatSubmitInterceptor(KeyGenerator keyGenerator,
                                    RepeatSubmitStorage repeatSubmitStorage,
                                    RepeatSubmitResponseHandler repeatSubmitResponseHandler,
-                                   List<RepeatSubmitRule> urlRules,
-                                   List<String> excludeRules,
-                                   ResponseMode responseMode,
-                                   boolean logEnable,
+                                   RepeatSubmitConfig repeatSubmitConfig,
                                    RepeatSubmitStatistics statistics) {
         this.keyGenerator = keyGenerator;
         this.repeatSubmitStorage = repeatSubmitStorage;
-        this.responseUtils = new ResponseUtils(responseMode, repeatSubmitResponseHandler, RepeatSubmitException::new);
-        this.urlRules = urlRules;
-        this.excludeRules = excludeRules;
-        this.logEnable = logEnable;
+        this.responseUtils = new ResponseUtils(repeatSubmitConfig, repeatSubmitResponseHandler, RepeatSubmitException::new);
+        this.repeatSubmitConfig = repeatSubmitConfig;
         this.statistics = statistics;
     }
 
@@ -75,21 +67,21 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
         String pathWithoutContext = MatchUrlRuleUtils.stripContextPath(requestUri, contextPath);
         String ip = ServletUtil.getClientIP(request);
 
-        if (MatchUrlRuleUtils.matchExcludeUrlRule(excludeRules, requestUri, pathWithoutContext)) {
-            logUtils.excludeLog(logEnable, log, requestUri, ip);
+        if (MatchUrlRuleUtils.matchExcludeUrlRule(repeatSubmitConfig.getExcludeUrls(), requestUri, pathWithoutContext)) {
+            logUtils.excludeLog(repeatSubmitConfig.isLogEnabled(), log, requestUri, ip);
             return true;
         }
 
-        RepeatSubmitRule rule = MatchUrlRuleUtils.matchUrlRule(urlRules, requestUri, pathWithoutContext);
+        RepeatSubmitRule rule = MatchUrlRuleUtils.matchUrlRule(repeatSubmitConfig.getUrls(), requestUri, pathWithoutContext);
         if (rule != null) {
-            logUtils.hitYmlRuleLog(logEnable, log, requestUri, ip);
+            logUtils.hitYmlRuleLog(repeatSubmitConfig.isLogEnabled(), log, requestUri, ip);
         }
 
         if (rule == null && handler instanceof HandlerMethod) {
             RepeatSubmit annotation = ((HandlerMethod) handler).getMethodAnnotation(RepeatSubmit.class);
             if (annotation != null) {
                 rule = RepeatSubmitRule.fromAnnotation(annotation);
-                logUtils.hitAnnotationRuleLog(logEnable, log, requestUri, ip);
+                logUtils.hitAnnotationRuleLog(repeatSubmitConfig.isLogEnabled(), log, requestUri, ip);
             }
         }
 
@@ -102,12 +94,12 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
 
         if (!repeatSubmitStorage.tryAcquire(token)) {
             statistics.recordBlock(requestUri);
-            logUtils.blockLog(logEnable, log, requestUri, token.getKey(), ip);
+            logUtils.blockLog(repeatSubmitConfig.isLogEnabled(), log, requestUri, token.getKey(), ip);
             return responseUtils.reject(request, response, rule.getMessage());
         }
 
         statistics.recordPass();
-        logUtils.passLog(logEnable, log, requestUri, token.getKey(), ip);
+        logUtils.passLog(repeatSubmitConfig.isLogEnabled(), log, requestUri, token.getKey(), ip);
         request.setAttribute(TOKEN_ATTR, token);
         return true;
     }

@@ -1,5 +1,6 @@
 package com.sun.guardian.auto.trim.core.filter;
 
+import com.sun.guardian.auto.trim.core.config.AutoTrimConfig;
 import com.sun.guardian.auto.trim.core.wrapper.AutoTrimRequestWrapper;
 import com.sun.guardian.core.utils.CharacterSanitizer;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -9,7 +10,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Set;
 
 /**
  * 请求参数自动 trim 过滤器
@@ -20,14 +20,14 @@ import java.util.Set;
  */
 public class AutoTrimFilter extends OncePerRequestFilter {
 
-    private final Set<String> excludeFields;
+    private final AutoTrimConfig autoTrimConfig;
     private final CharacterSanitizer sanitizer;
 
     /**
      * 构造过滤器
      */
-    public AutoTrimFilter(Set<String> excludeFields, CharacterSanitizer sanitizer) {
-        this.excludeFields = excludeFields;
+    public AutoTrimFilter(AutoTrimConfig autoTrimConfig, CharacterSanitizer sanitizer) {
+        this.autoTrimConfig = autoTrimConfig;
         this.sanitizer = sanitizer;
     }
 
@@ -37,7 +37,7 @@ public class AutoTrimFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        AutoTrimRequestWrapper wrapper = new AutoTrimRequestWrapper(request, excludeFields, sanitizer);
+        AutoTrimRequestWrapper wrapper = new AutoTrimRequestWrapper(request, autoTrimConfig, sanitizer);
         filterChain.doFilter(wrapper, response);
     }
 }

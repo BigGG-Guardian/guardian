@@ -3,6 +3,7 @@ package com.sun.guardian.trace.core.filter;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
+import com.sun.guardian.trace.core.config.TraceConfig;
 import org.slf4j.MDC;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -22,14 +23,14 @@ import java.util.Date;
  */
 public class TraceIdFilter extends OncePerRequestFilter {
 
-    private final String headerName;
+    private final TraceConfig traceConfig;
     private static final String MDC_KEY = "traceId";
 
     /**
      * 构造 TraceId 过滤器
      */
-    public TraceIdFilter(String headerName) {
-        this.headerName = headerName;
+    public TraceIdFilter(TraceConfig traceConfig) {
+        this.traceConfig = traceConfig;
     }
 
     /**
@@ -39,12 +40,12 @@ public class TraceIdFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         try {
-            String traceId = request.getHeader(headerName);
+            String traceId = request.getHeader(traceConfig.getHeaderName());
             if (StrUtil.isBlank(traceId)) {
                 traceId = generateTraceId();
             }
             MDC.put(MDC_KEY, traceId);
-            response.setHeader(headerName, traceId);
+            response.setHeader(traceConfig.getHeaderName(), traceId);
             filterChain.doFilter(request, response);
         } finally {
             MDC.remove(MDC_KEY);

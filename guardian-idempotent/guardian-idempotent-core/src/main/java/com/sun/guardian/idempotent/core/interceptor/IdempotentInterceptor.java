@@ -4,13 +4,13 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.sun.guardian.core.enums.response.ResponseMode;
 import com.sun.guardian.core.exception.IdempotentException;
 import com.sun.guardian.core.utils.GuardianLogUtils;
-import com.sun.guardian.core.wrapper.RepeatableRequestWrapper;
 import com.sun.guardian.core.utils.ResponseUtils;
+import com.sun.guardian.core.wrapper.RepeatableRequestWrapper;
 import com.sun.guardian.idempotent.core.advice.IdempotentResultCacheAdvice;
 import com.sun.guardian.idempotent.core.annotation.Idempotent;
+import com.sun.guardian.idempotent.core.config.IdempotentConfig;
 import com.sun.guardian.idempotent.core.constants.IdempotentKeyPrefixConstants;
 import com.sun.guardian.idempotent.core.domain.result.IdempotentResult;
 import com.sun.guardian.idempotent.core.enums.IdempotentTokenFrom;
@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 接口幂等拦截器
@@ -43,22 +42,19 @@ public class IdempotentInterceptor implements HandlerInterceptor {
     private final ResponseUtils responseUtils;
     private final IdempotentStorage storage;
     private final IdempotentResultCache resultCache;
-    private final boolean logEnabled;
+    private final IdempotentConfig idempotentConfig;
     private final IdempotentStatistics statistics;
-    private final long timeout;
-    private final TimeUnit timeoutUnit;
+
 
     /**
      * 构造接口幂等拦截器
      */
-    public IdempotentInterceptor(IdempotentStorage storage, IdempotentResultCache resultCache, IdempotentResponseHandler idempotentResponseHandler, IdempotentStatistics statistics, boolean logEnabled, ResponseMode responseMode, long timeout, TimeUnit timeoutUnit) {
-        this.responseUtils = new ResponseUtils(responseMode, idempotentResponseHandler, IdempotentException::new);
+    public IdempotentInterceptor(IdempotentStorage storage, IdempotentResultCache resultCache, IdempotentResponseHandler idempotentResponseHandler, IdempotentConfig idempotentConfig, IdempotentStatistics statistics) {
+        this.responseUtils = new ResponseUtils(idempotentConfig, idempotentResponseHandler, IdempotentException::new);
         this.storage = storage;
         this.resultCache = resultCache;
-        this.logEnabled = logEnabled;
+        this.idempotentConfig = idempotentConfig;
         this.statistics = statistics;
-        this.timeout = timeout;
-        this.timeoutUnit = timeoutUnit;
     }
 
     @Override
@@ -81,7 +77,7 @@ public class IdempotentInterceptor implements HandlerInterceptor {
 
         if (StrUtil.isBlank(token)) {
             statistics.recordBlock(requestURI);
-            logUtils.blockLog(logEnabled, log, requestURI, ip);
+            logUtils.blockLog(idempotentConfig.isLogEnabled(), log, requestURI, ip);
             return responseUtils.reject(request, response, "请求缺少幂等Token");
         }
 
@@ -90,7 +86,7 @@ public class IdempotentInterceptor implements HandlerInterceptor {
             if (resultCache != null) {
                 String cached = resultCache.getCacheResult(fullKey);
                 if (cached != null) {
-                    logUtils.cacheResultLog(logEnabled, log, requestURI, fullKey, ip);
+                    logUtils.cacheResultLog(idempotentConfig.isLogEnabled(), log, requestURI, fullKey, ip);
                     statistics.recordPass();
                     if (!"null".equals(cached)) {
                         responseUtils.writeRawJson(response, cached);
@@ -99,18 +95,18 @@ public class IdempotentInterceptor implements HandlerInterceptor {
                 }
             }
             statistics.recordBlock(requestURI);
-            logUtils.blockLog(logEnabled, log, requestURI, ip);
+            logUtils.blockLog(idempotentConfig.isLogEnabled(), log, requestURI, ip);
             return responseUtils.reject(request, response, annotation.message());
         }
 
         statistics.recordPass();
-        logUtils.passLog(logEnabled, log, requestURI, fullKey, ip);
+        logUtils.passLog(idempotentConfig.isLogEnabled(), log, requestURI, fullKey, ip);
 
         if (resultCache != null) {
             IdempotentResult result = new IdempotentResult()
                     .setKey(fullKey)
-                    .setTimeout(timeout)
-                    .setTimeUnit(timeoutUnit);
+                    .setTimeout(idempotentConfig.getTimeout())
+                    .setTimeUnit(idempotentConfig.getTimeUnit());
             request.setAttribute(IdempotentResultCacheAdvice.ATTR_KEY, JSONUtil.toJsonStr(result));
         }
 

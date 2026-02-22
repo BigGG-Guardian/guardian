@@ -1,5 +1,6 @@
 package com.sun.guardian.trace.starter.properties;
 
+import com.sun.guardian.trace.core.config.TraceConfig;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -12,7 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @Data
 @ConfigurationProperties(prefix = "guardian.trace")
-public class GuardianTraceProperties {
+public class GuardianTraceProperties implements TraceConfig {
     /**
      * 总开关
      */

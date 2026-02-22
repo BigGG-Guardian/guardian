@@ -30,7 +30,7 @@
 | 慢接口检测 | `guardian-slow-api-spring-boot-starter` | `@SlowApiThreshold` | ✅ | 慢接口检测 + Top N 统计 + Actuator 端点 |
 | 请求链路追踪 | `guardian-trace-spring-boot-starter` | — | ✅ | 自动生成/透传 TraceId，MDC 日志串联 |
 
-每个功能独立模块、独立 Starter，**用哪个引哪个，互不依赖**。
+每个功能独立模块、独立 Starter，**用哪个引哪个，互不依赖**。所有模块的 YAML 配置均支持**配置中心动态刷新**（Nacos / Apollo 等），无需重启即可生效。
 
 ---
 
@@ -42,7 +42,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
 </dependency>
 ```
 
@@ -60,7 +60,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
 </dependency>
 ```
 
@@ -102,7 +102,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
 </dependency>
 ```
 
@@ -130,7 +130,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
 </dependency>
 ```
 
@@ -153,7 +153,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
 </dependency>
 ```
 
@@ -175,7 +175,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-spring-boot-starter</artifactId>
-    <version>1.5.0</version>
+    <version>1.5.1</version>
 </dependency>
 ```
 
@@ -810,6 +810,60 @@ guardian:
 
 ---
 
+## 动态配置
+
+Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo 等）动态刷新，**无需重启应用**即可生效。
+
+### 支持动态刷新的配置项
+
+| 模块 | 可动态修改的配置 |
+|------|--------------|
+| 防重复提交 | `urls` 规则、`exclude-urls`、`response-mode`、`log-enabled` |
+| 接口限流 | `urls` 规则、`exclude-urls`、`response-mode`、`log-enabled` |
+| 接口幂等 | `timeout`、`time-unit`、`exclude-urls`、`response-mode`、`log-enabled` |
+| 参数自动Trim | `exclude-fields`、`character-replacements` |
+| 慢接口检测 | `threshold`、`exclude-urls` |
+
+### 使用方式
+
+以 Nacos 为例，引入 Spring Cloud Alibaba Nacos Config 依赖后，在 Nacos 控制台修改 Guardian 相关配置并发布，应用会自动感知变更并即时生效。
+
+**1. 添加依赖（以 Spring Boot 2.7.x 为例）：**
+
+```xml
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-bootstrap</artifactId>
+</dependency>
+```
+
+**2. 配置 `bootstrap.yml`：**
+
+```yaml
+spring:
+  application:
+    name: your-app
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848
+        file-extension: yml
+```
+
+**3. 在 Nacos 控制台修改配置：**
+
+在对应的 Data ID（如 `your-app.yml`）中修改 Guardian 配置并发布，例如将限流 QPS 从 10 改为 20，发布后即时生效，无需重启。
+
+### 实现原理
+
+Guardian 的 `@ConfigurationProperties` 属性类实现了模块配置接口（如 `RepeatSubmitConfig`、`RateLimitConfig` 等），拦截器/过滤器通过接口引用动态读取配置值。当配置中心推送变更时，Spring Cloud 的 `ConfigurationPropertiesRebinder` 自动重新绑定属性，所有引用该配置的组件在下次请求时即可读取到最新值。
+
+---
+
 ## 架构
 
 ### 模块结构
@@ -885,6 +939,13 @@ guardian:
 | 额外依赖 | 需要 Redis | 无 |
 
 ## 更新日志
+
+### v1.5.1
+
+- **新增**：全模块配置动态刷新支持，配合 Nacos / Apollo 等配置中心可在不重启应用的情况下实时更新 Guardian 配置
+- **新增**：`BaseConfig` / `BaseCharacterReplacement` 配置接口，拦截器/过滤器通过接口引用动态读取配置，与 Spring Cloud `ConfigurationPropertiesRebinder` 无缝集成
+- **优化**：`CharacterSanitizer` 引入基于哈希值的缓存机制，配置未变更时零解析开销，配置动态刷新后自动重建
+- **修复**：`DefaultIdempotentTokenService` 改为持有 `IdempotentConfig` 接口引用，修复 Token 过期时间无法动态更新的问题
 
 ### v1.5.0
 

@@ -26,7 +26,7 @@ public class GuardianTraceAutoConfiguration {
     @Bean
     public FilterRegistrationBean<TraceIdFilter> traceIdFilter(GuardianTraceProperties properties) {
         FilterRegistrationBean<TraceIdFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(new TraceIdFilter(properties.getHeaderName()));
+        registration.setFilter(new TraceIdFilter(properties));
         registration.addUrlPatterns("/*");
         registration.setOrder(properties.getFilterOrder());
         registration.setName("traceIdFilter");

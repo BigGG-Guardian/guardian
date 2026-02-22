@@ -1,11 +1,15 @@
 package com.sun.guardian.core.utils;
 
-import java.util.ArrayList;
+import com.sun.guardian.core.service.base.BaseCharacterReplacement;
+import com.sun.guardian.core.service.base.BaseConfig;
+
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * 转义符替换处理器，构造时预计算转义还原，sanitize 运行时零解析开销
+ * 转义符替换处理器，基于配置规则对字符串执行替换；内置哈希缓存，配置未变更时零解析开销，配置动态刷新后自动重建
  *
  * @author scj
  * @version java version 1.8
@@ -13,31 +17,36 @@ import java.util.Map;
  */
 public class CharacterSanitizer {
 
-    private final List<String[]> replacementPairs;
+    private final BaseConfig baseConfig;
+    private volatile List<String[]> cachedPairs;
+    private volatile int lastHash;
 
     /**
-     * 构造替换处理器，对配置的 key/value 执行转义还原并缓存
+     * 构造替换处理器
      */
-    public CharacterSanitizer(Map<String, String> replacements) {
-        this.replacementPairs = new ArrayList<>(replacements.size());
-        replacements.forEach((key, value) -> {
-            replacementPairs.add(new String[]{unescape(key), unescape(value)});
-        });
+    public CharacterSanitizer(BaseConfig baseConfig) {
+        this.baseConfig = baseConfig;
     }
 
     /**
      * 对字符串依次执行配置的替换规则
+     *
+     * @param value 待处理字符串，为 {@code null} 时直接返回
+     * @return 替换后的字符串
      */
     public String sanitize(String value) {
         if (value == null) return null;
-        for (String[] pair : replacementPairs) {
+        for (String[] pair : getPlacementPairs()) {
             value = value.replace(pair[0], pair[1]);
         }
         return value;
     }
 
     /**
-     * 将配置中的转义表示还原为实际字符，支持 \r \n \t \0 \\ 及 \\uXXXX
+     * 将配置中的转义表示还原为实际字符，支持 {@code \r \n \t \0 \\} 及 {@code \\uXXXX}
+     *
+     * @param str 原始转义字符串
+     * @return 还原后的字符串，{@code null} 时返回空串
      */
     private static String unescape(String str) {
         if (str == null) return "";
@@ -89,5 +98,26 @@ public class CharacterSanitizer {
             }
         }
         return sb.toString();
+    }
+
+    /**
+     * 获取转义还原后的替换对列表，基于配置哈希值缓存，配置变更时自动重建
+     *
+     * @return 替换对列表，每个元素为 {@code [from, to]}
+     */
+    private List<String[]> getPlacementPairs() {
+        List<? extends BaseCharacterReplacement> rules = baseConfig.getCharacterReplacements();
+        int currentHash = rules.hashCode();
+        if (cachedPairs != null && currentHash == lastHash) {
+            return cachedPairs;
+        }
+        Map<String, String> replacementMap = new LinkedHashMap<>();
+        rules.forEach(rule -> replacementMap.put(rule.getFrom(), rule.getTo()));
+        List<String[]> pairs = replacementMap.entrySet().stream()
+                .map(e -> new String[]{unescape(e.getKey()), unescape(e.getValue())})
+                .collect(Collectors.toList());
+        cachedPairs = pairs;
+        lastHash = currentHash;
+        return pairs;
     }
 }

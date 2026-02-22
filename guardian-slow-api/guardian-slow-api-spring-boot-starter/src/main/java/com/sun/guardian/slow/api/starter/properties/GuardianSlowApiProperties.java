@@ -1,5 +1,6 @@
 package com.sun.guardian.slow.api.starter.properties;
 
+import com.sun.guardian.slow.api.core.config.SlowApiConfig;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -15,7 +16,7 @@ import java.util.List;
  */
 @Data
 @ConfigurationProperties(prefix = "guardian.slow-api")
-public class GuardianSlowApiProperties {
+public class GuardianSlowApiProperties implements SlowApiConfig {
     /**
      * 总开关
      */

@@ -56,9 +56,9 @@ public class GuardianSlowApiAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(SlowApiInterceptor.class)
-    public SlowApiInterceptor slowApiInterceptor(SlowApiStatistics statistics, GuardianSlowApiProperties properties) {
+    public SlowApiInterceptor slowApiInterceptor(GuardianSlowApiProperties properties, SlowApiStatistics statistics) {
         properties.validate();
-        return new SlowApiInterceptor(statistics, properties.getThreshold(), properties.getExcludeUrls());
+        return new SlowApiInterceptor(properties, statistics);
     }
 
     /**

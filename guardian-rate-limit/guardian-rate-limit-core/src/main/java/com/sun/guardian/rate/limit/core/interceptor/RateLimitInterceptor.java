@@ -1,12 +1,12 @@
 package com.sun.guardian.rate.limit.core.interceptor;
 
 import cn.hutool.extra.servlet.ServletUtil;
-import com.sun.guardian.core.enums.response.ResponseMode;
 import com.sun.guardian.core.exception.RateLimitException;
 import com.sun.guardian.core.utils.GuardianLogUtils;
 import com.sun.guardian.core.utils.MatchUrlRuleUtils;
 import com.sun.guardian.core.utils.ResponseUtils;
 import com.sun.guardian.rate.limit.core.annotation.RateLimit;
+import com.sun.guardian.rate.limit.core.config.RateLimitConfig;
 import com.sun.guardian.rate.limit.core.domain.rule.RateLimitRule;
 import com.sun.guardian.rate.limit.core.domain.token.RateLimitToken;
 import com.sun.guardian.rate.limit.core.service.key.RateLimitKeyGenerator;
@@ -21,11 +21,10 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * 接口限流拦截器
- *
+ * <p>
  * 优先级：排除规则 → YAML 规则 → @RateLimit 注解 → 放行
  *
  * @author scj
@@ -41,9 +40,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     private final RateLimitKeyGenerator keyGenerator;
     private final RateLimitStorage rateLimitStorage;
     private final ResponseUtils responseUtils;
-    private final List<RateLimitRule> urlRules;
-    private final List<String> excludeRules;
-    private final boolean logEnable;
+    private final RateLimitConfig rateLimitConfig;
     private final RateLimitStatistics statistics;
 
     /**
@@ -52,21 +49,18 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     public RateLimitInterceptor(RateLimitKeyGenerator keyGenerator,
                                 RateLimitStorage rateLimitStorage,
                                 RateLimitResponseHandler rateLimitResponseHandler,
-                                List<RateLimitRule> urlRules,
-                                List<String> excludeRules,
-                                ResponseMode responseMode,
-                                boolean logEnable,
+                                RateLimitConfig rateLimitConfig,
                                 RateLimitStatistics statistics) {
         this.keyGenerator = keyGenerator;
         this.rateLimitStorage = rateLimitStorage;
-        this.responseUtils = new ResponseUtils(responseMode, rateLimitResponseHandler, RateLimitException::new);
-        this.urlRules = urlRules;
-        this.excludeRules = excludeRules;
-        this.logEnable = logEnable;
+        this.responseUtils = new ResponseUtils(rateLimitConfig, rateLimitResponseHandler, RateLimitException::new);
+        this.rateLimitConfig = rateLimitConfig;
         this.statistics = statistics;
     }
 
-    /** 请求预处理：执行限流判定 */
+    /**
+     * 请求预处理：执行限流判定
+     */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler) throws IOException {
@@ -75,21 +69,21 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         String pathWithoutContext = MatchUrlRuleUtils.stripContextPath(requestUri, contextPath);
         String ip = ServletUtil.getClientIP(request);
 
-        if (MatchUrlRuleUtils.matchExcludeUrlRule(excludeRules, requestUri, pathWithoutContext)) {
-            logUtils.excludeLog(logEnable, log, requestUri, ip);
+        if (MatchUrlRuleUtils.matchExcludeUrlRule(rateLimitConfig.getExcludeUrls(), requestUri, pathWithoutContext)) {
+            logUtils.excludeLog(rateLimitConfig.isLogEnabled(), log, requestUri, ip);
             return true;
         }
 
-        RateLimitRule rule = MatchUrlRuleUtils.matchUrlRule(urlRules, requestUri, pathWithoutContext);
+        RateLimitRule rule = MatchUrlRuleUtils.matchUrlRule(rateLimitConfig.getUrls(), requestUri, pathWithoutContext);
         if (rule != null) {
-            logUtils.hitYmlRuleLog(logEnable, log, requestUri, ip);
+            logUtils.hitYmlRuleLog(rateLimitConfig.isLogEnabled(), log, requestUri, ip);
         }
 
         if (rule == null && handler instanceof HandlerMethod) {
             RateLimit annotation = ((HandlerMethod) handler).getMethodAnnotation(RateLimit.class);
             if (annotation != null) {
                 rule = RateLimitRule.fromAnnotation(annotation);
-                logUtils.hitAnnotationRuleLog(logEnable, log, requestUri, ip);
+                logUtils.hitAnnotationRuleLog(rateLimitConfig.isLogEnabled(), log, requestUri, ip);
             }
         }
 
@@ -102,12 +96,12 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
         if (!rateLimitStorage.tryAcquire(token)) {
             statistics.recordBlock(requestUri);
-            logUtils.blockLog(logEnable, log, requestUri, token.getKey(), ip);
+            logUtils.blockLog(rateLimitConfig.isLogEnabled(), log, requestUri, token.getKey(), ip);
             return responseUtils.reject(request, response, rule.getMessage());
         }
 
         statistics.recordPass(requestUri);
-        logUtils.passLog(logEnable, log, requestUri, token.getKey(), ip);
+        logUtils.passLog(rateLimitConfig.isLogEnabled(), log, requestUri, token.getKey(), ip);
 
         return true;
     }

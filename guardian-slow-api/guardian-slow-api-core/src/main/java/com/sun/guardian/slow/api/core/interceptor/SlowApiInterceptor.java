@@ -3,6 +3,7 @@ package com.sun.guardian.slow.api.core.interceptor;
 import com.sun.guardian.core.utils.GuardianLogUtils;
 import com.sun.guardian.core.utils.MatchUrlRuleUtils;
 import com.sun.guardian.slow.api.core.annotation.SlowApiThreshold;
+import com.sun.guardian.slow.api.core.config.SlowApiConfig;
 import com.sun.guardian.slow.api.core.statistics.SlowApiStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +12,6 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.List;
 
 /**
  * 慢接口检测拦截器
@@ -24,17 +24,15 @@ public class SlowApiInterceptor implements HandlerInterceptor {
     private static final Logger log = LoggerFactory.getLogger(SlowApiInterceptor.class);
     private static final String START_TIME_ATTR = "guardian.slow-api.startTime";
     private static final GuardianLogUtils logUtils = new GuardianLogUtils("[Guardian-Slow-Api]", "@SlowApiThreshold");
+    private final SlowApiConfig slowApiConfig;
     private final SlowApiStatistics statistics;
-    private final long globalThreshold;
-    private final List<String> excludeUrls;
 
     /**
      * 构造慢接口检测拦截器
      */
-    public SlowApiInterceptor(SlowApiStatistics statistics, long globalThreshold, List<String> excludeUrls) {
+    public SlowApiInterceptor(SlowApiConfig slowApiConfig, SlowApiStatistics statistics) {
+        this.slowApiConfig = slowApiConfig;
         this.statistics = statistics;
-        this.globalThreshold = globalThreshold;
-        this.excludeUrls = excludeUrls;
     }
 
     /**
@@ -60,7 +58,7 @@ public class SlowApiInterceptor implements HandlerInterceptor {
         String contextPath = request.getContextPath();
         String pathWithoutContext = MatchUrlRuleUtils.stripContextPath(requestUri, contextPath);
 
-        if (MatchUrlRuleUtils.matchExcludeUrlRule(excludeUrls, requestUri, pathWithoutContext)) {
+        if (MatchUrlRuleUtils.matchExcludeUrlRule(slowApiConfig.getExcludeUrls(), requestUri, pathWithoutContext)) {
             return;
         }
 
@@ -82,6 +80,6 @@ public class SlowApiInterceptor implements HandlerInterceptor {
                 return annotation.value();
             }
         }
-        return globalThreshold;
+        return slowApiConfig.getThreshold();
     }
 }

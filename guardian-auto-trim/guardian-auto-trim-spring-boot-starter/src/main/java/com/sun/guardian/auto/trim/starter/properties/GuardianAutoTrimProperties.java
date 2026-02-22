@@ -1,5 +1,7 @@
 package com.sun.guardian.auto.trim.starter.properties;
 
+import com.sun.guardian.auto.trim.core.config.AutoTrimConfig;
+import com.sun.guardian.core.service.base.BaseCharacterReplacement;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -17,7 +19,7 @@ import java.util.Set;
  */
 @Data
 @ConfigurationProperties(prefix = "guardian.auto-trim")
-public class GuardianAutoTrimProperties {
+public class GuardianAutoTrimProperties implements AutoTrimConfig {
     /**
      * 总开关
      */
@@ -39,7 +41,7 @@ public class GuardianAutoTrimProperties {
      * 字符替换规则
      */
     @Data
-    public static class CharacterReplacement {
+    public static class CharacterReplacement implements BaseCharacterReplacement {
         /**
          * 待替换字符的转义表示，支持 \\r \\n \\t \\0 \\\\ \\uXXXX
          */
