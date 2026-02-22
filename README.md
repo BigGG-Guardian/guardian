@@ -42,7 +42,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
 </dependency>
 ```
 
@@ -60,7 +60,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
 </dependency>
 ```
 
@@ -102,7 +102,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
 </dependency>
 ```
 
@@ -130,7 +130,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
 </dependency>
 ```
 
@@ -153,7 +153,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
 </dependency>
 ```
 
@@ -175,7 +175,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-spring-boot-starter</artifactId>
-    <version>1.5.1</version>
+    <version>1.5.2</version>
 </dependency>
 ```
 
@@ -843,11 +843,6 @@ Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo
 |----------|------|--------|------|
 | `response-mode` | `exception` / `json` | `exception` | 响应模式 |
 | `log-enabled` | `boolean` | `false` | 是否打印拦截日志 |
-| `interval` | `int` | `5` | 全局默认防重间隔（注解未显式指定时生效） |
-| `time-unit` | `TimeUnit` | `seconds` | 全局默认时间单位 |
-| `key-scope` | `user` / `ip` / `global` | `user` | 全局默认防重维度 |
-| `message` | `String` | `您的请求过于频繁，请稍后再试` | 全局默认拦截提示信息 |
-| `client-type` | `pc` / `app` | `pc` | 全局默认客户端类型 |
 | `exclude-urls` | `List<String>` | `[]` | 排除规则（白名单，优先级最高，AntPath） |
 | `urls` | `List` | `[]` | 防重规则列表，每项参数如下 |
 | `urls[].pattern` | `String` | — | 接口路径（AntPath） |
@@ -863,13 +858,6 @@ Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo
 |----------|------|--------|------|
 | `response-mode` | `exception` / `json` | `exception` | 响应模式 |
 | `log-enabled` | `boolean` | `false` | 是否打印拦截日志 |
-| `qps` | `int` | `10` | 全局默认 QPS（注解未显式指定时生效） |
-| `window` | `int` | `1` | 全局默认时间窗口 |
-| `window-unit` | `TimeUnit` | `seconds` | 全局默认窗口时间单位 |
-| `algorithm` | `sliding_window` / `token_bucket` | `sliding_window` | 全局默认限流算法 |
-| `capacity` | `int` | `-1` | 全局默认令牌桶容量（≤0 时取 qps 值） |
-| `rate-limit-scope` | `global` / `ip` / `user` | `global` | 全局默认限流维度 |
-| `message` | `String` | `请求过于频繁，请稍后再试` | 全局默认拦截提示信息 |
 | `exclude-urls` | `List<String>` | `[]` | 排除规则（白名单，优先级最高，AntPath） |
 | `urls` | `List` | `[]` | 限流规则列表，每项参数如下 |
 | `urls[].pattern` | `String` | — | 接口路径（AntPath） |
@@ -1077,6 +1065,10 @@ guardian:
 | 额外依赖 | 需要 Redis | 无 |
 
 ## 更新日志
+
+### v1.5.2
+
+- **优化**：`GuardianRateLimitProperties` / `GuardianRepeatSubmitProperties` 删除多余无用参数
 
 ### v1.5.1
 

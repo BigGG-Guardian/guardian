@@ -2,7 +2,6 @@ package com.sun.guardian.repeat.submit.core.domain.rule;
 
 import com.sun.guardian.core.domain.BaseRule;
 import com.sun.guardian.repeat.submit.core.annotation.RepeatSubmit;
-import com.sun.guardian.repeat.submit.core.config.RepeatSubmitConfig;
 import com.sun.guardian.repeat.submit.core.enums.client.ClientType;
 import com.sun.guardian.repeat.submit.core.enums.scope.KeyScope;
 import lombok.Data;
@@ -23,51 +22,41 @@ import java.util.concurrent.TimeUnit;
 @Accessors(chain = true)
 public class RepeatSubmitRule extends BaseRule {
 
-    public static final int ANNOTATION_DEFAULT_INTERVAL = 5;
-    public static final TimeUnit ANNOTATION_DEFAULT_TIME_UNIT = TimeUnit.SECONDS;
-    public static final String ANNOTATION_DEFAULT_MESSAGE = "您的请求过于频繁，请稍后再试";
-    public static final KeyScope ANNOTATION_DEFAULT_KEY_SCOPE = KeyScope.USER;
-    public static final ClientType ANNOTATION_DEFAULT_CLIENT_TYPE = ClientType.PC;
-
     /**
      * 防重时间间隔
      */
-    private int interval = ANNOTATION_DEFAULT_INTERVAL;
+    private int interval = 5;
 
     /**
      * 时间单位
      */
-    private TimeUnit timeUnit = ANNOTATION_DEFAULT_TIME_UNIT;
+    private TimeUnit timeUnit = TimeUnit.SECONDS;
 
     /**
      * 错误提示信息
      */
-    private String message = ANNOTATION_DEFAULT_MESSAGE;
+    private String message = "您的请求过于频繁，请稍后再试";
 
     /**
      * 防重键维度
      */
-    private KeyScope keyScope = ANNOTATION_DEFAULT_KEY_SCOPE;
+    private KeyScope keyScope = KeyScope.USER;
 
     /**
      * 客户端类型
      */
-    private ClientType clientType = ANNOTATION_DEFAULT_CLIENT_TYPE;
+    private ClientType clientType = ClientType.PC;
 
     /**
-     * 从注解创建规则，注解未显式指定的字段使用 Properties 全局默认值（支持动态刷新）
-     *
-     * @param annotation 防重注解
-     * @param config     防重配置（持有动态默认值）
-     * @return 合并后的防重规则
+     * 从 @RepeatSubmit 注解创建规则
      */
-    public static RepeatSubmitRule fromAnnotation(RepeatSubmit annotation, RepeatSubmitConfig config) {
+    public static RepeatSubmitRule fromAnnotation(RepeatSubmit annotation) {
         return new RepeatSubmitRule()
-                .setInterval(annotation.interval() != ANNOTATION_DEFAULT_INTERVAL ? annotation.interval() : config.getInterval())
-                .setTimeUnit(annotation.timeUnit() != ANNOTATION_DEFAULT_TIME_UNIT ? annotation.timeUnit() : config.getTimeUnit())
-                .setMessage(!annotation.message().equals(ANNOTATION_DEFAULT_MESSAGE) ? annotation.message() : config.getMessage())
-                .setKeyScope(annotation.keyScope() != ANNOTATION_DEFAULT_KEY_SCOPE ? annotation.keyScope() : config.getKeyScope())
-                .setClientType(annotation.clientType() != ANNOTATION_DEFAULT_CLIENT_TYPE ? annotation.clientType() : config.getClientType());
+                .setInterval(annotation.interval())
+                .setTimeUnit(annotation.timeUnit())
+                .setMessage(annotation.message())
+                .setKeyScope(annotation.keyScope())
+                .setClientType(annotation.clientType());
     }
 
     /**
