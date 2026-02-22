@@ -716,7 +716,7 @@ guardian:
     enabled: true                      # 总开关（默认 true）
     threshold: 3000                    # 全局阈值（毫秒，默认 3000）
     interceptor-order: -1000           # 拦截器排序（值越小越先执行）
-    exclude-urls:                      # 排除规则（白名单，命中跳过检测）
+    exclude-urls:                      # 排除规则（白名单，命中直接放行）
       - /api/health
       - /api/public/**
 ```
@@ -810,19 +810,101 @@ guardian:
 
 ---
 
+## 规则优先级
+
+Guardian 各模块（防重复提交、接口限流、慢接口检测）的规则匹配遵循以下优先级：
+
+```
+exclude-urls（白名单）> YAML 规则 > 注解 > 放行
+```
+
+| 场景 | 行为 |
+|------|------|
+| URL 命中 `exclude-urls` | **直接放行**，跳过所有检测（包括注解） |
+| URL 命中 YAML `urls` 规则 | YAML 规则生效 |
+| 方法有注解 `@RateLimit` / `@RepeatSubmit` / `@SlowApiThreshold` | 注解规则生效 |
+| 以上均未命中 | 放行 |
+
+> **设计理念**：`exclude-urls` 作为白名单拥有最高优先级，可在紧急情况下通过配置中心动态添加 URL 实现"一键放行"，无需改代码重启。注解适合"长期固定"的保护策略，YAML 规则适合"动态可调"的批量策略。
+
+---
+
 ## 动态配置
 
 Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo 等）动态刷新，**无需重启应用**即可生效。
 
 ### 支持动态刷新的配置项
 
-| 模块 | 可动态修改的配置 |
-|------|--------------|
-| 防重复提交 | `urls` 规则、`exclude-urls`、`response-mode`、`log-enabled` |
-| 接口限流 | `urls` 规则、`exclude-urls`、`response-mode`、`log-enabled` |
-| 接口幂等 | `timeout`、`time-unit`、`exclude-urls`、`response-mode`、`log-enabled` |
-| 参数自动Trim | `exclude-fields`、`character-replacements` |
-| 慢接口检测 | `threshold`、`exclude-urls` |
+以下列出所有模块可在配置中心动态修改的完整参数（`enabled`、`storage` 等启动期参数修改后需重启生效）。
+
+**防重复提交**（prefix: `guardian.repeat-submit`）
+
+| YAML Key | 类型 | 默认值 | 说明 |
+|----------|------|--------|------|
+| `response-mode` | `exception` / `json` | `exception` | 响应模式 |
+| `log-enabled` | `boolean` | `false` | 是否打印拦截日志 |
+| `interval` | `int` | `5` | 全局默认防重间隔（注解未显式指定时生效） |
+| `time-unit` | `TimeUnit` | `seconds` | 全局默认时间单位 |
+| `key-scope` | `user` / `ip` / `global` | `user` | 全局默认防重维度 |
+| `message` | `String` | `您的请求过于频繁，请稍后再试` | 全局默认拦截提示信息 |
+| `client-type` | `pc` / `app` | `pc` | 全局默认客户端类型 |
+| `exclude-urls` | `List<String>` | `[]` | 排除规则（白名单，优先级最高，AntPath） |
+| `urls` | `List` | `[]` | 防重规则列表，每项参数如下 |
+| `urls[].pattern` | `String` | — | 接口路径（AntPath） |
+| `urls[].interval` | `int` | `5` | 防重间隔 |
+| `urls[].time-unit` | `TimeUnit` | `seconds` | 间隔时间单位 |
+| `urls[].key-scope` | `user` / `ip` / `global` | `user` | 防重维度 |
+| `urls[].message` | `String` | `您的请求过于频繁，请稍后再试` | 拦截提示信息 |
+| `urls[].client-type` | `pc` / `app` | `pc` | 客户端类型 |
+
+**接口限流**（prefix: `guardian.rate-limit`）
+
+| YAML Key | 类型 | 默认值 | 说明 |
+|----------|------|--------|------|
+| `response-mode` | `exception` / `json` | `exception` | 响应模式 |
+| `log-enabled` | `boolean` | `false` | 是否打印拦截日志 |
+| `qps` | `int` | `10` | 全局默认 QPS（注解未显式指定时生效） |
+| `window` | `int` | `1` | 全局默认时间窗口 |
+| `window-unit` | `TimeUnit` | `seconds` | 全局默认窗口时间单位 |
+| `algorithm` | `sliding_window` / `token_bucket` | `sliding_window` | 全局默认限流算法 |
+| `capacity` | `int` | `-1` | 全局默认令牌桶容量（≤0 时取 qps 值） |
+| `rate-limit-scope` | `global` / `ip` / `user` | `global` | 全局默认限流维度 |
+| `message` | `String` | `请求过于频繁，请稍后再试` | 全局默认拦截提示信息 |
+| `exclude-urls` | `List<String>` | `[]` | 排除规则（白名单，优先级最高，AntPath） |
+| `urls` | `List` | `[]` | 限流规则列表，每项参数如下 |
+| `urls[].pattern` | `String` | — | 接口路径（AntPath） |
+| `urls[].qps` | `int` | `10` | 滑动窗口=QPS，令牌桶=每 window 补充令牌数 |
+| `urls[].window` | `int` | `1` | 滑动窗口=窗口跨度，令牌桶=补充周期 |
+| `urls[].window-unit` | `TimeUnit` | `seconds` | 时间单位 |
+| `urls[].algorithm` | `sliding_window` / `token_bucket` | `sliding_window` | 限流算法 |
+| `urls[].capacity` | `int` | `-1` | 令牌桶容量（≤0 时取 qps 值） |
+| `urls[].rate-limit-scope` | `global` / `ip` / `user` | `global` | 限流维度 |
+| `urls[].message` | `String` | `请求过于频繁，请稍后再试` | 拦截提示信息 |
+
+**接口幂等**（prefix: `guardian.idempotent`）
+
+| YAML Key | 类型 | 默认值 | 说明 |
+|----------|------|--------|------|
+| `timeout` | `long` | `300` | Token 有效期 |
+| `time-unit` | `TimeUnit` | `seconds` | 有效期单位 |
+| `response-mode` | `exception` / `json` | `exception` | 响应模式 |
+| `log-enabled` | `boolean` | `false` | 是否打印拦截日志 |
+
+**参数自动Trim**（prefix: `guardian.auto-trim`）
+
+| YAML Key | 类型 | 默认值 | 说明 |
+|----------|------|--------|------|
+| `exclude-fields` | `Set<String>` | `[]` | 排除字段（不做 trim 的字段名） |
+| `character-replacements` | `List` | `[]` | 字符替换规则列表，每项参数如下 |
+| `character-replacements[].from` | `String` | — | 待替换字符（支持 `\\r` `\\n` `\\t` `\\uXXXX` 转义） |
+| `character-replacements[].to` | `String` | `""` | 替换为 |
+
+**慢接口检测**（prefix: `guardian.slow-api`）
+
+| YAML Key | 类型 | 默认值 | 说明 |
+|----------|------|--------|------|
+| `threshold` | `long` | `3000` | 全局慢接口阈值（毫秒） |
+| `exclude-urls` | `List<String>` | `[]` | 排除规则（白名单，优先级最高，AntPath） |
 
 ### 使用方式
 
@@ -856,7 +938,63 @@ spring:
 
 **3. 在 Nacos 控制台修改配置：**
 
-在对应的 Data ID（如 `your-app.yml`）中修改 Guardian 配置并发布，例如将限流 QPS 从 10 改为 20，发布后即时生效，无需重启。
+在对应的 Data ID（如 `your-app.yml`）中修改 Guardian 配置并发布，发布后即时生效，无需重启。以下是覆盖全模块的 Nacos 配置示例：
+
+```yaml
+guardian:
+  repeat-submit:
+    response-mode: exception
+    log-enabled: false
+    exclude-urls:
+      - /api/public/**
+    urls:
+      - pattern: /api/order/**
+        interval: 10
+        time-unit: seconds
+        key-scope: user
+        message: "请勿重复提交"
+
+  rate-limit:
+    response-mode: exception
+    log-enabled: false
+    exclude-urls:
+      - /api/public/**
+    urls:
+      - pattern: /api/sms/send
+        qps: 1
+        window: 60
+        window-unit: seconds
+        rate-limit-scope: ip
+      - pattern: /api/seckill/**
+        qps: 10
+        capacity: 50
+        algorithm: token_bucket
+        rate-limit-scope: global
+        message: "抢购太火爆，请稍后重试"
+
+  idempotent:
+    timeout: 300
+    time-unit: seconds
+    response-mode: exception
+    log-enabled: false
+
+  auto-trim:
+    exclude-fields:
+      - password
+      - signature
+    character-replacements:
+      - from: "\\u200B"
+        to: ""
+      - from: "\\uFEFF"
+        to: ""
+
+  slow-api:
+    threshold: 3000
+    exclude-urls:
+      - /api/health
+```
+
+> 只需配置你用到的模块，没用到的模块无需配置。修改任意参数后点击发布，下一次请求即可读取到最新值。
 
 ### 实现原理
 

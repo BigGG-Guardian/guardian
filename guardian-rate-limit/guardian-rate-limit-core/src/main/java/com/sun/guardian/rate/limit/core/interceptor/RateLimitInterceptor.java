@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * 接口限流拦截器
  * <p>
- * 优先级：排除规则 → YAML 规则 → @RateLimit 注解 → 放行
+ * 优先级：exclude-urls 放行 → YAML 规则 → @RateLimit 注解 → 放行
  *
  * @author scj
  * @version java version 1.8
@@ -82,7 +82,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         if (rule == null && handler instanceof HandlerMethod) {
             RateLimit annotation = ((HandlerMethod) handler).getMethodAnnotation(RateLimit.class);
             if (annotation != null) {
-                rule = RateLimitRule.fromAnnotation(annotation);
+                rule = RateLimitRule.fromAnnotation(annotation, rateLimitConfig);
                 logUtils.hitAnnotationRuleLog(rateLimitConfig.isLogEnabled(), log, requestUri, ip);
             }
         }
