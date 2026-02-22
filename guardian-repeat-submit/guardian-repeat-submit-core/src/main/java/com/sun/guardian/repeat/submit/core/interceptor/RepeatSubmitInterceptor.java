@@ -80,7 +80,7 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
         if (rule == null && handler instanceof HandlerMethod) {
             RepeatSubmit annotation = ((HandlerMethod) handler).getMethodAnnotation(RepeatSubmit.class);
             if (annotation != null) {
-                rule = RepeatSubmitRule.fromAnnotation(annotation, repeatSubmitConfig);
+                rule = RepeatSubmitRule.fromAnnotation(annotation);
                 logUtils.hitAnnotationRuleLog(repeatSubmitConfig.isLogEnabled(), log, requestUri, ip);
             }
         }

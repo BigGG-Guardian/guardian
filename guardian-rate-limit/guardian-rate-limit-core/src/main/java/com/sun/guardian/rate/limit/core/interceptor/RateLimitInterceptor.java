@@ -82,7 +82,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         if (rule == null && handler instanceof HandlerMethod) {
             RateLimit annotation = ((HandlerMethod) handler).getMethodAnnotation(RateLimit.class);
             if (annotation != null) {
-                rule = RateLimitRule.fromAnnotation(annotation, rateLimitConfig);
+                rule = RateLimitRule.fromAnnotation(annotation);
                 logUtils.hitAnnotationRuleLog(rateLimitConfig.isLogEnabled(), log, requestUri, ip);
             }
         }
