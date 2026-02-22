@@ -36,6 +36,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @since 2026-02-09 23:00
  */
 @Configuration
+@ConditionalOnProperty(prefix = "guardian.repeat-submit", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties({GuardianRepeatSubmitProperties.class, GuardianCoreProperties.class})
 public class GuardianRepeatSubmitAutoConfiguration {
 

@@ -23,7 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * 防重复提交拦截器，优先级：排除规则 → YAML 规则 → @RepeatSubmit 注解 → 放行
+ * 防重复提交拦截器，优先级：exclude-urls 放行 → YAML 规则 → @RepeatSubmit 注解 → 放行
  *
  * @author scj
  * @version java version 1.8
@@ -80,7 +80,7 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
         if (rule == null && handler instanceof HandlerMethod) {
             RepeatSubmit annotation = ((HandlerMethod) handler).getMethodAnnotation(RepeatSubmit.class);
             if (annotation != null) {
-                rule = RepeatSubmitRule.fromAnnotation(annotation);
+                rule = RepeatSubmitRule.fromAnnotation(annotation, repeatSubmitConfig);
                 logUtils.hitAnnotationRuleLog(repeatSubmitConfig.isLogEnabled(), log, requestUri, ip);
             }
         }

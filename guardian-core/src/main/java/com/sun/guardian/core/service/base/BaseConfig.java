@@ -15,7 +15,7 @@ import java.util.List;
 public interface BaseConfig {
 
     /**
-     * 排除规则（白名单） Getter
+     * 排除规则（白名单），优先级最高，命中直接放行
      */
     default List<String> getExcludeUrls() {
         return new ArrayList<>();

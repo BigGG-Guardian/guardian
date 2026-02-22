@@ -32,7 +32,7 @@ public class GuardianSlowApiProperties implements SlowApiConfig {
     private long threshold = 3000;
 
     /**
-     * 排除规则（白名单），优先级最高
+     * 排除规则（白名单），优先级最高，命中直接放行
      */
     private List<String> excludeUrls = new ArrayList<>();
 

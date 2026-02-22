@@ -62,24 +62,18 @@ public class SlowApiInterceptor implements HandlerInterceptor {
             return;
         }
 
-        long threshold = getThreshold(handler);
+        long threshold;
+        if (handler instanceof HandlerMethod) {
+            SlowApiThreshold annotation = ((HandlerMethod) handler).getMethodAnnotation(SlowApiThreshold.class);
+            threshold = (annotation != null) ? annotation.value() : slowApiConfig.getThreshold();
+        } else {
+            threshold = slowApiConfig.getThreshold();
+        }
+
         if (duration >= threshold) {
             logUtils.slowApiLog(log, request.getMethod(), requestUri, duration, threshold);
             statistics.record(requestUri, duration);
         }
     }
 
-    /**
-     * 获取当前接口的慢接口阈值，注解优先于全局配置
-     */
-    private long getThreshold(Object handler) {
-        if (handler instanceof HandlerMethod) {
-            SlowApiThreshold annotation = ((HandlerMethod) handler)
-                    .getMethodAnnotation(SlowApiThreshold.class);
-            if (annotation != null) {
-                return annotation.value();
-            }
-        }
-        return slowApiConfig.getThreshold();
-    }
 }
