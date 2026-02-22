@@ -1,6 +1,7 @@
 package com.sun.guardian.auto.trim.core.wrapper;
 
 import cn.hutool.core.io.IoUtil;
+import com.sun.guardian.auto.trim.core.config.AutoTrimConfig;
 import com.sun.guardian.core.utils.ArgsUtil;
 import com.sun.guardian.core.utils.CharacterSanitizer;
 import com.sun.guardian.core.wrapper.RepeatableRequestWrapper;
@@ -19,24 +20,24 @@ import java.util.*;
  */
 public class AutoTrimRequestWrapper extends RepeatableRequestWrapper {
 
-    private final Set<String> excludeFields;
+    private final AutoTrimConfig autoTrimConfig;
     private final CharacterSanitizer sanitizer;
     private volatile Map<String, String[]> cachedParameterMap;
 
     /**
      * 构造 trim 包装器，读取并处理请求体
      */
-    public AutoTrimRequestWrapper(HttpServletRequest request, Set<String> excludeFields,
+    public AutoTrimRequestWrapper(HttpServletRequest request, AutoTrimConfig autoTrimConfig,
                                   CharacterSanitizer sanitizer) throws IOException {
-        super(request, processBody(request, excludeFields, sanitizer));
-        this.excludeFields = excludeFields;
+        super(request, processBody(request, autoTrimConfig, sanitizer));
+        this.autoTrimConfig = autoTrimConfig;
         this.sanitizer = sanitizer;
     }
 
     /**
      * 处理请求体，JSON 请求执行递归 trim，非 JSON 请求原样返回
      */
-    private static byte[] processBody(HttpServletRequest request, Set<String> excludeFields,
+    private static byte[] processBody(HttpServletRequest request, AutoTrimConfig autoTrimConfig,
                                       CharacterSanitizer sanitizer) throws IOException {
         byte[] rawBody;
         if (request instanceof RepeatableRequestWrapper) {
@@ -49,7 +50,7 @@ public class AutoTrimRequestWrapper extends RepeatableRequestWrapper {
         String contentType = request.getContentType();
         if (contentType != null && contentType.contains("application/json")) {
             String json = new String(rawBody, StandardCharsets.UTF_8);
-            json = ArgsUtil.trimJsonBody(json, excludeFields, sanitizer);
+            json = ArgsUtil.trimJsonBody(json, autoTrimConfig.getExcludeFields(), sanitizer);
             return json.getBytes(StandardCharsets.UTF_8);
         }
         return rawBody;
@@ -61,7 +62,7 @@ public class AutoTrimRequestWrapper extends RepeatableRequestWrapper {
     @Override
     public String getParameter(String name) {
         String value = super.getParameter(name);
-        if (value == null || excludeFields.contains(name)) return value;
+        if (value == null || autoTrimConfig.getExcludeFields().contains(name)) return value;
         return sanitizer.sanitize(value).trim();
     }
 
@@ -72,7 +73,7 @@ public class AutoTrimRequestWrapper extends RepeatableRequestWrapper {
     public String[] getParameterValues(String name) {
         String[] values = super.getParameterValues(name);
         if (values == null) return null;
-        if (excludeFields.contains(name)) return values;
+        if (autoTrimConfig.getExcludeFields().contains(name)) return values;
         return Arrays.stream(values)
                 .map(v -> v == null ? null : sanitizer.sanitize(v).trim())
                 .toArray(String[]::new);
@@ -87,7 +88,7 @@ public class AutoTrimRequestWrapper extends RepeatableRequestWrapper {
         Map<String, String[]> original = super.getParameterMap();
         Map<String, String[]> trimmed = new LinkedHashMap<>();
         original.forEach((key, values) -> {
-            if (excludeFields.contains(key)) {
+            if (autoTrimConfig.getExcludeFields().contains(key)) {
                 trimmed.put(key, values);
             } else {
                 trimmed.put(key, Arrays.stream(values)

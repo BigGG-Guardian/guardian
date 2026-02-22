@@ -1,11 +1,10 @@
 package com.sun.guardian.idempotent.core.service.token;
 
 import cn.hutool.core.util.StrUtil;
+import com.sun.guardian.idempotent.core.config.IdempotentConfig;
 import com.sun.guardian.idempotent.core.constants.IdempotentKeyPrefixConstants;
 import com.sun.guardian.idempotent.core.domain.token.IdempotentToken;
 import com.sun.guardian.idempotent.core.storage.IdempotentStorage;
-
-import java.util.concurrent.TimeUnit;
 
 /**
  * 默认接口幂等Token创建
@@ -17,17 +16,21 @@ import java.util.concurrent.TimeUnit;
 public class DefaultIdempotentTokenService implements IdempotentTokenService {
     private final IdempotentTokenGenerator tokenGenerator;
     private final IdempotentStorage idempotentStorage;
-    private final long timeout;
-    private final TimeUnit timeUnit;
+    private final IdempotentConfig idempotentConfig;
 
     /**
-     * 构造默认幂等Token服务
+     * 构造默认幂等Token服务，持有配置接口引用以支持动态刷新
+     *
+     * @param tokenGenerator   Token 生成器
+     * @param idempotentStorage 幂等存储
+     * @param idempotentConfig  幂等配置（动态）
      */
-    public DefaultIdempotentTokenService(IdempotentTokenGenerator tokenGenerator, IdempotentStorage idempotentStorage, long timeout, TimeUnit timeUnit) {
+    public DefaultIdempotentTokenService(IdempotentTokenGenerator tokenGenerator,
+                                         IdempotentStorage idempotentStorage,
+                                         IdempotentConfig idempotentConfig) {
         this.tokenGenerator = tokenGenerator;
         this.idempotentStorage = idempotentStorage;
-        this.timeout = timeout;
-        this.timeUnit = timeUnit;
+        this.idempotentConfig = idempotentConfig;
     }
 
     @Override
@@ -38,8 +41,8 @@ public class DefaultIdempotentTokenService implements IdempotentTokenService {
         idempotentStorage.save(new IdempotentToken()
                 .setKey(fullKey)
                 .setCreateTime(System.currentTimeMillis())
-                .setTimeout(timeout)
-                .setTimeUnit(timeUnit));
+                .setTimeout(idempotentConfig.getTimeout())
+                .setTimeUnit(idempotentConfig.getTimeUnit()));
         return token;
     }
 }

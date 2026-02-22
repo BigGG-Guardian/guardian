@@ -82,7 +82,7 @@ public class GuardianRepeatSubmitAutoConfiguration {
                                                            RepeatSubmitResponseHandler repeatSubmitResponseHandler,
                                                            GuardianRepeatSubmitProperties guardianProperties,
                                                            RepeatSubmitStatistics statistics) {
-        return new RepeatSubmitInterceptor(keyGenerator, repeatSubmitStorage, repeatSubmitResponseHandler, guardianProperties.getUrls(), guardianProperties.getExcludeUrls(), guardianProperties.getResponseMode(), guardianProperties.isLogEnabled(), statistics);
+        return new RepeatSubmitInterceptor(keyGenerator, repeatSubmitStorage, repeatSubmitResponseHandler, guardianProperties, statistics);
     }
 
     /**
@@ -124,7 +124,9 @@ public class GuardianRepeatSubmitAutoConfiguration {
         return () -> null;
     }
 
-    /** 默认防重键生成策略 */
+    /**
+     * 默认防重键生成策略
+     */
     @Bean
     @ConditionalOnMissingBean(KeyGenerator.class)
     public DefaultKeyGenerator defaultKeyGenerator(UserContext userContext, AbstractKeyEncrypt keyEncrypt) {

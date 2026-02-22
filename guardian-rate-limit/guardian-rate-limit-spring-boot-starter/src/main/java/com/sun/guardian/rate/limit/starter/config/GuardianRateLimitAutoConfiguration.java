@@ -64,9 +64,7 @@ public class GuardianRateLimitAutoConfiguration {
                                                      RateLimitResponseHandler rateLimitResponseHandler,
                                                      GuardianRateLimitProperties guardianProperties,
                                                      RateLimitStatistics statistics) {
-        return new RateLimitInterceptor(keyGenerator, rateLimitStorage, rateLimitResponseHandler,
-                guardianProperties.getUrls(), guardianProperties.getExcludeUrls(),
-                guardianProperties.getResponseMode(), guardianProperties.isLogEnabled(), statistics);
+        return new RateLimitInterceptor(keyGenerator, rateLimitStorage, rateLimitResponseHandler, guardianProperties, statistics);
     }
 
     /**
@@ -108,7 +106,9 @@ public class GuardianRateLimitAutoConfiguration {
         return () -> null;
     }
 
-    /** 默认限流键生成策略 */
+    /**
+     * 默认限流键生成策略
+     */
     @Bean
     @ConditionalOnMissingBean(RateLimitKeyGenerator.class)
     public DefaultRateLimitKeyGenerator defaultRateLimitKeyGenerator(UserContext userContext) {

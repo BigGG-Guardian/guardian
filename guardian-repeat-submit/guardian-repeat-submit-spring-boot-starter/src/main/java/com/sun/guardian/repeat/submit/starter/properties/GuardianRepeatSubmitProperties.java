@@ -1,6 +1,7 @@
 package com.sun.guardian.repeat.submit.starter.properties;
 
 import com.sun.guardian.core.properties.BaseGuardianProperties;
+import com.sun.guardian.repeat.submit.core.config.RepeatSubmitConfig;
 import com.sun.guardian.repeat.submit.core.domain.rule.RepeatSubmitRule;
 import com.sun.guardian.repeat.submit.starter.enums.encrypt.KeyEncryptType;
 import lombok.Data;
@@ -20,7 +21,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @ConfigurationProperties(prefix = "guardian.repeat-submit")
-public class GuardianRepeatSubmitProperties extends BaseGuardianProperties {
+public class GuardianRepeatSubmitProperties extends BaseGuardianProperties implements RepeatSubmitConfig {
 
     /**
      * 键加密策略

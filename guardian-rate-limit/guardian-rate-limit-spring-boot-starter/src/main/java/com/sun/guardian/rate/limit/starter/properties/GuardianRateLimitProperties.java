@@ -1,6 +1,7 @@
 package com.sun.guardian.rate.limit.starter.properties;
 
 import com.sun.guardian.core.properties.BaseGuardianProperties;
+import com.sun.guardian.rate.limit.core.config.RateLimitConfig;
 import com.sun.guardian.rate.limit.core.domain.rule.RateLimitRule;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -19,7 +20,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @ConfigurationProperties(prefix = "guardian.rate-limit")
-public class GuardianRateLimitProperties extends BaseGuardianProperties {
+public class GuardianRateLimitProperties extends BaseGuardianProperties implements RateLimitConfig {
 
     /**
      * 总开关（默认 true）

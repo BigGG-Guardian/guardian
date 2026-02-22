@@ -82,11 +82,11 @@ public class GuardianIdempotentAutoConfiguration {
     public IdempotentInterceptor idempotentInterceptor(IdempotentStorage storage,
                                                        @Autowired(required = false) IdempotentResultCache resultCache,
                                                        IdempotentResponseHandler idempotentResponseHandler,
-                                                       IdempotentStatistics statistics,
-                                                       GuardianIdempotentProperties properties) {
+                                                       GuardianIdempotentProperties properties,
+                                                       IdempotentStatistics statistics) {
 
         properties.validate();
-        return new IdempotentInterceptor(storage, resultCache, idempotentResponseHandler, statistics, properties.isLogEnabled(), properties.getResponseMode(), properties.getTimeout(), properties.getTimeUnit());
+        return new IdempotentInterceptor(storage, resultCache, idempotentResponseHandler, properties, statistics);
     }
 
     /**
@@ -127,8 +127,7 @@ public class GuardianIdempotentAutoConfiguration {
     public IdempotentTokenService idempotentTokenService(IdempotentTokenGenerator tokenGenerator,
                                                          IdempotentStorage storage,
                                                          GuardianIdempotentProperties properties) {
-        return new DefaultIdempotentTokenService(tokenGenerator, storage,
-                properties.getTimeout(), properties.getTimeUnit());
+        return new DefaultIdempotentTokenService(tokenGenerator, storage, properties);
     }
 
     /**

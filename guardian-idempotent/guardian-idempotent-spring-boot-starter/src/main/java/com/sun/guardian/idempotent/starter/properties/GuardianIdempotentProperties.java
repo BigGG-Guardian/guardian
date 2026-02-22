@@ -1,6 +1,7 @@
 package com.sun.guardian.idempotent.starter.properties;
 
 import com.sun.guardian.core.properties.BaseGuardianProperties;
+import com.sun.guardian.idempotent.core.config.IdempotentConfig;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -17,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @ConfigurationProperties(prefix = "guardian.idempotent")
-public class GuardianIdempotentProperties extends BaseGuardianProperties {
+public class GuardianIdempotentProperties extends BaseGuardianProperties implements IdempotentConfig {
 
     /**
      * 总开关

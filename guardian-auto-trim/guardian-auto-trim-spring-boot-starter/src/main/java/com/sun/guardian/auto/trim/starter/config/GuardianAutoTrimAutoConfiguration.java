@@ -9,9 +9,6 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 /**
  * 请求参数自动 trim 自动配置
  *
@@ -29,12 +26,9 @@ public class GuardianAutoTrimAutoConfiguration {
      */
     @Bean
     public FilterRegistrationBean<AutoTrimFilter> autoTrimFilter(GuardianAutoTrimProperties properties) {
-        Map<String, String> replacementMap = new LinkedHashMap<>();
-        properties.getCharacterReplacements().forEach(rule ->
-                replacementMap.put(rule.getFrom(), rule.getTo()));
-        CharacterSanitizer sanitizer = new CharacterSanitizer(replacementMap);
+        CharacterSanitizer sanitizer = new CharacterSanitizer(properties);
         FilterRegistrationBean<AutoTrimFilter> registration = new FilterRegistrationBean<>();
-        registration.setFilter(new AutoTrimFilter(properties.getExcludeFields(), sanitizer));
+        registration.setFilter(new AutoTrimFilter(properties, sanitizer));
         registration.addUrlPatterns("/*");
         registration.setName("autoTrimFilter");
         registration.setOrder(properties.getFilterOrder());
