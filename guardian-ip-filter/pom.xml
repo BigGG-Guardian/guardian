@@ -1,0 +1,39 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.biggg-guardian</groupId>
+        <artifactId>guardian-parent</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>guardian-ip-filter</artifactId>
+    <packaging>pom</packaging>
+
+    <name>guardian-ip-filter</name>
+    <description>
+        Guardian IP黑白名单模块
+    </description>
+    <modules>
+        <module>guardian-ip-filter-core</module>
+        <module>guardian-ip-filter-spring-boot-starter</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- 自定义模块-核心模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- 自定义模块-IP黑白名单核心模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-ip-filter-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>

@@ -16,7 +16,7 @@ import com.sun.guardian.idempotent.core.constants.IdempotentKeyPrefixConstants;
 import com.sun.guardian.idempotent.core.domain.result.IdempotentResult;
 import com.sun.guardian.idempotent.core.enums.IdempotentTokenFrom;
 import com.sun.guardian.idempotent.core.service.response.IdempotentResponseHandler;
-import com.sun.guardian.idempotent.core.service.statistics.IdempotentStatistics;
+import com.sun.guardian.idempotent.core.statistics.IdempotentStatistics;
 import com.sun.guardian.idempotent.core.storage.IdempotentResultCache;
 import com.sun.guardian.idempotent.core.storage.IdempotentStorage;
 import org.slf4j.Logger;

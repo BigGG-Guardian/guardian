@@ -91,4 +91,22 @@ public class GuardianLogUtils {
     public void slowApiLog(Logger log, String method, String uri, long duration, long threshold) {
         log.warn("{} 慢接口检测 | {} {} | 耗时: {}ms | 阈值: {}ms", moduleTag, method, uri, duration, threshold);
     }
+
+    /**
+     * IP黑名单拦截
+     */
+    public void ipBlackBlockLog(boolean logEnable, Logger log, String ip, String uri) {
+        if (logEnable) {
+            log.warn("{} 黑名单拦截 | IP: {} | URI: {}", moduleTag, ip, uri);
+        }
+    }
+
+    /**
+     * IP白名单拦截
+     */
+    public void ipWhiteBlockLog(boolean logEnable, Logger log, String ip, String uri) {
+        if (logEnable) {
+            log.warn("{} 白名单拦截 | IP: {} | URI: {} | 不在白名单内", moduleTag, ip, uri);
+        }
+    }
 }

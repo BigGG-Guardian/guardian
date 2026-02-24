@@ -9,7 +9,7 @@
 
 <h1 align="center">Guardian</h1>
 <p align="center"><b>轻量级 Spring Boot API 请求层防护框架</b></p>
-<p align="center">防重提交、接口限流、接口幂等、参数自动Trim、慢接口检测、请求链路追踪 —— 一个 Starter 搞定 API 请求防护。</p>
+<p align="center">防重提交、接口限流、接口幂等、参数自动Trim、慢接口检测、请求链路追踪、IP黑白名单 —— 一个 Starter 搞定 API 请求防护。</p>
 
 <p align="center">
   <a href="https://github.com/BigGG-Guardian/guardian">GitHub</a> ·
@@ -29,6 +29,7 @@
 | 参数自动Trim | `guardian-auto-trim-spring-boot-starter` | — | ✅ | 自动去除请求参数首尾空格 + 不可见字符替换 |
 | 慢接口检测 | `guardian-slow-api-spring-boot-starter` | `@SlowApiThreshold` | ✅ | 慢接口检测 + Top N 统计 + Actuator 端点 |
 | 请求链路追踪 | `guardian-trace-spring-boot-starter` | — | ✅ | 自动生成/透传 TraceId，MDC 日志串联 |
+| IP黑白名单 | `guardian-ip-filter-spring-boot-starter` | — | ✅ | 全局黑名单 + URL 绑定白名单，支持精确/通配符/CIDR |
 
 每个功能独立模块、独立 Starter，**用哪个引哪个，互不依赖**。所有模块的 YAML 配置均支持**配置中心动态刷新**（Nacos / Apollo 等），无需重启即可生效。
 
@@ -42,7 +43,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.5.3</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -60,7 +61,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.5.3</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -102,7 +103,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.5.3</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -130,7 +131,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
-    <version>1.5.3</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -153,7 +154,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
-    <version>1.5.3</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -175,7 +176,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-spring-boot-starter</artifactId>
-    <version>1.5.3</version>
+    <version>1.6.0</version>
 </dependency>
 ```
 
@@ -186,6 +187,34 @@ public Result getDetail(@RequestParam Long id) {
 ```
 
 上游服务通过请求头 `X-Trace-Id` 传递 TraceId，下游自动复用，实现跨服务链路串联。
+
+### IP黑白名单
+
+```xml
+<dependency>
+    <groupId>io.github.biggg-guardian</groupId>
+    <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
+    <version>1.6.0</version>
+</dependency>
+```
+
+```yaml
+guardian:
+  ip-filter:
+    enabled: true
+    # 全局黑名单（命中直接拒绝所有请求）
+    black-list:
+      - 192.168.100.100
+      - 10.0.0.0/8
+    # URL 绑定白名单（仅白名单 IP 可访问指定接口）
+    urls:
+      - pattern: /admin/**
+        white-list:
+          - 127.0.0.1
+          - 192.168.1.*
+```
+
+匹配优先级：**全局黑名单 > URL 绑定白名单 > 放行**。IP 规则支持精确匹配、通配符（`192.168.1.*`）和 CIDR（`10.0.0.0/8`）。
 
 ---
 
@@ -803,8 +832,92 @@ MDC.remove("traceId")           ← 请求结束清理
 guardian:
   trace:
     enabled: true                      # 总开关（默认 true）
-    filter-order: -20000               # Filter 排序（值越小越先执行，确保最先执行）
+    filter-order: -30000               # Filter 排序（值越小越先执行，确保最先执行）
     header-name: X-Trace-Id            # 请求头/响应头名称（默认 X-Trace-Id）
+```
+
+</details>
+
+---
+
+## IP黑白名单
+
+<details>
+<summary><b>展开查看完整文档</b></summary>
+
+### 功能说明
+
+基于 IP 的访问控制，支持两种模式：
+
+- **全局黑名单**：匹配的 IP 拒绝访问所有接口
+- **URL 绑定白名单**：指定接口仅允许白名单 IP 访问，其余 IP 拒绝
+
+匹配优先级：**全局黑名单 > URL 绑定白名单 > 放行**
+
+IP 规则支持三种格式：
+
+| 格式 | 示例 | 说明 |
+|------|------|------|
+| 精确匹配 | `192.168.1.100` | 精确匹配单个 IP |
+| 通配符 | `192.168.1.*` | 匹配整个网段 |
+| CIDR | `10.0.0.0/8` | CIDR 网段匹配 |
+
+### 全量配置
+
+```yaml
+guardian:
+  ip-filter:
+    enabled: true                       # 总开关（默认 false，需显式开启）
+    response-mode: json                 # exception / json
+    log-enabled: true                   # 是否打印拦截日志（默认 false）
+    message: "IP 访问被拒绝"              # 拒绝提示信息（支持 i18n Key）
+    filter-order: -20000                # Filter 排序（值越小越先执行）
+    black-list:                         # 全局 IP 黑名单
+      - 192.168.100.100
+      - 10.0.0.0/8
+    urls:                               # URL 绑定白名单
+      - pattern: /admin/**
+        white-list:
+          - 127.0.0.1
+          - 192.168.1.*
+      - pattern: /internal/api/**
+        white-list:
+          - 10.0.0.0/8
+```
+
+### 可观测性
+
+- **拦截日志**：`log-enabled: true`，前缀 `[Guardian-Ip-Filter]`
+- **Actuator**：`GET /actuator/guardianIpFilter`
+
+```json
+{
+  "totalBlackListBlockCount": 56,
+  "totalWhiteListBlockCount": 23,
+  "topBlackListBlocked": {
+    "192.168.100.100": 42,
+    "10.1.2.3": 14
+  },
+  "topWhiteListBlocked": {
+    "/admin/dashboard | 172.16.0.5": 15,
+    "/internal/api/config | 192.168.2.1": 8
+  }
+}
+```
+
+### 扩展点
+
+**自定义响应处理器（仅 `response-mode: json` 时生效）：**
+
+```java
+@Bean
+public IpFilterResponseHandler ipFilterResponseHandler() {
+    return (request, response, code, data, message) -> {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(JSONUtil.toJsonStr(CommonResult.result(code, data, message)));
+    };
+}
 ```
 
 </details>
@@ -895,6 +1008,19 @@ Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo
 | `threshold` | `long` | `3000` | 全局慢接口阈值（毫秒） |
 | `exclude-urls` | `List<String>` | `[]` | 排除规则（白名单，优先级最高，AntPath） |
 
+**IP黑白名单**（prefix: `guardian.ip-filter`）
+
+| YAML Key | 类型 | 默认值 | 说明 |
+|----------|------|--------|------|
+| `response-mode` | `exception` / `json` | `exception` | 响应模式 |
+| `log-enabled` | `boolean` | `false` | 是否打印拦截日志 |
+| `message` | `String` | `IP 访问被拒绝` | 拒绝提示信息（支持 i18n Key） |
+| `filter-order` | `int` | `-20000` | Filter 排序（值越小越先执行） |
+| `black-list` | `List<String>` | `[]` | 全局 IP 黑名单（精确 / 通配符 / CIDR） |
+| `urls` | `List` | `[]` | URL 绑定白名单规则列表，每项参数如下 |
+| `urls[].pattern` | `String` | — | 接口路径（AntPath） |
+| `urls[].white-list` | `List<String>` | `[]` | 允许访问的 IP 列表（精确 / 通配符 / CIDR） |
+
 ### 使用方式
 
 以 Nacos 为例，引入 Spring Cloud Alibaba Nacos Config 依赖后，在 Nacos 控制台修改 Guardian 相关配置并发布，应用会自动感知变更并即时生效。
@@ -981,6 +1107,19 @@ guardian:
     threshold: 3000
     exclude-urls:
       - /api/health
+
+  ip-filter:
+    enabled: true
+    response-mode: json
+    log-enabled: true
+    message: "IP 访问被拒绝"
+    black-list:
+      - 192.168.100.100
+    urls:
+      - pattern: /admin/**
+        white-list:
+          - 127.0.0.1
+          - 192.168.1.*
 ```
 
 > 只需配置你用到的模块，没用到的模块无需配置。修改任意参数后点击发布，下一次请求即可读取到最新值。
@@ -1106,6 +1245,9 @@ guardian-parent
 ├── guardian-trace/                        # 请求链路追踪
 │   ├── guardian-trace-core/
 │   └── guardian-trace-spring-boot-starter/
+├── guardian-ip-filter/                    # IP黑白名单
+│   ├── guardian-ip-filter-core/
+│   └── guardian-ip-filter-spring-boot-starter/
 ├── guardian-storage-redis/                # Redis 存储（多模块共享）
 └── guardian-example/                      # 示例工程
 ```
@@ -1121,29 +1263,57 @@ guardian-parent
 | `DefaultGuardianResponseHandler` | 默认 JSON 响应实现 |
 | `BaseStatistics` | 拦截统计基类 |
 | `GuardianLogUtils` | 参数化日志工具 |
+| `IpMatcher` | IP 匹配工具（精确 / 通配符 / CIDR） |
 | `RepeatableRequestFilter` | 请求体缓存过滤器 |
 
-### 拦截器执行顺序
+### 执行顺序
 
-三个拦截器注册时通过 `interceptor-order` 控制执行优先级，**值越小越先执行**。默认顺序：
+Guardian 的 Filter 和 Interceptor 通过 `order` 值控制执行优先级，**值越小越先执行**。
 
-| 顺序 | 模块 | 默认 order | 说明 |
-|------|------|-----------|------|
-| 1 | 限流 | 1000 | 最先执行，流量超限直接拒绝，避免后续无意义计算 |
-| 2 | 防重 | 2000 | 通过限流后，判断是否短时间重复请求 |
-| 3 | 幂等 | 3000 | 最后执行，消费 Token（不可逆），确保前面的校验都通过 |
+#### Filter 执行顺序
+
+Filter 在 Servlet 层执行，先于所有 Interceptor：
+
+| 顺序 | 模块 | 配置项 | 默认 order | 说明 |
+|------|------|--------|-----------|------|
+| 1 | 请求链路追踪 | `guardian.trace.filter-order` | **-30000** | 最先执行，为后续所有操作提供 TraceId |
+| 2 | IP 黑白名单 | `guardian.ip-filter.filter-order` | **-20000** | 拦截恶意 IP，尽早阻断 |
+| 3 | 参数自动 Trim | `guardian.auto-trim.filter-order` | **-10000** | 参数预处理，在业务逻辑前清洗数据 |
+| 4 | 请求体缓存 | `guardian.repeatable-filter-order` | **-100** | 缓存请求体供防重 / 幂等模块重复读取 |
+
+#### Interceptor 执行顺序
+
+Interceptor 在 Spring MVC 层执行，Filter 之后：
+
+| 顺序 | 模块 | 配置项 | 默认 order | 说明 |
+|------|------|--------|-----------|------|
+| 1 | 慢接口检测 | `guardian.slow-api.interceptor-order` | **-1000** | 最先进入最后退出，精确计算整体耗时 |
+| 2 | 接口限流 | `guardian.rate-limit.interceptor-order` | **1000** | 流量超限直接拒绝，避免后续无意义计算 |
+| 3 | 防重复提交 | `guardian.repeat-submit.interceptor-order` | **2000** | 通过限流后，判断是否短时间重复请求 |
+| 4 | 接口幂等 | `guardian.idempotent.interceptor-order` | **3000** | 最后执行，消费 Token 不可逆，确保前面校验都通过 |
 
 每个模块的 order 均可通过 YAML 自定义，方便与项目中其他拦截器协调：
 
 ```yaml
 guardian:
-  repeatable-filter-order: -100   # 请求体缓存过滤器排序（全局）
+  # Filter 排序
+  repeatable-filter-order: -100          # 请求体缓存（全局共享）
+  trace:
+    filter-order: -30000                 # 链路追踪
+  ip-filter:
+    filter-order: -20000                 # IP 黑白名单
+  auto-trim:
+    filter-order: -10000                 # 参数自动 Trim
+
+  # Interceptor 排序
+  slow-api:
+    interceptor-order: -1000             # 慢接口检测
   rate-limit:
-    interceptor-order: 1000
+    interceptor-order: 1000              # 接口限流
   repeat-submit:
-    interceptor-order: 2000
+    interceptor-order: 2000              # 防重复提交
   idempotent:
-    interceptor-order: 3000
+    interceptor-order: 3000              # 接口幂等
 ```
 
 ## 存储对比
@@ -1156,6 +1326,14 @@ guardian:
 | 额外依赖 | 需要 Redis | 无 |
 
 ## 更新日志
+
+### v1.6.0
+
+- **新增**：IP 黑白名单模块（`guardian-ip-filter-spring-boot-starter`），支持全局 IP 黑名单 + URL 绑定白名单
+- **新增**：IP 规则匹配支持精确匹配、通配符（`192.168.1.*`）和 CIDR（`10.0.0.0/8`）三种格式
+- **新增**：IP 黑白名单拦截统计 + Actuator 端点（`GET /actuator/guardianIpFilter`）
+- **新增**：`IpMatcher` 工具类，统一处理 IP 规则匹配逻辑
+- **新增**：IP 黑白名单拦截日志（`log-enabled: true`，前缀 `[Guardian-Ip-Filter]`）
 
 ### v1.5.3
 

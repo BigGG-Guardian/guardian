@@ -1,6 +1,6 @@
 package com.sun.guardian.idempotent.starter.endpoint;
 
-import com.sun.guardian.idempotent.core.service.statistics.IdempotentStatistics;
+import com.sun.guardian.idempotent.core.statistics.IdempotentStatistics;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
 
