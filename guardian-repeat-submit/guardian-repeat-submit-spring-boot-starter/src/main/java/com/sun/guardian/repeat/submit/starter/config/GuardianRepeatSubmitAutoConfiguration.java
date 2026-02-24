@@ -1,7 +1,9 @@
 package com.sun.guardian.repeat.submit.starter.config;
 
+import com.sun.guardian.core.config.GuardianCoreAutoConfiguration;
 import com.sun.guardian.core.context.UserContext;
 import com.sun.guardian.core.filter.RepeatableRequestFilter;
+import com.sun.guardian.core.i18n.GuardianMessageResolver;
 import com.sun.guardian.repeat.submit.core.interceptor.RepeatSubmitInterceptor;
 import com.sun.guardian.repeat.submit.core.service.encrypt.strategy.AbstractKeyEncrypt;
 import com.sun.guardian.repeat.submit.core.service.encrypt.strategy.KeyMD5Encrypt;
@@ -24,6 +26,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -38,6 +41,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @ConditionalOnProperty(prefix = "guardian.repeat-submit", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties({GuardianRepeatSubmitProperties.class, GuardianCoreProperties.class})
+@Import(GuardianCoreAutoConfiguration.class)
 public class GuardianRepeatSubmitAutoConfiguration {
 
     /**
@@ -82,8 +86,9 @@ public class GuardianRepeatSubmitAutoConfiguration {
                                                            RepeatSubmitStorage repeatSubmitStorage,
                                                            RepeatSubmitResponseHandler repeatSubmitResponseHandler,
                                                            GuardianRepeatSubmitProperties guardianProperties,
-                                                           RepeatSubmitStatistics statistics) {
-        return new RepeatSubmitInterceptor(keyGenerator, repeatSubmitStorage, repeatSubmitResponseHandler, guardianProperties, statistics);
+                                                           RepeatSubmitStatistics statistics,
+                                                           GuardianMessageResolver messageResolver) {
+        return new RepeatSubmitInterceptor(keyGenerator, repeatSubmitStorage, repeatSubmitResponseHandler, guardianProperties, statistics, messageResolver);
     }
 
     /**

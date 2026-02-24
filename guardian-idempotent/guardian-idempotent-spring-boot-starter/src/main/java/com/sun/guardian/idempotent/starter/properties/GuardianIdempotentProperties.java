@@ -45,6 +45,11 @@ public class GuardianIdempotentProperties extends BaseGuardianProperties impleme
      */
     private boolean resultCache = false;
 
+    /**
+     * 缺少 Token 时的拒绝提示信息（支持 i18n Key）
+     */
+    private String missingTokenMessage = "请求缺少幂等Token";
+
     public GuardianIdempotentProperties() {
         setInterceptorOrder(3000);
     }

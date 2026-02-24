@@ -22,4 +22,11 @@ public interface IdempotentConfig extends BaseConfig {
      * Token 有效期单位 Getter
      */
     TimeUnit getTimeUnit();
+
+    /**
+     * 缺少 Token 时的拒绝提示信息 Getter
+     */
+    default String getMissingTokenMessage() {
+        return "请求缺少幂等Token";
+    }
 }

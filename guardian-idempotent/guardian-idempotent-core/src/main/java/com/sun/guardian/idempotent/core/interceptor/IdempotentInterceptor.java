@@ -5,6 +5,7 @@ import cn.hutool.extra.servlet.ServletUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.sun.guardian.core.exception.IdempotentException;
+import com.sun.guardian.core.i18n.GuardianMessageResolver;
 import com.sun.guardian.core.utils.GuardianLogUtils;
 import com.sun.guardian.core.utils.ResponseUtils;
 import com.sun.guardian.core.wrapper.RepeatableRequestWrapper;
@@ -49,8 +50,8 @@ public class IdempotentInterceptor implements HandlerInterceptor {
     /**
      * 构造接口幂等拦截器
      */
-    public IdempotentInterceptor(IdempotentStorage storage, IdempotentResultCache resultCache, IdempotentResponseHandler idempotentResponseHandler, IdempotentConfig idempotentConfig, IdempotentStatistics statistics) {
-        this.responseUtils = new ResponseUtils(idempotentConfig, idempotentResponseHandler, IdempotentException::new);
+    public IdempotentInterceptor(IdempotentStorage storage, IdempotentResultCache resultCache, IdempotentResponseHandler idempotentResponseHandler, IdempotentConfig idempotentConfig, IdempotentStatistics statistics, GuardianMessageResolver messageResolver) {
+        this.responseUtils = new ResponseUtils(idempotentConfig, idempotentResponseHandler, IdempotentException::new, messageResolver);
         this.storage = storage;
         this.resultCache = resultCache;
         this.idempotentConfig = idempotentConfig;
@@ -78,7 +79,7 @@ public class IdempotentInterceptor implements HandlerInterceptor {
         if (StrUtil.isBlank(token)) {
             statistics.recordBlock(requestURI);
             logUtils.blockLog(idempotentConfig.isLogEnabled(), log, requestURI, ip);
-            return responseUtils.reject(request, response, "请求缺少幂等Token");
+            return responseUtils.reject(request, response, idempotentConfig.getMissingTokenMessage());
         }
 
         String fullKey = StrUtil.format(IdempotentKeyPrefixConstants.KEY_PREFIX, annotation.value(), token);
