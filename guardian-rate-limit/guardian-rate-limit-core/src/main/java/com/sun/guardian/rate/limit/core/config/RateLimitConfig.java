@@ -2,11 +2,8 @@ package com.sun.guardian.rate.limit.core.config;
 
 import com.sun.guardian.core.service.base.BaseConfig;
 import com.sun.guardian.rate.limit.core.domain.rule.RateLimitRule;
-import com.sun.guardian.rate.limit.core.enums.algorithm.RateLimitAlgorithm;
-import com.sun.guardian.rate.limit.core.enums.scope.RateLimitKeyScope;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 接口限流配置属性接口

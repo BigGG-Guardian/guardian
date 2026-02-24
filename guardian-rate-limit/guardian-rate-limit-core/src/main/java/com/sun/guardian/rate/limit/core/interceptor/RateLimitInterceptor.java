@@ -2,6 +2,7 @@ package com.sun.guardian.rate.limit.core.interceptor;
 
 import cn.hutool.extra.servlet.ServletUtil;
 import com.sun.guardian.core.exception.RateLimitException;
+import com.sun.guardian.core.i18n.GuardianMessageResolver;
 import com.sun.guardian.core.utils.GuardianLogUtils;
 import com.sun.guardian.core.utils.MatchUrlRuleUtils;
 import com.sun.guardian.core.utils.ResponseUtils;
@@ -50,10 +51,11 @@ public class RateLimitInterceptor implements HandlerInterceptor {
                                 RateLimitStorage rateLimitStorage,
                                 RateLimitResponseHandler rateLimitResponseHandler,
                                 RateLimitConfig rateLimitConfig,
-                                RateLimitStatistics statistics) {
+                                RateLimitStatistics statistics,
+                                GuardianMessageResolver messageResolver) {
         this.keyGenerator = keyGenerator;
         this.rateLimitStorage = rateLimitStorage;
-        this.responseUtils = new ResponseUtils(rateLimitConfig, rateLimitResponseHandler, RateLimitException::new);
+        this.responseUtils = new ResponseUtils(rateLimitConfig, rateLimitResponseHandler, RateLimitException::new, messageResolver);
         this.rateLimitConfig = rateLimitConfig;
         this.statistics = statistics;
     }

@@ -1,6 +1,8 @@
 package com.sun.guardian.idempotent.starter.config;
 
+import com.sun.guardian.core.config.GuardianCoreAutoConfiguration;
 import com.sun.guardian.core.filter.RepeatableRequestFilter;
+import com.sun.guardian.core.i18n.GuardianMessageResolver;
 import com.sun.guardian.idempotent.core.advice.IdempotentResultCacheAdvice;
 import com.sun.guardian.idempotent.core.interceptor.IdempotentInterceptor;
 import com.sun.guardian.idempotent.core.service.response.DefaultIdempotentResponseHandler;
@@ -28,6 +30,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -42,6 +45,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableConfigurationProperties({GuardianIdempotentProperties.class, GuardianCoreProperties.class})
 @ConditionalOnProperty(prefix = "guardian.idempotent", name = "enabled", havingValue = "true", matchIfMissing = true)
+@Import(GuardianCoreAutoConfiguration.class)
 public class GuardianIdempotentAutoConfiguration {
 
     @Configuration
@@ -83,10 +87,11 @@ public class GuardianIdempotentAutoConfiguration {
                                                        @Autowired(required = false) IdempotentResultCache resultCache,
                                                        IdempotentResponseHandler idempotentResponseHandler,
                                                        GuardianIdempotentProperties properties,
-                                                       IdempotentStatistics statistics) {
+                                                       IdempotentStatistics statistics,
+                                                       GuardianMessageResolver messageResolver) {
 
         properties.validate();
-        return new IdempotentInterceptor(storage, resultCache, idempotentResponseHandler, properties, statistics);
+        return new IdempotentInterceptor(storage, resultCache, idempotentResponseHandler, properties, statistics, messageResolver);
     }
 
     /**

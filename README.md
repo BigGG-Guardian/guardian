@@ -42,7 +42,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.3</version>
 </dependency>
 ```
 
@@ -60,7 +60,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.3</version>
 </dependency>
 ```
 
@@ -102,7 +102,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.3</version>
 </dependency>
 ```
 
@@ -130,7 +130,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.3</version>
 </dependency>
 ```
 
@@ -153,7 +153,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.3</version>
 </dependency>
 ```
 
@@ -175,7 +175,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-spring-boot-starter</artifactId>
-    <version>1.5.2</version>
+    <version>1.5.3</version>
 </dependency>
 ```
 
@@ -230,7 +230,7 @@ guardian:
       - pattern: /api/order/submit
         interval: 10
         time-unit: seconds
-        key-scope: user               # user / ip / global
+        key-scope: user
         message: "请勿重复提交"
 ```
 
@@ -560,6 +560,7 @@ guardian:
     interceptor-order: 3000           # 拦截器排序（值越小越先执行）
     token-endpoint: true              # 是否注册内置 Token 获取接口
     result-cache: false               # 是否启用结果缓存
+    missing-token-message: "请求缺少幂等Token"  # 缺少 Token 时的提示（支持 i18n Key）
 ```
 
 ### 结果缓存
@@ -990,6 +991,96 @@ Guardian 的 `@ConfigurationProperties` 属性类实现了模块配置接口（�
 
 ---
 
+## 消息国际化
+
+Guardian 的拒绝响应消息（防重、限流、幂等）支持 Spring 标准的 `MessageSource` 国际化机制。**不使用国际化的用户无需任何改动**，message 配置中文纯文本即可，行为与之前完全一致。
+
+### 工作原理
+
+message 字段同时支持**纯文本**和 **i18n Key** 两种写法：
+
+```yaml
+# 纯文本（默认，不走国际化）
+message: "请求过于频繁，请稍后再试"
+
+# i18n Key（自动走 MessageSource 解析）
+message: guardian.rate-limit.rejected
+```
+
+Guardian 通过 `GuardianMessageResolver` 统一解析：尝试从 `MessageSource` 查找，找到则返回对应语言的翻译，找不到则原样返回。语言由请求头 `Accept-Language` 自动决定。
+
+### 使用方式
+
+**第一步**，把 message 改成 i18n Key。
+
+**YAML 规则示例：**
+
+```yaml
+guardian:
+  rate-limit:
+    urls:
+      - pattern: /api/sms/send
+        qps: 1
+        message: guardian.rate-limit.rejected
+  repeat-submit:
+    urls:
+      - pattern: /api/order/submit
+        interval: 10
+        message: guardian.repeat-submit.rejected
+  idempotent:
+    missing-token-message: guardian.idempotent.missing-token
+```
+
+**注解示例：**
+
+```java
+@RateLimit(qps = 5, message = "guardian.rate-limit.rejected")
+@RepeatSubmit(interval = 10, message = "guardian.repeat-submit.rejected")
+@Idempotent(value = "createOrder", message = "guardian.idempotent.rejected")
+```
+
+**第二步**，在项目中添加多语言消息文件。
+
+> **重要**：必须创建基础文件 `messages.properties`，Spring Boot 的 `MessageSourceAutoConfiguration` 需要检测到该文件才会激活 `ResourceBundleMessageSource`，否则国际化不生效。
+
+```properties
+# src/main/resources/messages.properties（必须，作为默认回退）
+guardian.rate-limit.rejected=请求过于频繁，请稍后再试
+guardian.repeat-submit.rejected=您的请求过于频繁，请稍后再试
+guardian.idempotent.rejected=幂等Token无效或已消费
+guardian.idempotent.missing-token=请求缺少幂等Token
+```
+
+```properties
+# src/main/resources/messages_zh_CN.properties
+guardian.rate-limit.rejected=请求过于频繁，请稍后再试
+guardian.repeat-submit.rejected=您的请求过于频繁，请稍后再试
+guardian.idempotent.rejected=幂等Token无效或已消费
+guardian.idempotent.missing-token=请求缺少幂等Token
+```
+
+```properties
+# src/main/resources/messages_en.properties
+guardian.rate-limit.rejected=Rate limit exceeded, please try again later
+guardian.repeat-submit.rejected=Too many requests, please try again later
+guardian.idempotent.rejected=Idempotent token is invalid or already consumed
+guardian.idempotent.missing-token=Missing idempotent token
+```
+
+**第三步**，通过请求头 `Accept-Language` 切换语言：
+
+| 请求头 | 匹配文件 | 效果 |
+|-------|---------|------|
+| `Accept-Language: zh-CN` | `messages_zh_CN.properties` | 中文 |
+| `Accept-Language: en` | `messages_en.properties` | 英文 |
+| 不传 | `messages.properties` | 默认回退 |
+
+Spring Boot 自动根据 `Accept-Language` 匹配语言，无需额外配置。
+
+> 如果项目使用自定义消息文件路径（如 `i18n/messages`），只需配置 `spring.messages.basename=i18n/messages`，Guardian 自动适配。同样需要确保基础文件 `i18n/messages.properties` 存在。
+
+---
+
 ## 架构
 
 ### 模块结构
@@ -1065,6 +1156,12 @@ guardian:
 | 额外依赖 | 需要 Redis | 无 |
 
 ## 更新日志
+
+### v1.5.3
+
+- **新增**：消息国际化支持，拒绝响应消息（防重、限流、幂等）支持 Spring `MessageSource` 国际化，message 字段可配置 i18n Key，根据 `Accept-Language` 自动匹配语言
+- **新增**：`GuardianMessageResolver` 消息解析工具，MessageSource 能解析则返回翻译，否则原样返回，不使用国际化的用户零感知
+- **新增**：幂等模块 `missing-token-message` 配置项，缺少 Token 时的提示信息支持自定义及国际化
 
 ### v1.5.2
 

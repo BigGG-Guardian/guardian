@@ -20,7 +20,8 @@
     { "name": "接口幂等-业务接口" },
     { "name": "参数自动trim" },
     { "name": "慢接口检测" },
-    { "name": "请求链路TraceId" }
+    { "name": "请求链路TraceId" },
+    { "name": "消息国际化(i18n)" }
   ],
   "paths": {
     "/repeat-submit/yml/whitelist": {
@@ -1525,6 +1526,188 @@
                         "description": { "type": "string" }
                       }
                     }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/i18n/rate-limit": {
+      "get": {
+        "tags": ["消息国际化(i18n)"],
+        "summary": "限流 i18n — 切换 Accept-Language 验证多语言拦截提示",
+        "description": "注解 @RateLimit(qps=1, message=\"guardian.rate-limit.rejected\")。\n测试：快速请求 2 次触发限流，通过 Accept-Language 头切换语言：\n- zh-CN → 请求过于频繁，请稍后再试\n- en → Rate limit exceeded, please try again later\n- 不传 → 系统默认语言",
+        "operationId": "i18nRateLimit",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string", "example": "en" },
+            "description": "语言标识：zh-CN（中文）/ en（英文）/ 不传（默认）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功（未触发限流）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string", "example": "限流 i18n 接口调用成功" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/i18n/repeat-submit": {
+      "post": {
+        "tags": ["消息国际化(i18n)"],
+        "summary": "防重 i18n — 切换 Accept-Language 验证多语言拦截提示",
+        "description": "注解 @RepeatSubmit(interval=10, message=\"guardian.repeat-submit.rejected\")。\n测试：10 秒内重复提交触发防重，通过 Accept-Language 头切换语言。",
+        "operationId": "i18nRepeatSubmit",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string", "example": "en" },
+            "description": "语言标识：zh-CN（中文）/ en（英文）/ 不传（默认）"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "orderId": { "type": "string", "example": "ORDER-001" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（首次提交）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/i18n/idempotent": {
+      "post": {
+        "tags": ["消息国际化(i18n)"],
+        "summary": "幂等 i18n — Token 无效/已消费时验证多语言拦截提示",
+        "description": "注解 @Idempotent(value=\"i18n-order\", message=\"guardian.idempotent.rejected\")。\n测试步骤：\n1. 先获取 Token：GET /guardian/idempotent/token?key=i18n-order\n2. 携带 Token 请求本接口（首次成功）\n3. 再次携带相同 Token 请求（触发幂等拦截，返回国际化消息）",
+        "operationId": "i18nIdempotent",
+        "parameters": [
+          {
+            "name": "X-Idempotent-Token",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "example": "从 /guardian/idempotent/token 获取" },
+            "description": "幂等 Token"
+          },
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string", "example": "en" },
+            "description": "语言标识：zh-CN（中文）/ en（英文）/ 不传（默认）"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "orderId": { "type": "string", "example": "ORDER-001" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（Token 首次消费）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/i18n/idempotent/missing-token": {
+      "post": {
+        "tags": ["消息国际化(i18n)"],
+        "summary": "幂等 i18n — 不传 Token 验证 missing-token-message 国际化",
+        "description": "注解 @Idempotent(value=\"i18n-missing-token\")，故意不传 Token 触发缺少 Token 拦截。\nYAML 配置 missing-token-message: guardian.idempotent.missing-token，通过 Accept-Language 切换语言。",
+        "operationId": "i18nIdempotentMissingToken",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string", "example": "en" },
+            "description": "语言标识：zh-CN（中文）/ en（英文）/ 不传（默认）"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "orderId": { "type": "string", "example": "ORDER-001" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "不会到达（一定被拦截）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 500 },
+                    "message": { "type": "string", "example": "Missing idempotent token" },
+                    "data": { "type": "string" }
                   }
                 }
               }

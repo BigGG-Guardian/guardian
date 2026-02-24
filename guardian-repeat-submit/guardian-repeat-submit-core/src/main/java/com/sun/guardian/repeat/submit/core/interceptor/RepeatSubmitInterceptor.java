@@ -2,6 +2,7 @@ package com.sun.guardian.repeat.submit.core.interceptor;
 
 import cn.hutool.extra.servlet.ServletUtil;
 import com.sun.guardian.core.exception.RepeatSubmitException;
+import com.sun.guardian.core.i18n.GuardianMessageResolver;
 import com.sun.guardian.core.utils.GuardianLogUtils;
 import com.sun.guardian.core.utils.MatchUrlRuleUtils;
 import com.sun.guardian.core.utils.ResponseUtils;
@@ -48,10 +49,11 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
                                    RepeatSubmitStorage repeatSubmitStorage,
                                    RepeatSubmitResponseHandler repeatSubmitResponseHandler,
                                    RepeatSubmitConfig repeatSubmitConfig,
-                                   RepeatSubmitStatistics statistics) {
+                                   RepeatSubmitStatistics statistics,
+                                   GuardianMessageResolver messageResolver) {
         this.keyGenerator = keyGenerator;
         this.repeatSubmitStorage = repeatSubmitStorage;
-        this.responseUtils = new ResponseUtils(repeatSubmitConfig, repeatSubmitResponseHandler, RepeatSubmitException::new);
+        this.responseUtils = new ResponseUtils(repeatSubmitConfig, repeatSubmitResponseHandler, RepeatSubmitException::new, messageResolver);
         this.repeatSubmitConfig = repeatSubmitConfig;
         this.statistics = statistics;
     }

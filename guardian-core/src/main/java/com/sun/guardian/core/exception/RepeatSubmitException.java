@@ -9,7 +9,9 @@ package com.sun.guardian.core.exception;
  */
 public class RepeatSubmitException extends RuntimeException {
 
-    /** 构造重复提交异常 */
+    /**
+     * 构造重复提交异常
+     */
     public RepeatSubmitException(String message) {
         super(message);
     }

@@ -1,5 +1,6 @@
 package com.sun.guardian.core.utils;
 
+import com.sun.guardian.core.i18n.GuardianMessageResolver;
 import com.sun.guardian.core.service.base.BaseConfig;
 import com.sun.guardian.core.enums.response.ResponseMode;
 import com.sun.guardian.core.service.response.GuardianResponseHandler;
@@ -21,16 +22,19 @@ public class ResponseUtils {
     private final BaseConfig baseConfig;
     private final GuardianResponseHandler responseHandler;
     private final Function<String, RuntimeException> exceptionFactory;
+    private final GuardianMessageResolver messageResolver;
 
     /**
      * 构造响应处理工具
      */
     public ResponseUtils(BaseConfig baseConfig,
                          GuardianResponseHandler responseHandler,
-                         Function<String, RuntimeException> exceptionFactory) {
+                         Function<String, RuntimeException> exceptionFactory,
+                         GuardianMessageResolver messageResolver) {
         this.baseConfig = baseConfig;
         this.responseHandler = responseHandler;
         this.exceptionFactory = exceptionFactory;
+        this.messageResolver = messageResolver;
     }
 
     /**
@@ -49,10 +53,11 @@ public class ResponseUtils {
      */
     public boolean reject(HttpServletRequest request, HttpServletResponse response,
                           String message) throws IOException {
+        String resolvedMessage = messageResolver.resolve(message);
         if (baseConfig.getResponseMode() == ResponseMode.JSON) {
-            responseHandler.handle(request, response, 500, null, message);
+            responseHandler.handle(request, response, 500, null, resolvedMessage);
             return false;
         }
-        throw exceptionFactory.apply(message);
+        throw exceptionFactory.apply(resolvedMessage);
     }
 }

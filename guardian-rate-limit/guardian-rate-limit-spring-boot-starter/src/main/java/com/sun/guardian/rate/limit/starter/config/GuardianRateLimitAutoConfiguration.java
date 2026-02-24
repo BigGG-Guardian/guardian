@@ -1,6 +1,8 @@
 package com.sun.guardian.rate.limit.starter.config;
 
+import com.sun.guardian.core.config.GuardianCoreAutoConfiguration;
 import com.sun.guardian.core.context.UserContext;
+import com.sun.guardian.core.i18n.GuardianMessageResolver;
 import com.sun.guardian.rate.limit.core.interceptor.RateLimitInterceptor;
 import com.sun.guardian.rate.limit.core.service.key.RateLimitKeyGenerator;
 import com.sun.guardian.rate.limit.core.service.key.strategy.DefaultRateLimitKeyGenerator;
@@ -18,6 +20,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -32,6 +35,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableConfigurationProperties(GuardianRateLimitProperties.class)
 @ConditionalOnProperty(prefix = "guardian.rate-limit", name = "enabled", havingValue = "true", matchIfMissing = true)
+@Import(GuardianCoreAutoConfiguration.class)
 public class GuardianRateLimitAutoConfiguration {
 
     /**
@@ -63,8 +67,9 @@ public class GuardianRateLimitAutoConfiguration {
                                                      RateLimitStorage rateLimitStorage,
                                                      RateLimitResponseHandler rateLimitResponseHandler,
                                                      GuardianRateLimitProperties guardianProperties,
-                                                     RateLimitStatistics statistics) {
-        return new RateLimitInterceptor(keyGenerator, rateLimitStorage, rateLimitResponseHandler, guardianProperties, statistics);
+                                                     RateLimitStatistics statistics,
+                                                     GuardianMessageResolver messageResolver) {
+        return new RateLimitInterceptor(keyGenerator, rateLimitStorage, rateLimitResponseHandler, guardianProperties, statistics, messageResolver);
     }
 
     /**

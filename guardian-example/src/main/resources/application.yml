@@ -137,6 +137,8 @@ guardian:
     token-endpoint: true
     # 是否启用结果缓存（默认 false，启用后重复请求返回首次结果而非拒绝）
     result-cache: true
+    # 缺少 Token 时的拒绝提示（支持 i18n Key）
+    missing-token-message: guardian.idempotent.missing-token
 
 # Actuator 监控端点的配置项
 management:

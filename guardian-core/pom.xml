@@ -26,6 +26,14 @@
             <scope>provided</scope>
         </dependency>
         <!--
+            Spring Boot AutoConfigure（提供 @ConditionalOnMissingBean 等）
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!--
             Spring WebMVC（提供 HandlerInterceptor、OncePerRequestFilter 等）
         -->
         <dependency>
