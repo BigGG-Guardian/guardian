@@ -1,4 +1,4 @@
-package com.sun.guardian.idempotent.core.service.statistics;
+package com.sun.guardian.idempotent.core.statistics;
 
 import com.sun.guardian.core.statistics.BaseStatistics;
 

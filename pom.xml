@@ -8,7 +8,7 @@
     <packaging>pom</packaging>
 
     <name>Guardian</name>
-    <description>轻量级 Spring Boot API 请求层防护框架（防重提交 + 接口限流 + 接口幂等）</description>
+    <description>轻量级 Spring Boot API 请求层防护框架（防重提交 + 接口限流 + 接口幂等 + 参数自动Trim + 慢接口检测 + 请求链路追踪 + IP黑白名单）</description>
     <url>https://github.com/BigGG-Guardian/guardian</url>
 
     <licenses>
@@ -41,7 +41,7 @@
 
     <!--  参数管理  -->
     <properties>
-        <revision>1.5.3</revision>
+        <revision>1.6.0</revision>
         <java.version>1.8</java.version>
         <spring-boot.version>2.7.18</spring-boot.version>
         <servlet.version>4.0.1</servlet.version>
@@ -68,6 +68,8 @@
         <module>guardian-slow-api</module>
         <!--    请求链路模块    -->
         <module>guardian-trace</module>
+        <!--    IP黑白名单模块    -->
+        <module>guardian-ip-filter</module>
         <!--    示例模块    -->
         <module>guardian-example</module>
     </modules>
@@ -166,6 +168,18 @@
             <dependency>
                 <groupId>io.github.biggg-guardian</groupId>
                 <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- 自定义模块-IP黑白名单核心模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-ip-filter-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- 自定义模块-Guardian IP黑白名单 Spring Boot Starter -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
                 <version>${revision}</version>
             </dependency>
         </dependencies>

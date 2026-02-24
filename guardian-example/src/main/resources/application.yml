@@ -110,12 +110,34 @@ guardian:
     exclude-urls:
       - /guardian-example/slow-api/health
 
+  # ==================== IP 黑白名单配置 ====================
+  ip-filter:
+    # 总开关（默认 false，需显式开启）
+    enabled: true
+    # 响应模式：exception（默认，抛异常）/ json（直接返回 JSON）
+    response-mode: json
+    # 是否打印拦截日志（默认 false）
+    log-enabled: true
+    # 拒绝提示信息（支持 i18n Key）
+    message: guardian.ip-filter.rejected
+    # Filter 排序（值越小越先执行，默认 -20000）
+    filter-order: -20000
+    # 全局 IP 黑名单（精确 / 通配符 / CIDR）
+    black-list:
+      - 192.168.100.100
+      - 10.0.0.0/8
+    # URL 绑定白名单（仅白名单 IP 可访问指定接口，IPv6 环回地址自动转为 127.0.0.1）
+    urls:
+      - pattern: /guardian-example/ip-filter/admin/**
+        white-list:
+          - 127.0.0.1
+
   # ==================== 请求链路 TraceId 配置 ====================
   trace:
     # 总开关（默认 true）
     enabled: true
-    # Filter 排序（值越小越先执行，默认 -20000，最先执行以覆盖全链路）
-    filter-order: -20000
+    # Filter 排序（值越小越先执行，默认 -30000，最先执行以覆盖全链路）
+    filter-order: -30000
     # TraceId 请求头/响应头名称（默认 X-Trace-Id）
     header-name: X-Trace-Id
 

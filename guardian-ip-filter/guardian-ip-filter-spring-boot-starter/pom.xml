@@ -1,0 +1,67 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.biggg-guardian</groupId>
+        <artifactId>guardian-ip-filter</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
+    <packaging>jar</packaging>
+
+    <name>guardian-ip-filter-spring-boot-starter</name>
+    <description>
+        Guardian IP黑白名单Spring Boot Starter
+    </description>
+
+    <dependencies>
+        <!-- 自定义模块-IP黑白名单核心模块 -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-ip-filter-core</artifactId>
+        </dependency>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
+        <!--
+            Spring Boot核心启动器，提供自动配置、属性绑定等机制。
+            这是Starter模块的基础。
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!--
+            Spring Boot Web 启动器（optional：消费方项目必然已引入）
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!--
+            Spring Boot配置处理器，在编译时生成配置元数据（META-INF/spring-configuration-metadata.json）。
+            作用：当用户在 application.yml 中输入配置时，IDE会提供智能提示和补全。
+            optional=true 表示此依赖不会传递给使用本框架的项目。
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- Spring Boot Actuator（optional：用户引了才生效） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+</project>

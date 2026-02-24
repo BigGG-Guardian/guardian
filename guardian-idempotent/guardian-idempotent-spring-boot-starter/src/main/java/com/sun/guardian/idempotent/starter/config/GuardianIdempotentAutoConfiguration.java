@@ -7,7 +7,7 @@ import com.sun.guardian.idempotent.core.advice.IdempotentResultCacheAdvice;
 import com.sun.guardian.idempotent.core.interceptor.IdempotentInterceptor;
 import com.sun.guardian.idempotent.core.service.response.DefaultIdempotentResponseHandler;
 import com.sun.guardian.idempotent.core.service.response.IdempotentResponseHandler;
-import com.sun.guardian.idempotent.core.service.statistics.IdempotentStatistics;
+import com.sun.guardian.idempotent.core.statistics.IdempotentStatistics;
 import com.sun.guardian.idempotent.core.service.token.DefaultIdempotentTokenService;
 import com.sun.guardian.idempotent.core.service.token.IdempotentTokenGenerator;
 import com.sun.guardian.idempotent.core.service.token.IdempotentTokenService;

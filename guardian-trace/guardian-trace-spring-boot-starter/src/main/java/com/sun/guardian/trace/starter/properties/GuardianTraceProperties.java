@@ -19,9 +19,9 @@ public class GuardianTraceProperties implements TraceConfig {
      */
     private boolean enabled = true;
     /**
-     * Filter 排序（值越小越先执行，默认 -20000，确保最先执行以覆盖全链路）
+     * Filter 排序（值越小越先执行，默认 -30000，确保最先执行以覆盖全链路）
      */
-    private int filterOrder = -20000;
+    private int filterOrder = -30000;
     /**
      * TraceId 请求头/响应头名称
      */

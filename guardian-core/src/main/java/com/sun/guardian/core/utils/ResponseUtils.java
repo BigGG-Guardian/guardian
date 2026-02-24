@@ -60,4 +60,19 @@ public class ResponseUtils {
         }
         throw exceptionFactory.apply(resolvedMessage);
     }
+
+    /**
+     * 拒绝请求403：JSON 模式直接写响应，EXCEPTION 模式抛出异常
+     *
+     * @return false（JSON 模式下中断拦截器链）
+     */
+    public boolean reject403(HttpServletRequest request, HttpServletResponse response,
+                             String message) throws IOException {
+        String resolvedMessage = messageResolver.resolve(message);
+        if (baseConfig.getResponseMode() == ResponseMode.JSON) {
+            responseHandler.handle(request, response, 403, null, resolvedMessage);
+            return false;
+        }
+        throw exceptionFactory.apply(resolvedMessage);
+    }
 }

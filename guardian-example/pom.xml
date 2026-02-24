@@ -92,6 +92,11 @@
             <groupId>io.github.biggg-guardian</groupId>
             <artifactId>guardian-trace-spring-boot-starter</artifactId>
         </dependency>
+        <!-- Guardian IP 黑白名单 -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
+        </dependency>
         <!-- Spring Cloud Alibaba Nacos Config（动态配置） -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>

@@ -21,7 +21,9 @@
     { "name": "参数自动trim" },
     { "name": "慢接口检测" },
     { "name": "请求链路TraceId" },
-    { "name": "消息国际化(i18n)" }
+    { "name": "消息国际化(i18n)" },
+    { "name": "IP黑白名单" },
+    { "name": "Actuator监控端点" }
   ],
   "paths": {
     "/repeat-submit/yml/whitelist": {
@@ -1708,6 +1710,374 @@
                     "code": { "type": "integer", "example": 500 },
                     "message": { "type": "string", "example": "Missing idempotent token" },
                     "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ip-filter/open": {
+      "get": {
+        "tags": ["IP黑白名单"],
+        "summary": "普通接口 — 黑名单外均可访问",
+        "description": "不在黑名单且不受白名单约束时可正常访问。默认配置下本机 IP 不在黑名单，请求成功。\n拒绝提示支持 i18n，通过 Accept-Language 切换语言。",
+        "operationId": "ipFilterOpen",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string", "example": "en" },
+            "description": "语言标识：zh-CN（中文）/ en（英文）/ 不传（默认）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string", "example": "此接口不受白名单限制，黑名单外均可访问" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ip-filter/admin/dashboard": {
+      "get": {
+        "tags": ["IP黑白名单"],
+        "summary": "白名单接口 — 仅白名单 IP 可访问",
+        "description": "配置了 URL 绑定白名单（/ip-filter/admin/**），仅 127.0.0.1 可访问（IPv6 环回自动转为 127.0.0.1）。本机请求成功，其他 IP 被拒绝。\n拒绝提示支持 i18n，通过 Accept-Language 切换语言。",
+        "operationId": "ipFilterAdminDashboard",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string", "example": "en" },
+            "description": "语言标识：zh-CN（中文）/ en（英文）/ 不传（默认）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功（白名单 IP）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string", "example": "白名单接口访问成功" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "拒绝（非白名单 IP）",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "中文": {
+                    "value": { "code": 403, "msg": "IP访问被拒绝", "timestamp": 1740000000000 }
+                  },
+                  "英文": {
+                    "value": { "code": 403, "msg": "IP access denied", "timestamp": 1740000000000 }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 403 },
+                    "msg": { "type": "string", "example": "IP访问被拒绝" },
+                    "timestamp": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ip-filter/admin/settings": {
+      "get": {
+        "tags": ["IP黑白名单"],
+        "summary": "白名单接口 — 管理后台设置页",
+        "description": "同属 /ip-filter/admin/** 白名单规则，仅白名单 IP 可访问。\n拒绝提示支持 i18n，通过 Accept-Language 切换语言。",
+        "operationId": "ipFilterAdminSettings",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string", "example": "en" },
+            "description": "语言标识：zh-CN（中文）/ en（英文）/ 不传（默认）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功（白名单 IP）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string", "example": "管理后台设置页访问成功" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "拒绝（非白名单 IP）",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "中文": {
+                    "value": { "code": 403, "msg": "IP访问被拒绝", "timestamp": 1740000000000 }
+                  },
+                  "英文": {
+                    "value": { "code": 403, "msg": "IP access denied", "timestamp": 1740000000000 }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 403 },
+                    "msg": { "type": "string", "example": "IP访问被拒绝" },
+                    "timestamp": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ip-filter/test-black": {
+      "get": {
+        "tags": ["IP黑白名单"],
+        "summary": "黑名单测试 — 将本机 IP 加入黑名单后被拦截",
+        "description": "默认配置下本机 IP 不在黑名单，请求成功。将 127.0.0.1 加入 black-list 后该接口返回 403。\n拒绝提示支持 i18n，通过 Accept-Language 切换语言。",
+        "operationId": "ipFilterTestBlack",
+        "parameters": [
+          {
+            "name": "Accept-Language",
+            "in": "header",
+            "required": false,
+            "schema": { "type": "string", "example": "en" },
+            "description": "语言标识：zh-CN（中文）/ en（英文）/ 不传（默认）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功（不在黑名单中）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string", "example": "未被黑名单拦截，访问成功" }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "拒绝（在黑名单中）",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "中文": {
+                    "value": { "code": 403, "msg": "IP访问被拒绝", "timestamp": 1740000000000 }
+                  },
+                  "英文": {
+                    "value": { "code": 403, "msg": "IP access denied", "timestamp": 1740000000000 }
+                  }
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 403 },
+                    "msg": { "type": "string", "example": "IP访问被拒绝" },
+                    "timestamp": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/guardianRateLimit": {
+      "get": {
+        "tags": ["Actuator监控端点"],
+        "summary": "接口限流监控",
+        "description": "查看接口限流的运行时统计数据，包括：总请求数、通过数、拦截数、拦截率、Top10 被拦截接口、Top10 高频接口、接口维度明细。",
+        "operationId": "actuatorRateLimit",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalRequestCount": { "type": "integer", "example": 150 },
+                    "totalPassCount": { "type": "integer", "example": 140 },
+                    "totalBlockCount": { "type": "integer", "example": 10 },
+                    "blockRate": { "type": "string", "example": "6.67%" },
+                    "topBlockedApis": {
+                      "type": "array",
+                      "items": { "type": "object" },
+                      "example": [{ "api": "/rate-limit/annotation/strict", "blockCount": 5 }]
+                    },
+                    "topRequestApis": {
+                      "type": "array",
+                      "items": { "type": "object" },
+                      "example": [{ "api": "/rate-limit/annotation/global", "requestCount": 50 }]
+                    },
+                    "apiDetails": {
+                      "type": "array",
+                      "items": { "type": "object" },
+                      "example": [{ "api": "/rate-limit/annotation/global", "requestCount": 50, "passCount": 48, "blockCount": 2 }]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/guardianRepeatSubmit": {
+      "get": {
+        "tags": ["Actuator监控端点"],
+        "summary": "防重复提交监控",
+        "description": "查看防重复提交的运行时统计数据，包括：总拦截数、总通过数、Top10 被拦截接口。",
+        "operationId": "actuatorRepeatSubmit",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalBlockCount": { "type": "integer", "example": 8 },
+                    "totalPassCount": { "type": "integer", "example": 120 },
+                    "topBlockedApis": {
+                      "type": "array",
+                      "items": { "type": "object" },
+                      "example": [{ "api": "/repeat-submit/annotation/user-scope", "blockCount": 3 }]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/guardianIdempotent": {
+      "get": {
+        "tags": ["Actuator监控端点"],
+        "summary": "接口幂等监控",
+        "description": "查看接口幂等的运行时统计数据，包括：总请求数、通过数、拦截数、拦截率、Top10 被拦截接口。",
+        "operationId": "actuatorIdempotent",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalRequestCount": { "type": "integer", "example": 60 },
+                    "totalPassCount": { "type": "integer", "example": 55 },
+                    "totalBlockCount": { "type": "integer", "example": 5 },
+                    "blockRate": { "type": "string", "example": "8.33%" },
+                    "topBlockedApis": {
+                      "type": "array",
+                      "items": { "type": "object" },
+                      "example": [{ "api": "/idempotent/header", "blockCount": 3 }]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/guardianSlowApi": {
+      "get": {
+        "tags": ["Actuator监控端点"],
+        "summary": "慢接口检测监控",
+        "description": "查看慢接口检测的运行时统计数据，包括：慢接口总次数、Top10 慢接口（含每次耗时记录）。",
+        "operationId": "actuatorSlowApi",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalSlowCount": { "type": "integer", "example": 3 },
+                    "topSlowApis": {
+                      "type": "array",
+                      "items": { "type": "object" },
+                      "example": [{ "api": "/slow-api/slow", "count": 2, "records": [{ "duration": 4200, "threshold": 3000 }] }]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/guardianIpFilter": {
+      "get": {
+        "tags": ["Actuator监控端点"],
+        "summary": "IP黑白名单监控",
+        "description": "查看 IP 黑白名单的运行时统计数据，包括：黑名单拦截总数、白名单拦截总数、Top10 被黑名单拦截的 IP、Top10 被白名单拦截的请求。",
+        "operationId": "actuatorIpFilter",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalBlackListBlockCount": { "type": "integer", "example": 5 },
+                    "totalWhiteListBlockCount": { "type": "integer", "example": 2 },
+                    "topBlackListBlocked": {
+                      "type": "array",
+                      "items": { "type": "object" },
+                      "example": [{ "ip": "192.168.100.100", "count": 3 }]
+                    },
+                    "topWhiteListBlocked": {
+                      "type": "array",
+                      "items": { "type": "object" },
+                      "example": [{ "ip": "10.0.0.5", "uri": "/ip-filter/admin/dashboard", "count": 2 }]
+                    }
                   }
                 }
               }
