@@ -41,12 +41,11 @@
 
     <!--  参数管理  -->
     <properties>
-        <revision>1.6.0</revision>
+        <revision>1.6.1</revision>
         <java.version>1.8</java.version>
         <spring-boot.version>2.7.18</spring-boot.version>
         <servlet.version>4.0.1</servlet.version>
         <lombok.version>1.18.30</lombok.version>
-        <hutool.version>5.8.35</hutool.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -97,12 +96,6 @@
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
                 <scope>provided</scope>
-            </dependency>
-            <!-- Hutool -->
-            <dependency>
-                <groupId>cn.hutool</groupId>
-                <artifactId>hutool-all</artifactId>
-                <version>${hutool.version}</version>
             </dependency>
             <!-- 自定义模块-核心模块 -->
             <dependency>

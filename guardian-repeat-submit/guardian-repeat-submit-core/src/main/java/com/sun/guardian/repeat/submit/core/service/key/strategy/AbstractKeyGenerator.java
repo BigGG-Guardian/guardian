@@ -1,11 +1,9 @@
 package com.sun.guardian.repeat.submit.core.service.key.strategy;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.servlet.ServletUtil;
 import com.sun.guardian.core.context.UserContext;
-import com.sun.guardian.core.utils.ArgsUtil;
-import com.sun.guardian.core.utils.UserContextUtils;
+import com.sun.guardian.core.utils.args.ArgsUtil;
+import com.sun.guardian.core.utils.ip.IpUtils;
+import com.sun.guardian.core.utils.user.UserContextUtils;
 import com.sun.guardian.repeat.submit.core.domain.key.RepeatSubmitKey;
 import com.sun.guardian.repeat.submit.core.domain.rule.RepeatSubmitRule;
 import com.sun.guardian.repeat.submit.core.domain.token.RepeatSubmitToken;
@@ -44,13 +42,13 @@ public abstract class AbstractKeyGenerator implements KeyGenerator {
         RepeatSubmitKey repeatSubmitKey = buildRepeatSubmitKey(rule, request);
         String key = buildKey(repeatSubmitKey);
 
-        String finishKey = StrUtil.format(DEFAULT_KEY_PREFIX, keyEncrypt.encrypt(key));
+        String finishKey = String.format(DEFAULT_KEY_PREFIX, keyEncrypt.encrypt(key));
 
         return new RepeatSubmitToken()
                 .setKey(finishKey)
                 .setTimeout(rule.getInterval())
                 .setTimeoutUnit(rule.getTimeUnit())
-                .setCreateTime(DateUtil.date().getTime());
+                .setCreateTime(System.currentTimeMillis());
     }
 
     /**
@@ -61,7 +59,7 @@ public abstract class AbstractKeyGenerator implements KeyGenerator {
                 .setUserId(userContextUtils.resolveUserId(request))
                 .setKeyScope(rule.getKeyScope().key)
                 .setClient(rule.getClientType().key)
-                .setClientIp(ServletUtil.getClientIP(request))
+                .setClientIp(IpUtils.getClientIp(request))
                 .setMethod(request.getMethod())
                 .setServletUri(request.getServletPath())
                 .setArgs(ArgsUtil.toSortedJsonStr(request));

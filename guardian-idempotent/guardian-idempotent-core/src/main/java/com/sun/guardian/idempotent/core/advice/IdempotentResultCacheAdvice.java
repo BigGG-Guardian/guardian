@@ -1,7 +1,6 @@
 package com.sun.guardian.idempotent.core.advice;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
+import com.sun.guardian.core.utils.json.GuardianJsonUtils;
 import com.sun.guardian.idempotent.core.domain.result.IdempotentResult;
 import com.sun.guardian.idempotent.core.storage.IdempotentResultCache;
 import org.springframework.core.MethodParameter;
@@ -10,6 +9,7 @@ import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
@@ -54,9 +54,9 @@ public class IdempotentResultCacheAdvice implements ResponseBodyAdvice<Object> {
         HttpServletRequest servletRequest = ((ServletServerHttpRequest) request).getServletRequest();
         String resultCacheStr = (String) servletRequest.getAttribute(ATTR_KEY);
 
-        if (StrUtil.isNotBlank(resultCacheStr)) {
-            IdempotentResult result = JSONUtil.toBean(resultCacheStr, IdempotentResult.class);
-            result.setJsonResult(body == null ? "null" : JSONUtil.toJsonStr(body));
+        if (StringUtils.hasText(resultCacheStr)) {
+            IdempotentResult result = GuardianJsonUtils.toBean(resultCacheStr, IdempotentResult.class);
+            result.setJsonResult(body == null ? "null" : GuardianJsonUtils.toJsonStr(body));
             resultCache.cacheResult(result);
         }
 

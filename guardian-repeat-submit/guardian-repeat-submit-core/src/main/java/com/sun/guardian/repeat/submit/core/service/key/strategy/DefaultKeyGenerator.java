@@ -3,7 +3,7 @@ package com.sun.guardian.repeat.submit.core.service.key.strategy;
 import com.sun.guardian.core.context.UserContext;
 import com.sun.guardian.repeat.submit.core.domain.key.RepeatSubmitKey;
 import com.sun.guardian.repeat.submit.core.service.encrypt.strategy.AbstractKeyEncrypt;
-import com.sun.guardian.core.utils.TemplateUtil;
+import com.sun.guardian.core.utils.template.TemplateUtil;
 
 import static com.sun.guardian.repeat.submit.core.constants.KeyPrefixConstants.getSuffixByKeyScope;
 

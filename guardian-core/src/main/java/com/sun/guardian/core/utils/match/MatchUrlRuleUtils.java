@@ -1,6 +1,5 @@
-package com.sun.guardian.core.utils;
+package com.sun.guardian.core.utils.match;
 
-import cn.hutool.core.util.StrUtil;
 import com.sun.guardian.core.domain.BaseRule;
 import org.springframework.util.AntPathMatcher;
 
@@ -40,7 +39,7 @@ public class MatchUrlRuleUtils {
             return false;
         }
         for (String excludeRule : excludeUrlRules) {
-            if (StrUtil.isBlank(excludeRule)) {
+            if (excludeRule == null || excludeRule.trim().isEmpty()) {
                 continue;
             }
             if (pathMatcher.match(excludeRule, requestUri)) {

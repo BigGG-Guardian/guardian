@@ -1,9 +1,8 @@
 package com.sun.guardian.rate.limit.core.service.key.strategy;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.servlet.ServletUtil;
 import com.sun.guardian.core.context.UserContext;
-import com.sun.guardian.core.utils.UserContextUtils;
+import com.sun.guardian.core.utils.ip.IpUtils;
+import com.sun.guardian.core.utils.user.UserContextUtils;
 import com.sun.guardian.rate.limit.core.domain.key.RateLimitKey;
 import com.sun.guardian.rate.limit.core.domain.rule.RateLimitRule;
 import com.sun.guardian.rate.limit.core.domain.token.RateLimitToken;
@@ -40,7 +39,7 @@ public abstract class AbstractRateLimitKeyGenerator implements RateLimitKeyGener
         String key = buildKey(rateLimitKey);
 
         String prefix = rule.getAlgorithm() == RateLimitAlgorithm.TOKEN_BUCKET ? TB_KEY_PREFIX : SW_KEY_PREFIX;
-        String finishKey = StrUtil.format(prefix, key);
+        String finishKey = String.format(prefix, key);
 
         return new RateLimitToken()
                 .setKey(finishKey)
@@ -57,7 +56,7 @@ public abstract class AbstractRateLimitKeyGenerator implements RateLimitKeyGener
                 .setServletUri(request.getServletPath())
                 .setMethod(request.getMethod())
                 .setUserId(userContextUtils.resolveUserId(request))
-                .setClientIp(ServletUtil.getClientIP(request))
+                .setClientIp(IpUtils.getClientIp(request))
                 .setKeyScope(rule.getRateLimitScope().key);
     }
 

@@ -1,7 +1,8 @@
 package com.sun.guardian.idempotent.core.service.token.strategy;
 
-import cn.hutool.core.lang.UUID;
 import com.sun.guardian.idempotent.core.service.token.IdempotentTokenGenerator;
+
+import java.util.UUID;
 
 /**
  * 默认接口幂等Token生成逻辑
@@ -14,6 +15,6 @@ public class DefaultIdempotentTokenGenerator implements IdempotentTokenGenerator
 
     @Override
     public String generate() {
-        return UUID.randomUUID().toString().replaceAll("-", "");
+        return UUID.randomUUID().toString().replace("-", "");
     }
 }

@@ -1,6 +1,5 @@
 package com.sun.guardian.idempotent.core.service.token;
 
-import cn.hutool.core.util.StrUtil;
 import com.sun.guardian.idempotent.core.config.IdempotentConfig;
 import com.sun.guardian.idempotent.core.constants.IdempotentKeyPrefixConstants;
 import com.sun.guardian.idempotent.core.domain.token.IdempotentToken;
@@ -36,7 +35,7 @@ public class DefaultIdempotentTokenService implements IdempotentTokenService {
     @Override
     public String createToken(String key) {
         String token = tokenGenerator.generate();
-        String fullKey = StrUtil.format(IdempotentKeyPrefixConstants.KEY_PREFIX, key, token);
+        String fullKey = String.format(IdempotentKeyPrefixConstants.KEY_PREFIX, key, token);
 
         idempotentStorage.save(new IdempotentToken()
                 .setKey(fullKey)

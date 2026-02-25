@@ -1,11 +1,11 @@
 package com.sun.guardian.repeat.submit.core.interceptor;
 
-import cn.hutool.extra.servlet.ServletUtil;
 import com.sun.guardian.core.exception.RepeatSubmitException;
 import com.sun.guardian.core.i18n.GuardianMessageResolver;
-import com.sun.guardian.core.utils.GuardianLogUtils;
-import com.sun.guardian.core.utils.MatchUrlRuleUtils;
-import com.sun.guardian.core.utils.ResponseUtils;
+import com.sun.guardian.core.utils.ip.IpUtils;
+import com.sun.guardian.core.utils.log.GuardianLogUtils;
+import com.sun.guardian.core.utils.match.MatchUrlRuleUtils;
+import com.sun.guardian.core.utils.response.ResponseUtils;
 import com.sun.guardian.repeat.submit.core.annotation.RepeatSubmit;
 import com.sun.guardian.repeat.submit.core.config.RepeatSubmitConfig;
 import com.sun.guardian.repeat.submit.core.domain.rule.RepeatSubmitRule;
@@ -67,7 +67,7 @@ public class RepeatSubmitInterceptor implements HandlerInterceptor {
         String requestUri = request.getRequestURI();
         String contextPath = request.getContextPath();
         String pathWithoutContext = MatchUrlRuleUtils.stripContextPath(requestUri, contextPath);
-        String ip = ServletUtil.getClientIP(request);
+        String ip = IpUtils.getClientIp(request);
 
         if (MatchUrlRuleUtils.matchExcludeUrlRule(repeatSubmitConfig.getExcludeUrls(), requestUri, pathWithoutContext)) {
             logUtils.excludeLog(repeatSubmitConfig.isLogEnabled(), log, requestUri, ip);

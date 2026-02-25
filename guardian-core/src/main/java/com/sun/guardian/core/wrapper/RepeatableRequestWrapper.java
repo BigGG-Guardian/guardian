@@ -1,7 +1,7 @@
 package com.sun.guardian.core.wrapper;
 
-import cn.hutool.core.io.IoUtil;
 import lombok.Getter;
+import org.springframework.util.StreamUtils;
 
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
@@ -28,7 +28,7 @@ public class RepeatableRequestWrapper extends HttpServletRequestWrapper {
     /** 从请求中读取并缓存请求体 */
     public RepeatableRequestWrapper(HttpServletRequest request) throws IOException {
         super(request);
-        this.cachedBody = IoUtil.readBytes(request.getInputStream());
+        this.cachedBody = StreamUtils.copyToByteArray(request.getInputStream());
     }
 
     /** 使用指定的 body 字节数组构造包装器 */
