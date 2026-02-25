@@ -19,6 +19,12 @@
 
 ---
 
+<p align="center">
+  <img src="assets/guardian-mindmap.png" alt="Guardian 功能全景图" width="700">
+</p>
+
+---
+
 ## 功能一览
 
 | 功能 | Starter | 注解 | YAML | 说明 |
