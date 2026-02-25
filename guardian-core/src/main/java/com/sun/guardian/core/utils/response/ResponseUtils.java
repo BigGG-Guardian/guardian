@@ -1,4 +1,4 @@
-package com.sun.guardian.core.utils;
+package com.sun.guardian.core.utils.response;
 
 import com.sun.guardian.core.i18n.GuardianMessageResolver;
 import com.sun.guardian.core.service.base.BaseConfig;

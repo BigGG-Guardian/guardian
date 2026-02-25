@@ -1,7 +1,6 @@
 package com.sun.guardian.example.repeatSubmit.config;
 
-import cn.hutool.json.JSONConfig;
-import cn.hutool.json.JSONUtil;
+import com.sun.guardian.core.utils.json.GuardianJsonUtils;
 import com.sun.guardian.example.common.CommonResult;
 import com.sun.guardian.core.context.UserContext;
 import com.sun.guardian.repeat.submit.core.service.response.RepeatSubmitResponseHandler;
@@ -37,11 +36,9 @@ public class RepeatSubmitBeanConfig {
     @Bean
     public RepeatSubmitResponseHandler repeatSubmitResponseHandler() {
         return (request, response, code, data, message) -> {
-            JSONConfig jsonConfig = new JSONConfig();
-            jsonConfig.setIgnoreNullValue(false);
             response.setStatus(HttpServletResponse.SC_OK);
             response.setContentType("application/json;charset=UTF-8");
-            response.getWriter().write(JSONUtil.toJsonStr(CommonResult.result(code, data, message), jsonConfig));
+            response.getWriter().write(GuardianJsonUtils.toJsonStr(CommonResult.result(code, data, message)));
         };
     }
 }

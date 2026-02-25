@@ -1,6 +1,6 @@
 package com.sun.guardian.rate.limit.core.constants;
 
-import cn.hutool.core.util.StrUtil;
+import java.util.Objects;
 
 import static com.sun.guardian.rate.limit.core.enums.scope.RateLimitKeyScope.*;
 
@@ -17,12 +17,12 @@ public interface RateLimitKeyPrefixConstants {
     /**
      * 滑动窗口 Key 前缀（Redis 中使用 ZSET 结构）
      */
-    String SW_KEY_PREFIX = "guardian:rate-limit:sw:{}";
+    String SW_KEY_PREFIX = "guardian:rate-limit:sw:%s";
 
     /**
      * 令牌桶 Key 前缀（Redis 中使用 HASH 结构）
      */
-    String TB_KEY_PREFIX = "guardian:rate-limit:tb:{}";
+    String TB_KEY_PREFIX = "guardian:rate-limit:tb:%s";
 
 
     /**
@@ -44,9 +44,9 @@ public interface RateLimitKeyPrefixConstants {
      * 按维度获取 Key 模板
      */
     static String getSuffixByKeyScope(String keyScope) {
-        if (StrUtil.equals(IP.key, keyScope)) {
+        if (Objects.equals(IP.key, keyScope)) {
             return IP_KEY_SUFFIX;
-        } else if (StrUtil.equals(USER.key, keyScope)) {
+        } else if (Objects.equals(USER.key, keyScope)) {
             return USER_KEY_SUFFIX;
         } else {
             return GLOBAL_KEY_SUFFIX;

@@ -1,7 +1,7 @@
 package com.sun.guardian.rate.limit.core.service.key.strategy;
 
 import com.sun.guardian.core.context.UserContext;
-import com.sun.guardian.core.utils.TemplateUtil;
+import com.sun.guardian.core.utils.template.TemplateUtil;
 import com.sun.guardian.rate.limit.core.domain.key.RateLimitKey;
 
 import static com.sun.guardian.rate.limit.core.constants.RateLimitKeyPrefixConstants.getSuffixByKeyScope;

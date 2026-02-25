@@ -2,7 +2,7 @@ package com.sun.guardian.auto.trim.starter.config;
 
 import com.sun.guardian.auto.trim.core.filter.AutoTrimFilter;
 import com.sun.guardian.auto.trim.starter.properties.GuardianAutoTrimProperties;
-import com.sun.guardian.core.utils.CharacterSanitizer;
+import com.sun.guardian.core.utils.string.CharacterSanitizer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;

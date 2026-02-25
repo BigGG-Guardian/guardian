@@ -1,6 +1,6 @@
 package com.sun.guardian.repeat.submit.core.service.encrypt.strategy;
 
-import cn.hutool.crypto.digest.MD5;
+import com.sun.guardian.core.utils.digest.Md5Utils;
 
 /**
  * MD5摘要策略
@@ -13,6 +13,6 @@ public class KeyMD5Encrypt extends AbstractKeyEncrypt {
 
     @Override
     public String encrypt(String key) {
-        return MD5.create().digestHex(key);
+        return Md5Utils.md5Hex(key);
     }
 }

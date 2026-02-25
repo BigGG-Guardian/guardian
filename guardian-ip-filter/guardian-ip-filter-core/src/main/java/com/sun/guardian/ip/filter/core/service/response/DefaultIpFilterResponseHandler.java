@@ -1,8 +1,8 @@
 package com.sun.guardian.ip.filter.core.service.response;
 
-import cn.hutool.json.JSONUtil;
 import com.sun.guardian.core.domain.BaseResult;
 import com.sun.guardian.core.service.response.DefaultGuardianResponseHandler;
+import com.sun.guardian.core.utils.json.GuardianJsonUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,6 +27,6 @@ public class DefaultIpFilterResponseHandler extends DefaultGuardianResponseHandl
         BaseResult result = BaseResult.result(code, data, message);
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
         response.setContentType("application/json;charset=UTF-8");
-        response.getWriter().write(JSONUtil.toJsonStr(result));
+        response.getWriter().write(GuardianJsonUtils.toJsonStr(result));
     }
 }

@@ -1,4 +1,4 @@
-package com.sun.guardian.core.utils;
+package com.sun.guardian.core.utils.string;
 
 import com.sun.guardian.core.service.base.BaseCharacterReplacement;
 import com.sun.guardian.core.service.base.BaseConfig;

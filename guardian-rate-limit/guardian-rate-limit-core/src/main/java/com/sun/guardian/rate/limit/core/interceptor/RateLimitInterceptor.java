@@ -1,11 +1,11 @@
 package com.sun.guardian.rate.limit.core.interceptor;
 
-import cn.hutool.extra.servlet.ServletUtil;
 import com.sun.guardian.core.exception.RateLimitException;
 import com.sun.guardian.core.i18n.GuardianMessageResolver;
-import com.sun.guardian.core.utils.GuardianLogUtils;
-import com.sun.guardian.core.utils.MatchUrlRuleUtils;
-import com.sun.guardian.core.utils.ResponseUtils;
+import com.sun.guardian.core.utils.ip.IpUtils;
+import com.sun.guardian.core.utils.log.GuardianLogUtils;
+import com.sun.guardian.core.utils.match.MatchUrlRuleUtils;
+import com.sun.guardian.core.utils.response.ResponseUtils;
 import com.sun.guardian.rate.limit.core.annotation.RateLimit;
 import com.sun.guardian.rate.limit.core.config.RateLimitConfig;
 import com.sun.guardian.rate.limit.core.domain.rule.RateLimitRule;
@@ -69,7 +69,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         String requestUri = request.getRequestURI();
         String contextPath = request.getContextPath();
         String pathWithoutContext = MatchUrlRuleUtils.stripContextPath(requestUri, contextPath);
-        String ip = ServletUtil.getClientIP(request);
+        String ip = IpUtils.getClientIp(request);
 
         if (MatchUrlRuleUtils.matchExcludeUrlRule(rateLimitConfig.getExcludeUrls(), requestUri, pathWithoutContext)) {
             logUtils.excludeLog(rateLimitConfig.isLogEnabled(), log, requestUri, ip);

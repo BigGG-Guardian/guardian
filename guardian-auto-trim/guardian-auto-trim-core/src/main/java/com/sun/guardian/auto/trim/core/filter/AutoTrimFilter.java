@@ -2,7 +2,7 @@ package com.sun.guardian.auto.trim.core.filter;
 
 import com.sun.guardian.auto.trim.core.config.AutoTrimConfig;
 import com.sun.guardian.auto.trim.core.wrapper.AutoTrimRequestWrapper;
-import com.sun.guardian.core.utils.CharacterSanitizer;
+import com.sun.guardian.core.utils.string.CharacterSanitizer;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;

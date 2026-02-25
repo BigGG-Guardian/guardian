@@ -1,7 +1,7 @@
 package com.sun.guardian.slow.api.core.interceptor;
 
-import com.sun.guardian.core.utils.GuardianLogUtils;
-import com.sun.guardian.core.utils.MatchUrlRuleUtils;
+import com.sun.guardian.core.utils.log.GuardianLogUtils;
+import com.sun.guardian.core.utils.match.MatchUrlRuleUtils;
 import com.sun.guardian.slow.api.core.annotation.SlowApiThreshold;
 import com.sun.guardian.slow.api.core.config.SlowApiConfig;
 import com.sun.guardian.slow.api.core.statistics.SlowApiStatistics;

@@ -1,6 +1,5 @@
 package com.sun.guardian.example.common;
 
-import cn.hutool.core.date.DateUtil;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -43,7 +42,7 @@ public class CommonResult<T> {
                 .setCode(code)
                 .setData(data)
                 .setMessage(message)
-                .setTimestamp(DateUtil.current());
+                .setTimestamp(System.currentTimeMillis());
     }
 
     /**
@@ -54,7 +53,7 @@ public class CommonResult<T> {
                 .setCode(200)
                 .setData(data)
                 .setMessage("success")
-                .setTimestamp(DateUtil.current());
+                .setTimestamp(System.currentTimeMillis());
     }
 
     /**
@@ -65,6 +64,6 @@ public class CommonResult<T> {
                 .setCode(500)
                 .setData(null)
                 .setMessage(message)
-                .setTimestamp(DateUtil.current());
+                .setTimestamp(System.currentTimeMillis());
     }
 }

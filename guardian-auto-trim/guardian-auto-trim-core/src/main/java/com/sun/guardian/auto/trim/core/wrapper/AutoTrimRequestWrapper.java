@@ -1,9 +1,8 @@
 package com.sun.guardian.auto.trim.core.wrapper;
 
-import cn.hutool.core.io.IoUtil;
 import com.sun.guardian.auto.trim.core.config.AutoTrimConfig;
-import com.sun.guardian.core.utils.ArgsUtil;
-import com.sun.guardian.core.utils.CharacterSanitizer;
+import com.sun.guardian.core.utils.args.ArgsUtil;
+import com.sun.guardian.core.utils.string.CharacterSanitizer;
 import com.sun.guardian.core.wrapper.RepeatableRequestWrapper;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,7 +42,7 @@ public class AutoTrimRequestWrapper extends RepeatableRequestWrapper {
         if (request instanceof RepeatableRequestWrapper) {
             rawBody = ((RepeatableRequestWrapper) request).getCachedBody();
         } else {
-            rawBody = IoUtil.readBytes(request.getInputStream());
+            rawBody = org.springframework.util.StreamUtils.copyToByteArray(request.getInputStream());
         }
         if (rawBody.length == 0) return rawBody;
 

@@ -1,7 +1,6 @@
 package com.sun.guardian.repeat.submit.core.constants;
 
-import cn.hutool.core.util.StrUtil;
-import com.sun.guardian.core.utils.TemplateUtil;
+import java.util.Objects;
 
 import static com.sun.guardian.repeat.submit.core.enums.scope.KeyScope.GLOBAL;
 import static com.sun.guardian.repeat.submit.core.enums.scope.KeyScope.IP;
@@ -16,7 +15,7 @@ import static com.sun.guardian.repeat.submit.core.enums.scope.KeyScope.IP;
 public interface KeyPrefixConstants {
 
     /** 外层前缀模板 */
-    String DEFAULT_KEY_PREFIX = "guardian:{}";
+    String DEFAULT_KEY_PREFIX = "guardian:%s";
 
     /** 用户级：uri + method + ip + client + userId + args */
     String USER_KEY_SUFFIX = "{servletUri}:{method}:{clientIp}:{client}:{userId}:{args}";
@@ -29,9 +28,9 @@ public interface KeyPrefixConstants {
 
     /** 按维度获取 Key 模板 */
     static String getSuffixByKeyScope(String keyScope) {
-        if (StrUtil.equals(IP.key, keyScope)) {
+        if (Objects.equals(IP.key, keyScope)) {
             return IP_KEY_SUFFIX;
-        } else if (StrUtil.equals(GLOBAL.key, keyScope)) {
+        } else if (Objects.equals(GLOBAL.key, keyScope)) {
             return GLOBAL_KEY_SUFFIX;
         } else {
             return USER_KEY_SUFFIX;

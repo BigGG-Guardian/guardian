@@ -1,12 +1,12 @@
 package com.sun.guardian.ip.filter.core.filter;
 
-import cn.hutool.extra.servlet.ServletUtil;
 import com.sun.guardian.core.exception.IpForbiddenException;
 import com.sun.guardian.core.i18n.GuardianMessageResolver;
-import com.sun.guardian.core.utils.GuardianLogUtils;
-import com.sun.guardian.core.utils.IpMatcher;
-import com.sun.guardian.core.utils.MatchUrlRuleUtils;
-import com.sun.guardian.core.utils.ResponseUtils;
+import com.sun.guardian.core.utils.ip.IpUtils;
+import com.sun.guardian.core.utils.log.GuardianLogUtils;
+import com.sun.guardian.core.utils.match.IpMatcher;
+import com.sun.guardian.core.utils.match.MatchUrlRuleUtils;
+import com.sun.guardian.core.utils.response.ResponseUtils;
 import com.sun.guardian.ip.filter.core.config.IpFilterConfig;
 import com.sun.guardian.ip.filter.core.domain.rule.UrlWhiteRule;
 import com.sun.guardian.ip.filter.core.service.response.IpFilterResponseHandler;
@@ -55,7 +55,7 @@ public class IpFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String clientIp = ServletUtil.getClientIP(request);
+        String clientIp = IpUtils.getClientIp(request);
         String requestUri = request.getRequestURI();
         String contextPath = request.getContextPath();
         String pathWithoutContext = MatchUrlRuleUtils.stripContextPath(requestUri, contextPath);

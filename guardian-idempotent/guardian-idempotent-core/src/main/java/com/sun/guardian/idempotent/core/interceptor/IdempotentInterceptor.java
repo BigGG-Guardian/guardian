@@ -1,13 +1,12 @@
 package com.sun.guardian.idempotent.core.interceptor;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.servlet.ServletUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.guardian.core.exception.IdempotentException;
 import com.sun.guardian.core.i18n.GuardianMessageResolver;
-import com.sun.guardian.core.utils.GuardianLogUtils;
-import com.sun.guardian.core.utils.ResponseUtils;
+import com.sun.guardian.core.utils.ip.IpUtils;
+import com.sun.guardian.core.utils.json.GuardianJsonUtils;
+import com.sun.guardian.core.utils.log.GuardianLogUtils;
+import com.sun.guardian.core.utils.response.ResponseUtils;
 import com.sun.guardian.core.wrapper.RepeatableRequestWrapper;
 import com.sun.guardian.idempotent.core.advice.IdempotentResultCacheAdvice;
 import com.sun.guardian.idempotent.core.annotation.Idempotent;
@@ -21,6 +20,7 @@ import com.sun.guardian.idempotent.core.storage.IdempotentResultCache;
 import com.sun.guardian.idempotent.core.storage.IdempotentStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -70,19 +70,19 @@ public class IdempotentInterceptor implements HandlerInterceptor {
         }
 
         String requestURI = request.getRequestURI();
-        String ip = ServletUtil.getClientIP(request);
+        String ip = IpUtils.getClientIp(request);
 
         String token = (annotation.from() == IdempotentTokenFrom.HEADER)
                 ? request.getHeader(annotation.tokenName())
                 : resolveParamToken(request, annotation.tokenName());
 
-        if (StrUtil.isBlank(token)) {
+        if (!StringUtils.hasText(token)) {
             statistics.recordBlock(requestURI);
             logUtils.blockLog(idempotentConfig.isLogEnabled(), log, requestURI, ip);
             return responseUtils.reject(request, response, idempotentConfig.getMissingTokenMessage());
         }
 
-        String fullKey = StrUtil.format(IdempotentKeyPrefixConstants.KEY_PREFIX, annotation.value(), token);
+        String fullKey = String.format(IdempotentKeyPrefixConstants.KEY_PREFIX, annotation.value(), token);
         if (!storage.tryConsume(fullKey)) {
             if (resultCache != null) {
                 String cached = resultCache.getCacheResult(fullKey);
@@ -108,7 +108,7 @@ public class IdempotentInterceptor implements HandlerInterceptor {
                     .setKey(fullKey)
                     .setTimeout(idempotentConfig.getTimeout())
                     .setTimeUnit(idempotentConfig.getTimeUnit());
-            request.setAttribute(IdempotentResultCacheAdvice.ATTR_KEY, JSONUtil.toJsonStr(result));
+            request.setAttribute(IdempotentResultCacheAdvice.ATTR_KEY, GuardianJsonUtils.toJsonStr(result));
         }
 
         return true;
@@ -119,15 +119,16 @@ public class IdempotentInterceptor implements HandlerInterceptor {
      */
     private String resolveParamToken(HttpServletRequest request, String tokenName) {
         String token = request.getParameter(tokenName);
-        if (StrUtil.isNotBlank(token)) {
+        if (StringUtils.hasText(token)) {
             return token;
         }
         if (request instanceof RepeatableRequestWrapper) {
             try {
                 String body = new String(((RepeatableRequestWrapper) request).getCachedBody(), StandardCharsets.UTF_8);
-                if (StrUtil.isNotBlank(body) && JSONUtil.isTypeJSON(body)) {
-                    JSONObject json = JSONUtil.parseObj(body);
-                    return json.getStr(tokenName);
+                if (StringUtils.hasText(body) && GuardianJsonUtils.isJson(body)) {
+                    JsonNode json = GuardianJsonUtils.readTree(body);
+                    JsonNode tokenNode = json.get(tokenName);
+                    return tokenNode != null && tokenNode.isTextual() ? tokenNode.asText() : null;
                 }
             } catch (Exception ignored) {
             }

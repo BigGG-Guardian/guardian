@@ -1,6 +1,7 @@
-package com.sun.guardian.core.utils;
+package com.sun.guardian.core.utils.template;
 
-import cn.hutool.core.bean.BeanUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.sun.guardian.core.utils.json.GuardianJsonUtils;
 
 import java.util.Map;
 
@@ -13,11 +14,13 @@ import java.util.Map;
  */
 public class TemplateUtil {
 
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() {};
+
     private TemplateUtil() {}
 
     /** 将 {fieldName} 占位符替换为 Bean 字段值 */
     public static String formatByBean(String template, Object bean) {
-        Map<String, Object> params = BeanUtil.beanToMap(bean, false, true);
+        Map<String, Object> params = GuardianJsonUtils.getMapper().convertValue(bean, MAP_TYPE);
         String result = template;
         for (Map.Entry<String, Object> entry : params.entrySet()) {
             result = result.replace("{" + entry.getKey() + "}",

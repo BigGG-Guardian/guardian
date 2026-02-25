@@ -1,4 +1,4 @@
-package com.sun.guardian.core.utils;
+package com.sun.guardian.core.utils.log;
 
 import org.slf4j.Logger;
 
