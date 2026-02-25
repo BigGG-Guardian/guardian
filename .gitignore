@@ -36,3 +36,6 @@ build/
 
 ### Maven ###
 .flattened-pom.xml
+
+### Docs（内部文档，不提交） ###
+docs/
