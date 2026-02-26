@@ -11,6 +11,33 @@ spring:
     database: 0
 #    password:
 
+  # RabbitMQ 配置
+#  rabbitmq:
+#    host: 127.0.0.1
+#    port: 5672
+#    username: guest
+#    password: guest
+
+  # Kafka 配置
+#  kafka:
+#    bootstrap-servers: 127.0.0.1:9092
+#    producer:
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      properties:
+#        interceptor.classes: com.sun.guardian.trace.kafka.interceptor.TraceKafkaProducerInterceptor
+#    consumer:
+#      group-id: guardian-example
+#      auto-offset-reset: latest
+#      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+# RocketMQ 配置
+#rocketmq:
+#  name-server: 127.0.0.1:9876
+#  producer:
+#    group: guardian-example-producer
+
 guardian:
   # 请求体缓存过滤器排序（全局共享，防重 / 幂等模块共用，默认 -100）
   repeatable-filter-order: -100

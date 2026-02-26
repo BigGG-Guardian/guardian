@@ -41,11 +41,12 @@
 
     <!--  参数管理  -->
     <properties>
-        <revision>1.6.1</revision>
+        <revision>1.6.2</revision>
         <java.version>1.8</java.version>
         <spring-boot.version>2.7.18</spring-boot.version>
         <servlet.version>4.0.1</servlet.version>
         <lombok.version>1.18.30</lombok.version>
+        <rocketmq.version>2.2.3</rocketmq.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -174,6 +175,36 @@
                 <groupId>io.github.biggg-guardian</groupId>
                 <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
                 <version>${revision}</version>
+            </dependency>
+            <!-- 自定义模块-请求链路核心模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-trace-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- 自定义模块-请求链路 RabbitMQ 模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-trace-rabbitmq</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- 自定义模块-请求链路 Kafka 模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-trace-kafka</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- 自定义模块-请求链路 RocketMQ 模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-trace-rocketmq</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- RocketMQ Spring Boot Starter -->
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-spring-boot-starter</artifactId>
+                <version>${rocketmq.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

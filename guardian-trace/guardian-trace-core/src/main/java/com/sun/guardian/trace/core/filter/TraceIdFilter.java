@@ -23,7 +23,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class TraceIdFilter extends OncePerRequestFilter {
 
     private final TraceConfig traceConfig;
-    private static final String MDC_KEY = "traceId";
+    public static final String MDC_KEY = "traceId";
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HHmmss");
     private static final String CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
 

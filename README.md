@@ -34,7 +34,7 @@
 | 接口幂等 | `guardian-idempotent-spring-boot-starter` | `@Idempotent` | — | Token 机制保证接口幂等性，支持结果缓存 |
 | 参数自动Trim | `guardian-auto-trim-spring-boot-starter` | — | ✅ | 自动去除请求参数首尾空格 + 不可见字符替换 |
 | 慢接口检测 | `guardian-slow-api-spring-boot-starter` | `@SlowApiThreshold` | ✅ | 慢接口检测 + Top N 统计 + Actuator 端点 |
-| 请求链路追踪 | `guardian-trace-spring-boot-starter` | — | ✅ | 自动生成/透传 TraceId，MDC 日志串联 |
+| 请求链路追踪 | `guardian-trace-spring-boot-starter` | — | ✅ | 自动生成/透传 TraceId，MDC 日志串联，支持跨线程传递、MQ 链路追踪 |
 | IP黑白名单 | `guardian-ip-filter-spring-boot-starter` | — | ✅ | 全局黑名单 + URL 绑定白名单，支持精确/通配符/CIDR |
 
 每个功能独立模块、独立 Starter，**用哪个引哪个，互不依赖**。所有模块的 YAML 配置均支持**配置中心动态刷新**（Nacos / Apollo 等），无需重启即可生效。
@@ -49,7 +49,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.6.1</version>
+    <version>1.6.2</version>
 </dependency>
 ```
 
@@ -67,7 +67,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.6.1</version>
+    <version>1.6.2</version>
 </dependency>
 ```
 
@@ -109,7 +109,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.6.1</version>
+    <version>1.6.2</version>
 </dependency>
 ```
 
@@ -137,7 +137,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
-    <version>1.6.1</version>
+    <version>1.6.2</version>
 </dependency>
 ```
 
@@ -160,7 +160,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
-    <version>1.6.1</version>
+    <version>1.6.2</version>
 </dependency>
 ```
 
@@ -182,7 +182,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-spring-boot-starter</artifactId>
-    <version>1.6.1</version>
+    <version>1.6.2</version>
 </dependency>
 ```
 
@@ -192,7 +192,7 @@ public Result getDetail(@RequestParam Long id) {
 <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%X{traceId}] [%thread] %-5level %logger{36} - %msg%n</pattern>
 ```
 
-上游服务通过请求头 `X-Trace-Id` 传递 TraceId，下游自动复用，实现跨服务链路串联。
+上游服务通过请求头 `X-Trace-Id` 传递 TraceId，下游自动复用，实现跨服务链路串联。支持跨线程传递（`TraceUtils.wrap()` / `TraceTaskDecorator`），`@Async`、`CompletableFuture`、手动线程池场景均可保持 traceId 不丢失。支持 MQ 消息链路追踪（RabbitMQ / Kafka / RocketMQ），发送端自动注入 traceId，消费端通过 AOP 自动提取。
 
 ### IP黑白名单
 
@@ -200,7 +200,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
-    <version>1.6.1</version>
+    <version>1.6.2</version>
 </dependency>
 ```
 
@@ -288,6 +288,12 @@ guardian:
 
 - **拦截日志**：`log-enabled: true`，前缀 `[Guardian-Repeat-Submit]`
 - **Actuator**：`GET /actuator/guardianRepeatSubmit`
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `top` | 被拦截接口排行返回条数 | 10 |
+
+> 所有参数均为可选，不传参数与原调用方式完全一致。
 
 ```json
 {
@@ -483,6 +489,14 @@ guardian:
 - **拦截日志**：`log-enabled: true`，前缀 `[Guardian-Rate-Limit]`
 - **Actuator**：`GET /actuator/guardianRateLimit`
 
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `blockedTop` | 被拦截接口排行返回条数 | 10 |
+| `requestTop` | 高频请求接口排行返回条数 | 10 |
+| `detailsTop` | 接口维度明细返回条数 | 10 |
+
+> 所有参数均为可选，不传参数与原调用方式完全一致。
+
 ```json
 {
   "totalRequestCount": 5560,
@@ -606,6 +620,12 @@ guardian:
 
 - **拦截日志**：`log-enabled: true`，前缀 `[Guardian-Idempotent]`
 - **Actuator**：`GET /actuator/guardianIdempotent`
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `top` | 被拦截接口排行返回条数 | 10 |
+
+> 所有参数均为可选，不传参数与原调用方式完全一致。
 
 ```json
 {
@@ -767,13 +787,55 @@ WARN [Guardian-Slow-Api] @SlowApiThreshold 慢接口检测 | Method=GET | URI=/a
 
 **Actuator 端点**：`GET /actuator/guardianSlowApi`
 
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `top` | 慢接口排行返回条数 | 10 |
+| `recordTop` | 每个接口的耗时明细记录条数 | 5（最大 100） |
+
+> 所有参数均为可选，不传参数与原调用方式完全一致。
+
 ```json
 {
   "totalSlowCount": 15,
   "topSlowApis": {
-    "/api/detail": { "count": 8, "maxDuration": 5230 },
-    "/api/export": { "count": 7, "maxDuration": 12500 }
+    "/api/detail": {
+      "count": 8,
+      "maxDuration": 5230,
+      "recentRecords": [
+        { "duration": 5230, "time": "2026-02-09 15:32:10" },
+        { "duration": 4100, "time": "2026-02-09 14:20:45" }
+      ]
+    },
+    "/api/export": {
+      "count": 7,
+      "maxDuration": 12500,
+      "recentRecords": [
+        { "duration": 12500, "time": "2026-02-09 11:05:22" }
+      ]
+    }
   }
+}
+```
+
+### 扩展点
+
+**自定义慢接口记录器（SPI）：**
+
+默认使用内存环形缓冲记录慢接口数据，可通过注入自定义 Bean 替换为数据库 / ES 等持久化方案：
+
+```java
+@Bean
+public SlowApiRecorder slowApiRecorder() {
+    return new SlowApiRecorder() {
+        @Override
+        public void record(SlowApiRecord record) { /* 写入数据库 / ES */ }
+        @Override
+        public long getTotalSlowCount() { /* ... */ }
+        @Override
+        public LinkedHashMap<String, Map<String, Object>> getTopSlowApis(int n) { /* ... */ }
+        @Override
+        public List<SlowApiRecord> getRecords(String uri, int limit) { /* ... */ }
+    };
 }
 ```
 
@@ -788,7 +850,7 @@ WARN [Guardian-Slow-Api] @SlowApiThreshold 慢接口检测 | Method=GET | URI=/a
 
 ### 功能说明
 
-自动为每个请求生成唯一的 TraceId，写入 MDC 和响应头。上游服务通过请求头传递 TraceId，下游自动复用，实现跨服务日志串联。
+自动为每个请求生成唯一的 TraceId，写入 MDC 和响应头。上游服务通过请求头传递 TraceId，下游自动复用，实现跨服务日志串联。内置跨线程传递工具类，`@Async`、`CompletableFuture`、手动线程池等场景均可保持 traceId 不丢失。
 
 ### 使用方式
 
@@ -831,6 +893,153 @@ MDC.remove("traceId")           ← 请求结束清理
 ```
 
 同一条链路上所有服务的日志都带 `abc123`，排查问题时按 TraceId 搜索即可。
+
+### 跨线程 TraceId 传递
+
+MDC 基于 ThreadLocal，新开子线程时 traceId 会丢失。Guardian 提供以下工具解决：
+
+**1. 手动包装 Runnable / Callable**
+
+```java
+executor.submit(TraceUtils.wrap(() -> {
+    // 子线程中 traceId 与父线程一致
+    log.info("异步任务执行");
+}));
+
+Future<String> future = executor.submit(TraceUtils.wrap(() -> {
+    log.info("带返回值的异步任务");
+    return "result";
+}));
+```
+
+**2. 包装 Executor（适用于 CompletableFuture）**
+
+```java
+Executor tracedExecutor = TraceUtils.wrap(myExecutor);
+CompletableFuture.runAsync(() -> {
+    log.info("CompletableFuture 中也有 traceId");
+}, tracedExecutor);
+```
+
+**3. @Async 线程池自动传递**
+
+```java
+@Bean
+public ThreadPoolTaskExecutor asyncExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(10);
+    executor.setTaskDecorator(new TraceTaskDecorator());
+    executor.initialize();
+    return executor;
+}
+```
+
+配置 `TraceTaskDecorator` 后，所有 `@Async` 任务自动携带父线程的 traceId，无需手动包装。
+
+| 类名 | 场景 | 用法 |
+|------|------|------|
+| `TraceRunnable` | 手动提交 Runnable | `new TraceRunnable(task)` 或 `TraceUtils.wrap(task)` |
+| `TraceCallable` | 手动提交 Callable | `new TraceCallable<>(task)` 或 `TraceUtils.wrap(task)` |
+| `TraceTaskDecorator` | @Async 线程池 | 设置到 `ThreadPoolTaskExecutor.setTaskDecorator()` |
+| `TraceUtils` | 工具类 | `wrap(Runnable)` / `wrap(Callable)` / `wrap(Executor)` / `getTraceId()` / `switchTraceId()` |
+
+### MQ 消息链路追踪
+
+Guardian 支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动传递，发送端自动注入 traceId，消费端通过 AOP 切面自动提取并写入 MDC。
+
+**核心设计**：消费端采用 AOP 切面拦截 Listener 方法，不占用框架原生拦截器/Hook 位置，接入方可自由注册自己的拦截器。
+
+> **注意**：AOP 切面从方法参数中提取 traceId，因此 Listener 方法的参数类型必须使用消息原始类型：
+> - RabbitMQ：`Message`（`org.springframework.amqp.core.Message`），不能用 `String`
+> - Kafka：`ConsumerRecord<?, ?>`，不能用 `String`
+> - RocketMQ：`MessageExt`（`org.apache.rocketmq.common.message.MessageExt`）
+
+#### RabbitMQ
+
+```xml
+<dependency>
+    <groupId>io.github.biggg-guardian</groupId>
+    <artifactId>guardian-trace-rabbitmq</artifactId>
+    <version>1.6.2</version>
+</dependency>
+```
+
+- **发送端**：通过 `MessagePostProcessor` 将 traceId 写入消息 Header（additive，不冲突）
+- **消费端**：AOP 切面拦截 `@RabbitListener` / `@RabbitHandler` 方法，自动从消息 Header 提取 traceId
+
+#### Kafka
+
+```xml
+<dependency>
+    <groupId>io.github.biggg-guardian</groupId>
+    <artifactId>guardian-trace-kafka</artifactId>
+    <version>1.6.2</version>
+</dependency>
+```
+
+发送端需在 Kafka Producer 配置中注册拦截器：
+
+```yaml
+spring:
+  kafka:
+    producer:
+      properties:
+        interceptor.classes: com.sun.guardian.trace.kafka.interceptor.TraceKafkaProducerInterceptor
+```
+
+- **发送端**：通过 `ProducerInterceptor` 将 traceId 写入消息 Header（不占用 RecordInterceptor）
+- **消费端**：AOP 切面拦截 `@KafkaListener` / `@KafkaHandler` 方法，自动从消息 Header 提取 traceId
+
+#### RocketMQ
+
+```xml
+<dependency>
+    <groupId>io.github.biggg-guardian</groupId>
+    <artifactId>guardian-trace-rocketmq</artifactId>
+    <version>1.6.2</version>
+</dependency>
+```
+
+- **发送端**：通过 `SendMessageHook` 将 traceId 写入消息 UserProperty（支持注册多个 Hook，不冲突）
+- **消费端**：AOP 切面拦截 `@RocketMQMessageListener` 注解的类，自动从消息 UserProperty 提取 traceId
+
+#### 批量消费场景
+
+AOP 切面自动设置**第一条**消息的 traceId。如需在批量消费中逐条切换 traceId，各模块提供了专用工具类，一行代码即可完成切换：
+
+| 模块 | 工具类 | 用法 |
+|------|--------|------|
+| RabbitMQ | `TraceRabbitUtils` | `TraceRabbitUtils.switchTraceId(message)` |
+| Kafka | `TraceKafkaUtils` | `TraceKafkaUtils.switchTraceId(record)` |
+| RocketMQ | `TraceRocketMQUtils` | `TraceRocketMQUtils.switchTraceId(messageExt)` |
+
+工具类内部自动从消息 Header / UserProperty 中提取 traceId 并切换 MDC，headerName 通过 `TraceConfig` 动态获取，支持配置中心热更新。
+
+**RabbitMQ 批量消费示例**：
+
+```java
+@RabbitListener(queues = "myQueue", containerFactory = "batchContainerFactory")
+public void handleBatch(List<Message> messages) {
+    for (Message msg : messages) {
+        TraceRabbitUtils.switchTraceId(msg);
+        // 业务逻辑...
+    }
+}
+```
+
+**Kafka 批量消费示例**：
+
+```java
+@KafkaListener(topics = "myTopic", batch = "true")
+public void handleBatch(List<ConsumerRecord<String, String>> records) {
+    for (ConsumerRecord<String, String> record : records) {
+        TraceKafkaUtils.switchTraceId(record);
+        // 业务逻辑...
+    }
+}
+```
+
+> **RocketMQ 说明**：RocketMQ Spring Boot Starter 的 `RocketMQListener` 本身是逐条回调，AOP 切面会自动为每次调用注入/清理 traceId，通常无需手动切换。如有特殊场景，也可使用 `TraceRocketMQUtils.switchTraceId(messageExt)`。
 
 ### 全量配置
 
@@ -895,6 +1104,13 @@ guardian:
 
 - **拦截日志**：`log-enabled: true`，前缀 `[Guardian-Ip-Filter]`
 - **Actuator**：`GET /actuator/guardianIpFilter`
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `blockTop` | 黑名单拦截 IP 排行返回条数 | 10 |
+| `whiteTop` | 白名单拦截请求排行返回条数 | 10 |
+
+> 所有参数均为可选，不传参数与原调用方式完全一致。
 
 ```json
 {
@@ -1250,7 +1466,10 @@ guardian-parent
 │   └── guardian-slow-api-spring-boot-starter/
 ├── guardian-trace/                        # 请求链路追踪
 │   ├── guardian-trace-core/
-│   └── guardian-trace-spring-boot-starter/
+│   ├── guardian-trace-spring-boot-starter/
+│   ├── guardian-trace-rabbitmq/           # RabbitMQ 链路追踪
+│   ├── guardian-trace-kafka/              # Kafka 链路追踪
+│   └── guardian-trace-rocketmq/           # RocketMQ 链路追踪
 ├── guardian-ip-filter/                    # IP黑白名单
 │   ├── guardian-ip-filter-core/
 │   └── guardian-ip-filter-spring-boot-starter/
@@ -1332,6 +1551,19 @@ guardian:
 | 额外依赖 | 需要 Redis | 无 |
 
 ## 更新日志
+
+### v1.6.2
+
+- **新增**：MQ 消息链路追踪，支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动传递
+- **新增**：`guardian-trace-rabbitmq` 模块，发送端通过 MessagePostProcessor 注入 traceId，消费端通过 AOP 切面拦截 `@RabbitListener` 自动提取
+- **新增**：`guardian-trace-kafka` 模块，发送端通过 ProducerInterceptor 注入 traceId，消费端通过 AOP 切面拦截 `@KafkaListener` 自动提取
+- **新增**：`guardian-trace-rocketmq` 模块，发送端通过 SendMessageHook 注入 traceId，消费端通过 AOP 切面拦截 `@RocketMQMessageListener` 自动提取
+- **新增**：`TraceUtils.switchTraceId()` 方法，支持 MQ 批量消费场景逐条切换 traceId
+- **新增**：`TraceRabbitUtils` / `TraceKafkaUtils` / `TraceRocketMQUtils` 批量消费专用工具类，一行代码从消息中提取并切换 traceId
+- **新增**：慢接口记录器 SPI 扩展点（`SlowApiRecorder`），支持自定义持久化方案（数据库 / ES 等）替换默认内存实现
+- **优化**：MQ 消费端统一采用 AOP 切面拦截，不占用框架原生拦截器/Hook 位置，与用户自定义拦截器互不冲突
+- **优化**：Kafka ProducerInterceptor 通过持有 TraceConfig 引用动态获取 headerName，支持配置中心热更新
+- **修复**：MQ 自动配置类添加 `@AutoConfigureAfter`，确保在 `TraceConfig` 和 MQ Template Bean 创建之后加载，解决因加载顺序导致的链路追踪不生效问题
 
 ### v1.6.1
 

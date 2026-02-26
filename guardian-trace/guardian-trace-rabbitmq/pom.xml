@@ -1,0 +1,57 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.biggg-guardian</groupId>
+        <artifactId>guardian-trace</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>guardian-trace-rabbitmq</artifactId>
+    <packaging>jar</packaging>
+
+    <name>guardian-trace-rabbitmq</name>
+    <description>
+        Guardian 请求链路RabbitMq模块
+    </description>
+
+    <dependencies>
+        <!-- 自定义模块-请求链路核心模块 -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-trace-core</artifactId>
+        </dependency>
+        <!-- RabbitMq -->
+        <dependency>
+            <groupId>org.springframework.amqp</groupId>
+            <artifactId>spring-rabbit</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- AOP -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!--
+            Spring Boot核心启动器，提供自动配置、属性绑定等机制。
+            这是Starter模块的基础。
+        -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!--
+           Spring Boot配置处理器，在编译时生成配置元数据（META-INF/spring-configuration-metadata.json）。
+           作用：当用户在 application.yml 中输入配置时，IDE会提供智能提示和补全。
+           optional=true 表示此依赖不会传递给使用本框架的项目。
+       -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+</project>
