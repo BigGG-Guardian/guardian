@@ -4,7 +4,8 @@ import com.sun.guardian.core.utils.log.GuardianLogUtils;
 import com.sun.guardian.core.utils.match.MatchUrlRuleUtils;
 import com.sun.guardian.slow.api.core.annotation.SlowApiThreshold;
 import com.sun.guardian.slow.api.core.config.SlowApiConfig;
-import com.sun.guardian.slow.api.core.statistics.SlowApiStatistics;
+import com.sun.guardian.slow.api.core.domain.record.SlowApiRecord;
+import com.sun.guardian.slow.api.core.recorder.SlowApiRecorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.method.HandlerMethod;
@@ -25,14 +26,14 @@ public class SlowApiInterceptor implements HandlerInterceptor {
     private static final String START_TIME_ATTR = "guardian.slow-api.startTime";
     private static final GuardianLogUtils logUtils = new GuardianLogUtils("[Guardian-Slow-Api]", "@SlowApiThreshold");
     private final SlowApiConfig slowApiConfig;
-    private final SlowApiStatistics statistics;
+    private final SlowApiRecorder recorder;
 
     /**
      * 构造慢接口检测拦截器
      */
-    public SlowApiInterceptor(SlowApiConfig slowApiConfig, SlowApiStatistics statistics) {
+    public SlowApiInterceptor(SlowApiConfig slowApiConfig, SlowApiRecorder recorder) {
         this.slowApiConfig = slowApiConfig;
-        this.statistics = statistics;
+        this.recorder = recorder;
     }
 
     /**
@@ -72,7 +73,7 @@ public class SlowApiInterceptor implements HandlerInterceptor {
 
         if (duration >= threshold) {
             logUtils.slowApiLog(log, request.getMethod(), requestUri, duration, threshold);
-            statistics.record(requestUri, duration);
+            recorder.record(new SlowApiRecord(requestUri, duration, System.currentTimeMillis()));
         }
     }
 

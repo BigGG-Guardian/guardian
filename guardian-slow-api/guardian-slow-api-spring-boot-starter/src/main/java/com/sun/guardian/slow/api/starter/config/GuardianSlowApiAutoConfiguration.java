@@ -1,7 +1,8 @@
 package com.sun.guardian.slow.api.starter.config;
 
 import com.sun.guardian.slow.api.core.interceptor.SlowApiInterceptor;
-import com.sun.guardian.slow.api.core.statistics.SlowApiStatistics;
+import com.sun.guardian.slow.api.core.recorder.DefaultSlowApiRecorder;
+import com.sun.guardian.slow.api.core.recorder.SlowApiRecorder;
 import com.sun.guardian.slow.api.starter.endpoint.SlowApiEndPoint;
 import com.sun.guardian.slow.api.starter.properties.GuardianSlowApiProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -56,18 +57,15 @@ public class GuardianSlowApiAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(SlowApiInterceptor.class)
-    public SlowApiInterceptor slowApiInterceptor(GuardianSlowApiProperties properties, SlowApiStatistics statistics) {
+    public SlowApiInterceptor slowApiInterceptor(GuardianSlowApiProperties properties, SlowApiRecorder recorder) {
         properties.validate();
-        return new SlowApiInterceptor(properties, statistics);
+        return new SlowApiInterceptor(properties, recorder);
     }
 
-    /**
-     * 创建慢接口统计组件
-     */
     @Bean
-    @ConditionalOnMissingBean(SlowApiStatistics.class)
-    public SlowApiStatistics slowApiStatistics() {
-        return new SlowApiStatistics();
+    @ConditionalOnMissingBean(SlowApiRecorder.class)
+    public SlowApiRecorder slowApiRecorder() {
+        return new DefaultSlowApiRecorder();
     }
 
     /**
@@ -76,7 +74,7 @@ public class GuardianSlowApiAutoConfiguration {
     @Bean
     @ConditionalOnClass(name = "org.springframework.boot.actuate.endpoint.annotation.Endpoint")
     @ConditionalOnMissingBean(SlowApiEndPoint.class)
-    public SlowApiEndPoint slowApiEndPoint(SlowApiStatistics statistics) {
-        return new SlowApiEndPoint(statistics);
+    public SlowApiEndPoint slowApiEndPoint(SlowApiRecorder recorder) {
+        return new SlowApiEndPoint(recorder);
     }
 }

@@ -17,6 +17,9 @@
     <modules>
         <module>guardian-trace-core</module>
         <module>guardian-trace-spring-boot-starter</module>
+        <module>guardian-trace-rabbitmq</module>
+        <module>guardian-trace-kafka</module>
+        <module>guardian-trace-rocketmq</module>
     </modules>
 
     <dependencyManagement>
@@ -32,6 +35,12 @@
                 <groupId>io.github.biggg-guardian</groupId>
                 <artifactId>guardian-trace-core</artifactId>
                 <version>${revision}</version>
+            </dependency>
+            <!-- RocketMQ Spring Boot Starter -->
+            <dependency>
+                <groupId>org.apache.rocketmq</groupId>
+                <artifactId>rocketmq-spring-boot-starter</artifactId>
+                <version>${rocketmq.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

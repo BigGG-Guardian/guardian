@@ -23,6 +23,9 @@
     { "name": "请求链路TraceId" },
     { "name": "消息国际化(i18n)" },
     { "name": "IP黑白名单" },
+    { "name": "MQ链路追踪-RabbitMQ" },
+    { "name": "MQ链路追踪-Kafka" },
+    { "name": "MQ链路追踪-RocketMQ" },
     { "name": "Actuator监控端点" }
   ],
   "paths": {
@@ -1536,6 +1539,398 @@
         }
       }
     },
+    "/trace/cross-thread": {
+      "get": {
+        "tags": ["请求链路TraceId"],
+        "summary": "跨线程传递（TraceUtils.wrap）",
+        "description": "使用 TraceUtils.wrap(Runnable) 和 TraceUtils.wrap(Callable) 将任务提交到子线程，验证子线程的 traceId 与主线程一致。查看控制台日志中主线程和子线程的 [traceId] 字段。",
+        "operationId": "traceCrossThread",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "mainTraceId": { "type": "string", "example": "143000a1b2c3d4e5" },
+                        "childTraceIds": {
+                          "type": "array",
+                          "items": { "type": "string" },
+                          "example": ["143000a1b2c3d4e5", "143000a1b2c3d4e5"]
+                        },
+                        "allMatch": { "type": "boolean", "example": true },
+                        "description": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trace/completable-future": {
+      "get": {
+        "tags": ["请求链路TraceId"],
+        "summary": "CompletableFuture跨线程传递",
+        "description": "使用 TraceUtils.wrap(Executor) 包装线程池，配合 CompletableFuture 链式调用，验证所有异步任务的 traceId 与主线程一致。",
+        "operationId": "traceCompletableFuture",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "mainTraceId": { "type": "string", "example": "143000a1b2c3d4e5" },
+                        "task1TraceId": { "type": "string", "example": "143000a1b2c3d4e5" },
+                        "task2TraceId": { "type": "string", "example": "143000a1b2c3d4e5" },
+                        "allMatch": { "type": "boolean", "example": true },
+                        "description": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trace/get-trace-id": {
+      "get": {
+        "tags": ["请求链路TraceId"],
+        "summary": "TraceUtils.getTraceId() 获取当前traceId",
+        "description": "验证 TraceUtils.getTraceId() 工具方法返回值与 MDC.get(\"traceId\") 一致。适用于业务代码中需要主动获取 traceId 的场景。",
+        "operationId": "traceGetTraceId",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "traceIdFromMdc": { "type": "string", "example": "143000a1b2c3d4e5" },
+                        "traceIdFromUtils": { "type": "string", "example": "143000a1b2c3d4e5" },
+                        "match": { "type": "string", "example": "true" },
+                        "description": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trace/switch-trace-id": {
+      "get": {
+        "tags": ["请求链路TraceId"],
+        "summary": "TraceUtils.switchTraceId() 模拟MQ批量消费切换",
+        "description": "模拟 MQ 批量消费场景，使用 TraceUtils.switchTraceId() 在循环中逐条切换 traceId。查看控制台日志中每条消息对应不同的 traceId，处理完成后恢复原始 traceId。",
+        "operationId": "traceSwitchTraceId",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "originalTraceId": { "type": "string", "example": "143000a1b2c3d4e5" },
+                        "switchRecords": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "msgTraceId": { "type": "string", "example": "msg-trace-001" },
+                              "currentMdc": { "type": "string", "example": "msg-trace-001" }
+                            }
+                          }
+                        },
+                        "restoredTraceId": { "type": "string", "example": "143000a1b2c3d4e5" },
+                        "description": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trace/mq/rabbitmq/send": {
+      "get": {
+        "tags": ["MQ链路追踪-RabbitMQ"],
+        "summary": "RabbitMQ 单条发送（traceId 自动注入）",
+        "description": "发送一条 RabbitMQ 消息到 guardian.trace.test 交换机。Guardian 自动将当前 traceId 写入消息 Header。\n\n验证步骤：\n1. 调用本接口发送消息\n2. 查看控制台日志，消费端打印的 traceId 应与发送端一致\n3. 响应头 X-Trace-Id 即为本次链路 ID",
+        "operationId": "traceRabbitSend",
+        "parameters": [
+          {
+            "name": "message",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Hello RabbitMQ" },
+            "description": "消息内容，默认 Hello RabbitMQ"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "traceId": { "type": "string", "example": "143000a1b2c3d4e5" },
+                        "message": { "type": "string", "example": "Hello RabbitMQ" },
+                        "description": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trace/mq/rabbitmq/send-batch": {
+      "get": {
+        "tags": ["MQ链路追踪-RabbitMQ"],
+        "summary": "RabbitMQ 批量发送（switchTraceId 逐条切换）",
+        "description": "发送多条消息到批量队列。消费端使用 List<Message> 批量接收，通过 TraceUtils.switchTraceId() 在循环中逐条切换 traceId。\n\n验证步骤：\n1. 调用本接口发送 N 条消息\n2. 查看控制台日志，每条消息的 traceId 应各自对应发送时的链路 ID",
+        "operationId": "traceRabbitSendBatch",
+        "parameters": [
+          {
+            "name": "count",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 3 },
+            "description": "发送条数，默认 3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "traceId": { "type": "string" },
+                        "count": { "type": "integer", "example": 3 },
+                        "description": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trace/mq/kafka/send": {
+      "get": {
+        "tags": ["MQ链路追踪-Kafka"],
+        "summary": "Kafka 单条发送（traceId 自动注入）",
+        "description": "发送一条 Kafka 消息到 guardian-trace-test topic。Guardian 通过 ProducerInterceptor 自动将当前 traceId 写入消息 Header。\n\n验证步骤：\n1. 调用本接口发送消息\n2. 查看控制台日志，消费端打印的 traceId 应与发送端一致\n3. 响应头 X-Trace-Id 即为本次链路 ID",
+        "operationId": "traceKafkaSend",
+        "parameters": [
+          {
+            "name": "message",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Hello Kafka" },
+            "description": "消息内容，默认 Hello Kafka"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "traceId": { "type": "string", "example": "143000a1b2c3d4e5" },
+                        "message": { "type": "string", "example": "Hello Kafka" },
+                        "description": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trace/mq/kafka/send-batch": {
+      "get": {
+        "tags": ["MQ链路追踪-Kafka"],
+        "summary": "Kafka 批量发送（switchTraceId 逐条切换）",
+        "description": "发送多条消息到批量 topic。消费端使用 List<ConsumerRecord> 批量接收，通过 TraceUtils.switchTraceId() 在循环中逐条切换 traceId。\n\n验证步骤：\n1. 调用本接口发送 N 条消息\n2. 查看控制台日志，每条消息的 traceId 应各自对应发送时的链路 ID",
+        "operationId": "traceKafkaSendBatch",
+        "parameters": [
+          {
+            "name": "count",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 3 },
+            "description": "发送条数，默认 3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "traceId": { "type": "string" },
+                        "count": { "type": "integer", "example": 3 },
+                        "description": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trace/mq/rocketmq/send": {
+      "get": {
+        "tags": ["MQ链路追踪-RocketMQ"],
+        "summary": "RocketMQ 单条发送（traceId 自动注入）",
+        "description": "发送一条 RocketMQ 消息到 guardian-trace-test topic。Guardian 通过 SendMessageHook 自动将当前 traceId 写入消息 UserProperty。\n\n验证步骤：\n1. 调用本接口发送消息\n2. 查看控制台日志，消费端打印的 traceId 应与发送端一致\n3. 响应头 X-Trace-Id 即为本次链路 ID",
+        "operationId": "traceRocketMQSend",
+        "parameters": [
+          {
+            "name": "message",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "Hello RocketMQ" },
+            "description": "消息内容，默认 Hello RocketMQ"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "traceId": { "type": "string", "example": "143000a1b2c3d4e5" },
+                        "message": { "type": "string", "example": "Hello RocketMQ" },
+                        "description": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trace/mq/rocketmq/send-batch": {
+      "get": {
+        "tags": ["MQ链路追踪-RocketMQ"],
+        "summary": "RocketMQ 批量发送（AOP 逐条自动注入 traceId）",
+        "description": "发送多条消息到批量 topic。RocketMQ Spring Boot Starter 的 RocketMQListener 本身是逐条回调，AOP 切面会自动为每次调用注入/清理 traceId，无需手动切换。\n\n验证步骤：\n1. 调用本接口发送 N 条消息\n2. 查看控制台日志，每条消息的 traceId 应各自对应发送时的链路 ID",
+        "operationId": "traceRocketMQSendBatch",
+        "parameters": [
+          {
+            "name": "count",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 3 },
+            "description": "发送条数，默认 3"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "traceId": { "type": "string" },
+                        "count": { "type": "integer", "example": 3 },
+                        "description": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/i18n/rate-limit": {
       "get": {
         "tags": ["消息国际化(i18n)"],
@@ -1927,8 +2322,31 @@
       "get": {
         "tags": ["Actuator监控端点"],
         "summary": "接口限流监控",
-        "description": "查看接口限流的运行时统计数据，包括：总请求数、通过数、拦截数、拦截率、Top10 被拦截接口、Top10 高频接口、接口维度明细。",
+        "description": "查看接口限流的运行时统计数据，包括：总请求数、通过数、拦截数、拦截率、被拦截接口排行、高频接口排行、接口维度明细。支持通过查询参数控制各排行返回条数。",
         "operationId": "actuatorRateLimit",
+        "parameters": [
+          {
+            "name": "blockedTop",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 10 },
+            "description": "被拦截接口 Top N，默认 10"
+          },
+          {
+            "name": "requestTop",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 10 },
+            "description": "高频请求接口 Top N，默认 10"
+          },
+          {
+            "name": "detailsTop",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 10 },
+            "description": "接口维度明细 Top N，默认 10"
+          }
+        ],
         "responses": {
           "200": {
             "description": "成功",
@@ -1968,8 +2386,17 @@
       "get": {
         "tags": ["Actuator监控端点"],
         "summary": "防重复提交监控",
-        "description": "查看防重复提交的运行时统计数据，包括：总拦截数、总通过数、Top10 被拦截接口。",
+        "description": "查看防重复提交的运行时统计数据，包括：总拦截数、总通过数、被拦截接口排行。支持通过查询参数控制排行返回条数。",
         "operationId": "actuatorRepeatSubmit",
+        "parameters": [
+          {
+            "name": "top",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 10 },
+            "description": "被拦截接口 Top N，默认 10"
+          }
+        ],
         "responses": {
           "200": {
             "description": "成功",
@@ -1997,8 +2424,17 @@
       "get": {
         "tags": ["Actuator监控端点"],
         "summary": "接口幂等监控",
-        "description": "查看接口幂等的运行时统计数据，包括：总请求数、通过数、拦截数、拦截率、Top10 被拦截接口。",
+        "description": "查看接口幂等的运行时统计数据，包括：总请求数、通过数、拦截数、拦截率、被拦截接口排行。支持通过查询参数控制排行返回条数。",
         "operationId": "actuatorIdempotent",
+        "parameters": [
+          {
+            "name": "top",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 10 },
+            "description": "被拦截接口 Top N，默认 10"
+          }
+        ],
         "responses": {
           "200": {
             "description": "成功",
@@ -2028,8 +2464,24 @@
       "get": {
         "tags": ["Actuator监控端点"],
         "summary": "慢接口检测监控",
-        "description": "查看慢接口检测的运行时统计数据，包括：慢接口总次数、Top10 慢接口（含每次耗时记录）。",
+        "description": "查看慢接口检测的运行时统计数据，包括：慢接口触发总次数、慢接口排行（含触发次数、最大耗时、最近耗时明细记录）。支持通过查询参数控制排行和明细返回条数。",
         "operationId": "actuatorSlowApi",
+        "parameters": [
+          {
+            "name": "top",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 10 },
+            "description": "慢接口排行 Top N，默认 10"
+          },
+          {
+            "name": "recordTop",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 5 },
+            "description": "每个接口返回的耗时明细记录条数，默认 5，最大 100"
+          }
+        ],
         "responses": {
           "200": {
             "description": "成功",
@@ -2038,11 +2490,26 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "totalSlowCount": { "type": "integer", "example": 3 },
+                    "totalSlowCount": { "type": "integer", "example": 23 },
                     "topSlowApis": {
-                      "type": "array",
-                      "items": { "type": "object" },
-                      "example": [{ "api": "/slow-api/slow", "count": 2, "records": [{ "duration": 4200, "threshold": 3000 }] }]
+                      "type": "object",
+                      "example": {
+                        "/api/report/export": {
+                          "count": 12,
+                          "maxDuration": 8520,
+                          "recentRecords": [
+                            { "duration": 8520, "time": "2026-02-09 15:32:10" },
+                            { "duration": 6230, "time": "2026-02-09 14:20:45" }
+                          ]
+                        },
+                        "/api/order/create": {
+                          "count": 7,
+                          "maxDuration": 5230,
+                          "recentRecords": [
+                            { "duration": 5230, "time": "2026-02-09 15:10:02" }
+                          ]
+                        }
+                      }
                     }
                   }
                 }
@@ -2056,8 +2523,24 @@
       "get": {
         "tags": ["Actuator监控端点"],
         "summary": "IP黑白名单监控",
-        "description": "查看 IP 黑白名单的运行时统计数据，包括：黑名单拦截总数、白名单拦截总数、Top10 被黑名单拦截的 IP、Top10 被白名单拦截的请求。",
+        "description": "查看 IP 黑白名单的运行时统计数据，包括：黑名单拦截总数、白名单拦截总数、被拦截 IP 排行。支持通过查询参数控制排行返回条数。",
         "operationId": "actuatorIpFilter",
+        "parameters": [
+          {
+            "name": "blockTop",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 10 },
+            "description": "黑名单拦截 IP Top N，默认 10"
+          },
+          {
+            "name": "whiteTop",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 10 },
+            "description": "白名单拦截请求 Top N，默认 10"
+          }
+        ],
         "responses": {
           "200": {
             "description": "成功",
