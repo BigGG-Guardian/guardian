@@ -97,6 +97,11 @@
             <groupId>io.github.biggg-guardian</groupId>
             <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
         </dependency>
+        <!-- Guardian 防重放攻击 -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-anti-replay-spring-boot-starter</artifactId>
+        </dependency>
         <!-- Guardian 链路追踪 RabbitMQ -->
         <dependency>
             <groupId>io.github.biggg-guardian</groupId>

@@ -37,7 +37,8 @@ public class GuardianRateLimitProperties extends BaseGuardianProperties implemen
      */
     private List<String> excludeUrls = new ArrayList<>();
 
-    public GuardianRateLimitProperties() {
-        setInterceptorOrder(1000);
-    }
+    /**
+     * 拦截器排序（值越小越先执行）
+     */
+    private int interceptorOrder = 1000;
 }

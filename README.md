@@ -9,7 +9,7 @@
 
 <h1 align="center">Guardian</h1>
 <p align="center"><b>轻量级 Spring Boot API 请求层防护框架</b></p>
-<p align="center">防重提交、接口限流、接口幂等、参数自动Trim、慢接口检测、请求链路追踪、IP黑白名单 —— 一个 Starter 搞定 API 请求防护。</p>
+<p align="center">防重提交、接口限流、接口幂等、参数自动Trim、慢接口检测、请求链路追踪、IP黑白名单、防重放攻击 —— 一个 Starter 搞定 API 请求防护。</p>
 
 <p align="center">
   <a href="https://github.com/BigGG-Guardian/guardian">GitHub</a> ·
@@ -36,6 +36,7 @@
 | 慢接口检测 | `guardian-slow-api-spring-boot-starter` | `@SlowApiThreshold` | ✅ | 慢接口检测 + Top N 统计 + Actuator 端点 |
 | 请求链路追踪 | `guardian-trace-spring-boot-starter` | — | ✅ | 自动生成/透传 TraceId，MDC 日志串联，支持跨线程传递、MQ 链路追踪 |
 | IP黑白名单 | `guardian-ip-filter-spring-boot-starter` | — | ✅ | 全局黑名单 + URL 绑定白名单，支持精确/通配符/CIDR |
+| 防重放攻击 | `guardian-anti-replay-spring-boot-starter` | — | ✅ | Timestamp + Nonce 双重校验，nonce TTL 与 timestamp 窗口解耦 |
 
 每个功能独立模块、独立 Starter，**用哪个引哪个，互不依赖**。所有模块的 YAML 配置均支持**配置中心动态刷新**（Nacos / Apollo 等），无需重启即可生效。
 
@@ -49,7 +50,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.6.2</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -67,7 +68,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.6.2</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -109,7 +110,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.6.2</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -137,7 +138,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
-    <version>1.6.2</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -160,7 +161,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
-    <version>1.6.2</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -182,7 +183,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-spring-boot-starter</artifactId>
-    <version>1.6.2</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -200,7 +201,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
-    <version>1.6.2</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -221,6 +222,31 @@ guardian:
 ```
 
 匹配优先级：**全局黑名单 > URL 绑定白名单 > 放行**。IP 规则支持精确匹配、通配符（`192.168.1.*`）和 CIDR（`10.0.0.0/8`）。
+
+### 防重放攻击
+
+```xml
+<dependency>
+    <groupId>io.github.biggg-guardian</groupId>
+    <artifactId>guardian-anti-replay-spring-boot-starter</artifactId>
+    <version>1.7.0</version>
+</dependency>
+```
+
+```yaml
+guardian:
+  anti-replay:
+    enabled: true
+    max-age: 60              # timestamp 有效窗口（秒）
+    nonce-ttl: 86400         # nonce 存活时间（秒，默认 24h）
+    urls:
+      - pattern: /api/payment/**
+      - pattern: /api/transfer/**
+```
+
+客户端请求头携带 `X-Timestamp`（毫秒时间戳）和 `X-Nonce`（UUID），服务端校验时间戳有效性 + Nonce 唯一性，双重防护拦截重放请求。
+
+> **关键设计**：`nonce-ttl` 与 `max-age` 解耦（默认 24h vs 60s），防止攻击者在 Nonce 过期后篡改 Timestamp 重放。搭配 `guardian-sign` 签名模块时，`nonce-ttl` 可缩短至与 `max-age` 相同。
 
 ---
 
@@ -960,7 +986,7 @@ Guardian 支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-rabbitmq</artifactId>
-    <version>1.6.2</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -973,7 +999,7 @@ Guardian 支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-kafka</artifactId>
-    <version>1.6.2</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -996,7 +1022,7 @@ spring:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-rocketmq</artifactId>
-    <version>1.6.2</version>
+    <version>1.7.0</version>
 </dependency>
 ```
 
@@ -1146,6 +1172,135 @@ public IpFilterResponseHandler ipFilterResponseHandler() {
 
 ---
 
+## 防重放攻击
+
+<details>
+<summary><b>展开查看完整文档</b></summary>
+
+### 功能说明
+
+防止攻击者截获合法请求后重复发送（Replay Attack）。客户端在请求头中携带时间戳和一次性随机标识（Nonce），服务端进行双重校验：
+
+1. **Timestamp 校验**：请求时间戳与服务器时间差超过 `max-age` 则拒绝（请求过期）
+2. **Nonce 校验**：Nonce 已存在于存储中则拒绝（重放攻击），不存在则记录并放行
+
+> **安全设计**：Nonce 的存活时间（`nonce-ttl`，默认 24h）远大于 Timestamp 有效窗口（`max-age`，默认 60s）。二者解耦可防止攻击者在 Nonce 过期后篡改 Timestamp 重放请求。搭配 `guardian-sign` 签名模块使用时，签名防止 Timestamp 被篡改，`nonce-ttl` 可缩短至与 `max-age` 相同。
+
+### 校验流程
+
+```
+请求进入 AntiReplayFilter
+  │
+  ├─ 1. 排除规则匹配（exclude-urls）→ 命中直接放行
+  │
+  ├─ 2. URL 规则匹配（urls）→ 未命中则放行
+  │
+  ├─ 3. 取 X-Timestamp，判断与服务器时间差
+  │      ↓ 超过 maxAge → 拒绝（请求过期）
+  │
+  ├─ 4. 取 X-Nonce，判断是否已使用
+  │      ↓ Storage 中已存在 → 拒绝（重放攻击）
+  │
+  ├─ 5. 校验通过
+  │      将 Nonce 存入 Storage（TTL = nonceTtl）
+  │      放行
+  ▼
+```
+
+### 客户端请求示例
+
+```
+POST /api/payment/submit HTTP/1.1
+X-Timestamp: 1708000000000
+X-Nonce: a1b2c3d4e5f6g7h8
+Content-Type: application/json
+
+{"orderId": "ORD001", "amount": 99.99}
+```
+
+### 全量配置
+
+```yaml
+guardian:
+  anti-replay:
+    enabled: true                        # 总开关（默认 true）
+    storage: redis                       # redis / local
+    max-age: 60                          # timestamp 有效窗口（默认 60）
+    max-age-unit: seconds                # timestamp 有效窗口单位（默认秒）
+    nonce-ttl: 86400                     # nonce 存活时间（默认 86400 = 24h，必须 >= max-age）
+    nonce-ttl-unit: seconds              # nonce 存活时间单位（默认秒）
+    timestamp-header: X-Timestamp        # 时间戳请求头名称
+    nonce-header: X-Nonce                # Nonce 请求头名称
+    response-mode: json                  # exception / json
+    log-enabled: true                    # 是否打印拦截日志
+    filter-order: -14000                 # Filter 排序
+    missing-timestamp-message: "缺少时间戳"   # 提示信息（支持 i18n Key）
+    missing-nonce-message: "缺少请求标识"
+    expired-message: "请求已过期"
+    replay-message: "重复请求"
+    urls:                                # 需要防重放的 URL（AntPath）
+      - pattern: /api/payment/**
+      - pattern: /api/transfer/**
+    exclude-urls:                        # 排除规则（白名单，优先级最高）
+      - /api/public/**
+```
+
+### 可观测性
+
+- **拦截日志**：`log-enabled: true`，前缀 `[Guardian-Anti-Replay]`
+- **Actuator**：`GET /actuator/guardianAntiReplay`
+
+| 参数 | 说明 | 默认值 |
+|------|------|--------|
+| `top` | 被拦截接口排行返回条数 | 10 |
+
+> 所有参数均为可选，不传参数与原调用方式完全一致。
+
+```json
+{
+  "totalRequestCount": 5000,
+  "totalPassCount": 4980,
+  "totalBlockCount": 20,
+  "blockRate": "0.40%",
+  "topBlockedApis": {
+    "/api/payment/submit": 12,
+    "/api/transfer/confirm": 8
+  }
+}
+```
+
+### 扩展点
+
+**自定义 Nonce 存储：**
+
+```java
+@Bean
+public NonceStorage nonceStorage() {
+    return new NonceStorage() {
+        @Override
+        public boolean tryAcquire(String nonce, long nonceTtl, TimeUnit nonceTtlUnit) {
+            // 自定义存储逻辑（如 Memcached、数据库等）
+        }
+    };
+}
+```
+
+**自定义响应处理器（仅 `response-mode: json` 时生效）：**
+
+```java
+@Bean
+public AntiReplayResponseHandler antiReplayResponseHandler() {
+    return (request, response, code, data, message) -> {
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(JSONUtil.toJsonStr(CommonResult.result(code, data, message)));
+    };
+}
+```
+
+</details>
+
+---
+
 ## 规则优先级
 
 Guardian 各模块（防重复提交、接口限流、慢接口检测）的规则匹配遵循以下优先级：
@@ -1229,6 +1384,29 @@ Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo
 |----------|------|--------|------|
 | `threshold` | `long` | `3000` | 全局慢接口阈值（毫秒） |
 | `exclude-urls` | `List<String>` | `[]` | 排除规则（白名单，优先级最高，AntPath） |
+
+**请求链路追踪**（prefix: `guardian.trace`）
+
+| YAML Key | 类型 | 默认值 | 说明 |
+|----------|------|--------|------|
+| `header-name` | `String` | `X-Trace-Id` | 请求头/响应头名称（同时影响 MQ 链路追踪的 Header Key） |
+
+**防重放攻击**（prefix: `guardian.anti-replay`）
+
+| YAML Key | 类型 | 默认值 | 说明 |
+|----------|------|--------|------|
+| `max-age` | `long` | `60` | timestamp 有效窗口 |
+| `max-age-unit` | `TimeUnit` | `seconds` | timestamp 有效窗口单位 |
+| `nonce-ttl` | `long` | `86400` | nonce 存活时间（必须 >= max-age） |
+| `nonce-ttl-unit` | `TimeUnit` | `seconds` | nonce 存活时间单位 |
+| `response-mode` | `exception` / `json` | `exception` | 响应模式 |
+| `log-enabled` | `boolean` | `false` | 是否打印拦截日志 |
+| `missing-timestamp-message` | `String` | `缺少时间戳` | 缺少时间戳提示（支持 i18n Key） |
+| `missing-nonce-message` | `String` | `缺少请求标识` | 缺少 Nonce 提示（支持 i18n Key） |
+| `expired-message` | `String` | `请求已过期` | 请求过期提示（支持 i18n Key） |
+| `replay-message` | `String` | `重复请求` | 重放攻击提示（支持 i18n Key） |
+| `urls` | `List` | `[]` | 防重放 URL 规则列表（AntPath） |
+| `exclude-urls` | `List<String>` | `[]` | 排除规则（白名单，优先级最高） |
 
 **IP黑白名单**（prefix: `guardian.ip-filter`）
 
@@ -1314,6 +1492,7 @@ guardian:
     time-unit: seconds
     response-mode: exception
     log-enabled: false
+    missing-token-message: guardian.idempotent.missing-token
 
   auto-trim:
     exclude-fields:
@@ -1330,6 +1509,9 @@ guardian:
     exclude-urls:
       - /api/health
 
+  trace:
+    header-name: X-Trace-Id
+
   ip-filter:
     enabled: true
     response-mode: json
@@ -1342,6 +1524,21 @@ guardian:
         white-list:
           - 127.0.0.1
           - 192.168.1.*
+
+  anti-replay:
+    max-age: 60
+    nonce-ttl: 86400
+    response-mode: json
+    log-enabled: true
+    missing-timestamp-message: "缺少时间戳"
+    missing-nonce-message: "缺少请求标识"
+    expired-message: "请求已过期"
+    replay-message: "重复请求"
+    urls:
+      - pattern: /api/payment/**
+      - pattern: /api/transfer/**
+    exclude-urls:
+      - /api/public/**
 ```
 
 > 只需配置你用到的模块，没用到的模块无需配置。修改任意参数后点击发布，下一次请求即可读取到最新值。
@@ -1473,6 +1670,9 @@ guardian-parent
 ├── guardian-ip-filter/                    # IP黑白名单
 │   ├── guardian-ip-filter-core/
 │   └── guardian-ip-filter-spring-boot-starter/
+├── guardian-anti-replay/                  # 防重放攻击
+│   ├── guardian-anti-replay-core/
+│   └── guardian-anti-replay-spring-boot-starter/
 ├── guardian-storage-redis/                # Redis 存储（多模块共享）
 └── guardian-example/                      # 示例工程
 ```
@@ -1503,8 +1703,9 @@ Filter 在 Servlet 层执行，先于所有 Interceptor：
 |------|------|--------|-----------|------|
 | 1 | 请求链路追踪 | `guardian.trace.filter-order` | **-30000** | 最先执行，为后续所有操作提供 TraceId |
 | 2 | IP 黑白名单 | `guardian.ip-filter.filter-order` | **-20000** | 拦截恶意 IP，尽早阻断 |
-| 3 | 参数自动 Trim | `guardian.auto-trim.filter-order` | **-10000** | 参数预处理，在业务逻辑前清洗数据 |
-| 4 | 请求体缓存 | `guardian.repeatable-filter-order` | **-100** | 缓存请求体供防重 / 幂等模块重复读取 |
+| 3 | 防重放攻击 | `guardian.anti-replay.filter-order` | **-14000** | 校验 Timestamp + Nonce，拦截重放请求 |
+| 4 | 参数自动 Trim | `guardian.auto-trim.filter-order` | **-10000** | 参数预处理，在业务逻辑前清洗数据 |
+| 5 | 请求体缓存 | `guardian.repeatable-filter-order` | **-100** | 缓存请求体供防重 / 幂等模块重复读取 |
 
 #### Interceptor 执行顺序
 
@@ -1527,6 +1728,8 @@ guardian:
     filter-order: -30000                 # 链路追踪
   ip-filter:
     filter-order: -20000                 # IP 黑白名单
+  anti-replay:
+    filter-order: -14000                 # 防重放攻击
   auto-trim:
     filter-order: -10000                 # 参数自动 Trim
 
@@ -1551,6 +1754,18 @@ guardian:
 | 额外依赖 | 需要 Redis | 无 |
 
 ## 更新日志
+
+### v1.7.0
+
+- **新增**：防重放攻击模块（`guardian-anti-replay-spring-boot-starter`），通过 Timestamp + Nonce 双重校验拦截重放请求
+- **新增**：`NonceStorage` 存储接口，支持 Redis（分布式）和 Local（单机）两种实现
+- **新增**：`nonce-ttl` 与 `max-age` 解耦设计，Nonce 存活时间（默认 24h）远大于 Timestamp 有效窗口（默认 60s），防止攻击者在 Nonce 过期后篡改 Timestamp 重放
+- **新增**：`nonce-ttl-unit` / `max-age-unit` 支持自定义时间单位，`validate()` 方法统一换算后比较
+- **新增**：防重放攻击 Actuator 监控端点（`GET /actuator/guardianAntiReplay`），展示拦截统计和 Top N 被拦截接口
+- **新增**：防重放攻击拦截日志（`log-enabled: true`，前缀 `[Guardian-Anti-Replay]`）
+- **新增**：防重放攻击 URL 规则 + 排除规则（`urls` + `exclude-urls`），支持 AntPath 匹配
+- **新增**：`AntiReplayResponseHandler` SPI 扩展点，支持自定义拒绝响应格式
+- **新增**：全部拒绝提示信息支持 i18n Key（`missing-timestamp-message` / `missing-nonce-message` / `expired-message` / `replay-message`）
 
 ### v1.6.2
 

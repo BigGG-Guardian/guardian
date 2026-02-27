@@ -34,6 +34,12 @@
             <artifactId>guardian-idempotent-core</artifactId>
         </dependency>
 
+        <!-- 自定义模块-防重放攻击核心模块 -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-anti-replay-core</artifactId>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
