@@ -77,6 +77,15 @@ public class GuardianLogUtils {
     }
 
     /**
+     * 检查通过，放行
+     */
+    public void passLog(boolean logEnable, Logger log, String uri, String ip) {
+        if (logEnable) {
+            log.debug("{} 检查通过，放行 | URI: {} | IP: {}", moduleTag, uri, ip);
+        }
+    }
+
+    /**
      * 返回缓存结果
      */
     public void cacheResultLog(boolean logEnable, Logger log, String uri, String key, String ip) {

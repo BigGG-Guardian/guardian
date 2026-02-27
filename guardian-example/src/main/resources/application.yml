@@ -159,6 +159,29 @@ guardian:
         white-list:
           - 127.0.0.1
 
+  # ==================== 防重放攻击配置 ====================
+  anti-replay:
+    # 总开关（默认 true）
+    enabled: true
+    # 存储方式：redis（默认）/ local
+    storage: redis
+    # timestamp 有效窗口（秒，默认 60）
+    max-age: 60
+    # nonce 存活时间（秒，默认 86400 = 24h，必须 >= max-age）
+    nonce-ttl: 86400
+    # 响应模式：exception（默认，抛异常）/ json（直接返回 JSON）
+    response-mode: json
+    # 是否打印拦截日志
+    log-enabled: true
+    # Filter 排序（默认 -14000）
+    filter-order: -14000
+    # 需要防重放保护的 URL 规则
+    urls:
+      - pattern: /guardian-example/anti-replay/protected/**
+    # 排除规则（白名单，优先级最高，命中直接放行）
+    exclude-urls:
+      - /guardian-example/anti-replay/open/**
+
   # ==================== 请求链路 TraceId 配置 ====================
   trace:
     # 总开关（默认 true）

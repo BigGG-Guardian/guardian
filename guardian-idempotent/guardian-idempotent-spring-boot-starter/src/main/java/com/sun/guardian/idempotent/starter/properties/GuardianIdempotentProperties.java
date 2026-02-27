@@ -50,10 +50,10 @@ public class GuardianIdempotentProperties extends BaseGuardianProperties impleme
      */
     private String missingTokenMessage = "请求缺少幂等Token";
 
-    public GuardianIdempotentProperties() {
-        setInterceptorOrder(3000);
-    }
-
+    /**
+     * 拦截器排序（值越小越先执行）
+     */
+    private int interceptorOrder = 3000;
     /**
      * 校验参数合法性，不合法时抛出 IllegalArgumentException
      */

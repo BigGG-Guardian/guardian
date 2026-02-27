@@ -1,0 +1,44 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.biggg-guardian</groupId>
+        <artifactId>guardian-parent</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>guardian-anti-replay</artifactId>
+    <packaging>pom</packaging>
+
+    <name>guardian-anti-replay</name>
+    <description>
+        Guardian 防重放攻击模块
+    </description>
+    <modules>
+        <module>guardian-anti-replay-core</module>
+        <module>guardian-anti-replay-spring-boot-starter</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- 自定义模块-核心模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- 自定义模块-防重放攻击核心模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-anti-replay-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- 自定义模块-Redis存储模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-storage-redis</artifactId>
+                <version>${revision}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

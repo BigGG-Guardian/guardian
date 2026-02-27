@@ -3,23 +3,29 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.github.biggg-guardian</groupId>
-        <artifactId>guardian-auto-trim</artifactId>
+        <artifactId>guardian-anti-replay</artifactId>
         <version>${revision}</version>
     </parent>
 
-    <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
+    <artifactId>guardian-anti-replay-spring-boot-starter</artifactId>
     <packaging>jar</packaging>
 
-    <name>guardian-auto-trim-spring-boot-starter</name>
+    <name>guardian-anti-replay-spring-boot-starter</name>
     <description>
-        Guardian 请求参数自动trim Spring Boot Starter
+        Guardian 防重放攻击Spring Boot Starter
     </description>
 
     <dependencies>
         <!-- 自定义模块-请求参数自动trim核心模块 -->
         <dependency>
             <groupId>io.github.biggg-guardian</groupId>
-            <artifactId>guardian-auto-trim-core</artifactId>
+            <artifactId>guardian-anti-replay-core</artifactId>
+        </dependency>
+
+        <!-- 自定义模块-Redis存储模块 -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-storage-redis</artifactId>
         </dependency>
 
         <!-- Lombok -->
@@ -57,6 +63,19 @@
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
         </dependency>
-    </dependencies>
 
+        <!-- Spring Data Redis（optional：不强制用户引入，用户配了 Redis 才生效） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- Spring Boot Actuator（optional：用户引了才生效） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
 </project>

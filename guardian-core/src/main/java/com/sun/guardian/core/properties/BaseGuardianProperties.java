@@ -28,9 +28,4 @@ public abstract class BaseGuardianProperties {
      * 是否打印拦截日志（默认 false）
      */
     private boolean logEnabled = false;
-
-    /**
-     * 拦截器排序（值越小越先执行）
-     */
-    private int interceptorOrder;
 }

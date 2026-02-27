@@ -26,6 +26,7 @@
     { "name": "MQ链路追踪-RabbitMQ" },
     { "name": "MQ链路追踪-Kafka" },
     { "name": "MQ链路追踪-RocketMQ" },
+    { "name": "防重放攻击" },
     { "name": "Actuator监控端点" }
   ],
   "paths": {
@@ -2560,6 +2561,201 @@
                       "type": "array",
                       "items": { "type": "object" },
                       "example": [{ "ip": "10.0.0.5", "uri": "/ip-filter/admin/dashboard", "count": 2 }]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/guardianAntiReplay": {
+      "get": {
+        "tags": ["Actuator监控端点"],
+        "summary": "防重放攻击监控",
+        "description": "查看防重放攻击的运行时统计数据，包括：总请求数、通过数、拦截数、拦截率、被拦截接口排行。支持通过查询参数控制排行返回条数。",
+        "operationId": "actuatorAntiReplay",
+        "parameters": [
+          {
+            "name": "top",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "example": 10 },
+            "description": "被拦截接口 Top N，默认 10"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalRequestCount": { "type": "integer", "example": 5000 },
+                    "totalPassCount": { "type": "integer", "example": 4980 },
+                    "totalBlockCount": { "type": "integer", "example": 20 },
+                    "blockRate": { "type": "string", "example": "0.40%" },
+                    "topBlockedApis": {
+                      "type": "object",
+                      "example": { "/api/payment/submit": 12, "/api/transfer/confirm": 8 }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anti-replay/protected/query": {
+      "get": {
+        "tags": ["防重放攻击"],
+        "summary": "受保护接口 — GET 查询",
+        "description": "请求头必须携带 X-Timestamp（当前毫秒时间戳）和 X-Nonce（UUID），缺失或校验失败将被拦截。\n测试步骤：\n1. 先调用 /anti-replay/helper/generate-params 获取参数\n2. 将返回的 X-Timestamp 和 X-Nonce 填入请求头\n3. 发送请求，首次成功\n4. 使用相同 Nonce 再次发送，被拦截（重复请求）",
+        "operationId": "antiReplayProtectedQuery",
+        "parameters": [
+          {
+            "name": "X-Timestamp",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "example": "1708000000000" },
+            "description": "请求发起时间戳（毫秒）"
+          },
+          {
+            "name": "X-Nonce",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "example": "a1b2c3d4e5f6" },
+            "description": "请求唯一标识（UUID）"
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string", "example": "guardian" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anti-replay/protected/submit": {
+      "post": {
+        "tags": ["防重放攻击"],
+        "summary": "受保护接口 — POST 提交",
+        "description": "模拟支付等敏感操作，必须携带有效的 X-Timestamp 和 X-Nonce。\n测试：使用相同 Nonce 重复提交，第二次被拦截。",
+        "operationId": "antiReplayProtectedSubmit",
+        "parameters": [
+          {
+            "name": "X-Timestamp",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "example": "1708000000000" },
+            "description": "请求发起时间戳（毫秒）"
+          },
+          {
+            "name": "X-Nonce",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string", "example": "a1b2c3d4e5f6" },
+            "description": "请求唯一标识（UUID）"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" },
+                "example": { "orderId": "ORD001", "amount": "99.99" }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anti-replay/open/health": {
+      "get": {
+        "tags": ["防重放攻击"],
+        "summary": "白名单接口 — 不受防重放限制",
+        "description": "此接口被 exclude-urls 排除（/anti-replay/open/**），无需携带 X-Timestamp 和 X-Nonce，直接访问即可成功。",
+        "operationId": "antiReplayOpenHealth",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anti-replay/helper/generate-params": {
+      "get": {
+        "tags": ["防重放攻击"],
+        "summary": "辅助接口 — 生成测试参数",
+        "description": "返回当前时间戳和一个随机 Nonce，方便在 Apifox / Postman 中测试防重放接口。将返回值中的 X-Timestamp 和 X-Nonce 复制到请求头即可。",
+        "operationId": "antiReplayGenerateParams",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "X-Timestamp": { "type": "string", "example": "1708000000000" },
+                        "X-Nonce": { "type": "string", "example": "a1b2c3d4e5f6g7h8i9j0" }
+                      }
                     }
                   }
                 }

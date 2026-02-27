@@ -43,7 +43,8 @@ public class GuardianRepeatSubmitProperties extends BaseGuardianProperties imple
      */
     private List<String> excludeUrls = new ArrayList<>();
 
-    public GuardianRepeatSubmitProperties() {
-        setInterceptorOrder(2000);
-    }
+    /**
+     * 拦截器排序（值越小越先执行）
+     */
+    private int interceptorOrder = 2000;
 }
