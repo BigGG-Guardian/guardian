@@ -41,7 +41,7 @@
 
     <!--  参数管理  -->
     <properties>
-        <revision>1.7.0</revision>
+        <revision>1.7.1</revision>
         <java.version>1.8</java.version>
         <spring-boot.version>2.7.18</spring-boot.version>
         <servlet.version>4.0.1</servlet.version>
@@ -72,6 +72,8 @@
         <module>guardian-ip-filter</module>
         <!--    防重放攻击模块    -->
         <module>guardian-anti-replay</module>
+        <!--    整合引用所有Starter模块    -->
+        <module>guardian-starter-all</module>
         <!--    示例模块    -->
         <module>guardian-example</module>
     </modules>
@@ -212,6 +214,12 @@
             <dependency>
                 <groupId>io.github.biggg-guardian</groupId>
                 <artifactId>guardian-anti-replay-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- 自定义模块-整合引用所有Starter模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-starter-all</artifactId>
                 <version>${revision}</version>
             </dependency>
             <!-- RocketMQ Spring Boot Starter -->
