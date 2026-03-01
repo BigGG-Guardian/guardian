@@ -56,6 +56,11 @@
             <groupId>io.github.biggg-guardian</groupId>
             <artifactId>guardian-anti-replay-spring-boot-starter</artifactId>
         </dependency>
+        <!-- Guardian 接口开关 -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-api-switch-spring-boot-starter</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

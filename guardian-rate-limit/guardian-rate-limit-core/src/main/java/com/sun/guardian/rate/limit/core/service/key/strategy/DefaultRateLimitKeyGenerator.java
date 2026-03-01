@@ -1,7 +1,7 @@
 package com.sun.guardian.rate.limit.core.service.key.strategy;
 
 import com.sun.guardian.core.context.UserContext;
-import com.sun.guardian.core.utils.template.TemplateUtil;
+import com.sun.guardian.core.utils.template.TemplateUtils;
 import com.sun.guardian.rate.limit.core.domain.key.RateLimitKey;
 
 import static com.sun.guardian.rate.limit.core.constants.RateLimitKeyPrefixConstants.getSuffixByKeyScope;
@@ -25,6 +25,6 @@ public class DefaultRateLimitKeyGenerator extends AbstractRateLimitKeyGenerator 
     /** 拼接限流 Key */
     @Override
     protected String buildKey(RateLimitKey key) {
-        return TemplateUtil.formatByBean(getSuffixByKeyScope(key.getKeyScope()), key);
+        return TemplateUtils.formatByBean(getSuffixByKeyScope(key.getKeyScope()), key);
     }
 }

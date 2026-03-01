@@ -9,14 +9,14 @@ spring:
     host: 127.0.0.1
     port: 6379
     database: 0
-#    password:
+  #    password:
 
   # RabbitMQ 配置
-#  rabbitmq:
-#    host: 127.0.0.1
-#    port: 5672
-#    username: guest
-#    password: guest
+  #  rabbitmq:
+  #    host: 127.0.0.1
+  #    port: 5672
+  #    username: guest
+  #    password: guest
 
   # Kafka 配置
 #  kafka:
@@ -211,6 +211,16 @@ guardian:
     result-cache: true
     # 缺少 Token 时的拒绝提示（支持 i18n Key）
     missing-token-message: guardian.idempotent.missing-token
+
+  # ==================== 接口开关配置 ====================
+  api-switch:
+    enabled: true                        # 总开关（默认 true）
+    response-mode: json                  # exception / json
+    message: "接口暂时关闭，请稍后再试"    # 提示信息（支持 i18n Key）
+    log-enabled: true                    # 是否打印拦截日志
+    interceptor-order: 500               # 拦截器排序
+    disabled-urls: # 启动时默认关闭的接口
+      - /api-switch/disabled
 
 # Actuator 监控端点的配置项
 management:

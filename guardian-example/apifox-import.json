@@ -27,6 +27,7 @@
     { "name": "MQ链路追踪-Kafka" },
     { "name": "MQ链路追踪-RocketMQ" },
     { "name": "防重放攻击" },
+    { "name": "接口开关" },
     { "name": "Actuator监控端点" }
   ],
   "paths": {
@@ -2383,6 +2384,77 @@
         }
       }
     },
+    "/actuator/guardianApiSwitch": {
+      "get": {
+        "tags": ["Actuator监控端点"],
+        "summary": "接口开关监控",
+        "description": "查看接口开关运行时关闭的接口列表。",
+        "operationId": "actuatorApiSwitch",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "disabledUrls": ["/api-switch/disabled"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/guardianApiSwitch/{urlPattern}": {
+      "post": {
+        "tags": ["Actuator监控端点"],
+        "summary": "接口开关-关闭接口",
+        "description": "通过 POST 方式关闭指定接口，urlPattern 支持 AntPath 通配符。",
+        "operationId": "actuatorApiSwitchDisable",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "action": { "type": "string", "example": "disabled" },
+                    "urlPattern": { "type": "string", "example": "/api-switch/actuator-disabled" },
+                    "disabledUrls": { "type": "array", "example": ["/api-switch/disabled"] }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Actuator监控端点"],
+        "summary": "接口开关-开启接口",
+        "description": "通过 DELETE 方式开启指定接口，urlPattern 支持 AntPath 通配符。",
+        "operationId": "actuatorApiSwitchEnable",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "action": "enabled",
+                    "urlPattern": "/api-switch/actuator-disabled",
+                    "disabledUrls": ["/api-switch/disabled"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/actuator/guardianRepeatSubmit": {
       "get": {
         "tags": ["Actuator监控端点"],
@@ -2764,6 +2836,81 @@
           }
         }
       }
+    },
+    "/api-switch/un-disabled": {
+  "get": {
+    "tags": ["接口开关"],
+    "summary": "正常接口 — 立即返回，不触发接口关闭",
+    "description": "正常接口，不触发接口开关检测。",
+    "operationId": "apiSwitchUnDisabled",
+    "responses": {
+      "200": {
+        "description": "成功",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": { "type": "integer", "example": 200 },
+                "message": { "type": "string", "example": "success" },
+                "data": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
     }
+  }
+},
+"/api-switch/disabled": {
+  "get": {
+    "tags": ["接口开关"],
+    "summary": "yml关闭接口 — 通过yml配置关闭接口",
+    "description": "通过yml配置关闭接口，触发接口开关检测。",
+    "operationId": "apiSwitchDisabled",
+    "responses": {
+      "200": {
+        "description": "成功",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": { "type": "integer", "example": 200 },
+                "message": { "type": "string", "example": "success" },
+                "data": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+},
+"/api-switch/actuator-disabled": {
+  "get": {
+    "tags": ["接口开关"],
+    "summary": "actuator关闭接口 — 通过actuator配置关闭接口",
+    "description": "通过actuator配置关闭接口，触发接口开关检测。",
+    "operationId": "apiSwitchActuatorDisabled",
+    "responses": {
+      "200": {
+        "description": "成功",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "code": { "type": "integer", "example": 200 },
+                "message": { "type": "string", "example": "success" },
+                "data": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
   }
 }

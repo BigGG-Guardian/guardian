@@ -1,7 +1,7 @@
 package com.sun.guardian.auto.trim.core.wrapper;
 
 import com.sun.guardian.auto.trim.core.config.AutoTrimConfig;
-import com.sun.guardian.core.utils.args.ArgsUtil;
+import com.sun.guardian.core.utils.args.ArgsUtils;
 import com.sun.guardian.core.utils.string.CharacterSanitizer;
 import com.sun.guardian.core.wrapper.RepeatableRequestWrapper;
 
@@ -49,7 +49,7 @@ public class AutoTrimRequestWrapper extends RepeatableRequestWrapper {
         String contentType = request.getContentType();
         if (contentType != null && contentType.contains("application/json")) {
             String json = new String(rawBody, StandardCharsets.UTF_8);
-            json = ArgsUtil.trimJsonBody(json, autoTrimConfig.getExcludeFields(), sanitizer);
+            json = ArgsUtils.trimJsonBody(json, autoTrimConfig.getExcludeFields(), sanitizer);
             return json.getBytes(StandardCharsets.UTF_8);
         }
         return rawBody;
