@@ -1335,25 +1335,6 @@ public AntiReplayResponseHandler antiReplayResponseHandler() {
 
 ---
 
-## 规则优先级
-
-Guardian 各模块（防重复提交、接口限流、慢接口检测）的规则匹配遵循以下优先级：
-
-```
-exclude-urls（白名单）> YAML 规则 > 注解 > 放行
-```
-
-| 场景 | 行为 |
-|------|------|
-| URL 命中 `exclude-urls` | **直接放行**，跳过所有检测（包括注解） |
-| URL 命中 YAML `urls` 规则 | YAML 规则生效 |
-| 方法有注解 `@RateLimit` / `@RepeatSubmit` / `@SlowApiThreshold` | 注解规则生效 |
-| 以上均未命中 | 放行 |
-
-> **设计理念**：`exclude-urls` 作为白名单拥有最高优先级，可在紧急情况下通过配置中心动态添加 URL 实现"一键放行"，无需改代码重启。注解适合"长期固定"的保护策略，YAML 规则适合"动态可调"的批量策略。
-
----
-
 ## 接口开关
 
 <details>
@@ -1437,6 +1418,25 @@ public ApiSwitchResponseHandler apiSwitchResponseHandler() {
 ```
 
 </details>
+
+---
+
+## 规则优先级
+
+Guardian 各模块（防重复提交、接口限流、慢接口检测）的规则匹配遵循以下优先级：
+
+```
+exclude-urls（白名单）> YAML 规则 > 注解 > 放行
+```
+
+| 场景 | 行为 |
+|------|------|
+| URL 命中 `exclude-urls` | **直接放行**，跳过所有检测（包括注解） |
+| URL 命中 YAML `urls` 规则 | YAML 规则生效 |
+| 方法有注解 `@RateLimit` / `@RepeatSubmit` / `@SlowApiThreshold` | 注解规则生效 |
+| 以上均未命中 | 放行 |
+
+> **设计理念**：`exclude-urls` 作为白名单拥有最高优先级，可在紧急情况下通过配置中心动态添加 URL 实现"一键放行"，无需改代码重启。注解适合"长期固定"的保护策略，YAML 规则适合"动态可调"的批量策略。
 
 ---
 
