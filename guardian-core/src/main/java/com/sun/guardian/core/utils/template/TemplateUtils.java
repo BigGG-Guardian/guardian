@@ -12,11 +12,11 @@ import java.util.Map;
  * @version java version 1.8
  * @since 2026-02-12
  */
-public class TemplateUtil {
+public class TemplateUtils {
 
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() {};
 
-    private TemplateUtil() {}
+    private TemplateUtils() {}
 
     /** 将 {fieldName} 占位符替换为 Bean 字段值 */
     public static String formatByBean(String template, Object bean) {

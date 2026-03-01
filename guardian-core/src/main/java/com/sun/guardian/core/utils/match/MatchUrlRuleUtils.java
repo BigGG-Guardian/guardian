@@ -2,8 +2,10 @@ package com.sun.guardian.core.utils.match;
 
 import com.sun.guardian.core.domain.BaseRule;
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * URL 规则匹配工具类（AntPath 通配符，兼容 context-path）
@@ -71,6 +73,29 @@ public class MatchUrlRuleUtils {
             if (!requestUri.equals(pathWithoutContext)
                     && pathMatcher.match(rule.getPattern(), pathWithoutContext)) {
                 return rule;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 匹配 URL 规则，命中返回对应URL
+     */
+    public static String matchUrl(Set<String> urlPattern,
+                                  String requestUri, String pathWithoutContext) {
+        if (urlPattern == null || urlPattern.isEmpty()) {
+            return null;
+        }
+        for (String url : urlPattern) {
+            if (!StringUtils.hasText(url)) {
+                continue;
+            }
+            if (pathMatcher.match(url, requestUri)) {
+                return url;
+            }
+            if (!requestUri.equals(pathWithoutContext)
+                    && pathMatcher.match(url, pathWithoutContext)) {
+                return url;
             }
         }
         return null;

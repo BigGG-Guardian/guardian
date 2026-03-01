@@ -9,7 +9,7 @@
 
 <h1 align="center">Guardian</h1>
 <p align="center"><b>轻量级 Spring Boot API 请求层防护框架</b></p>
-<p align="center">防重提交、接口限流、接口幂等、参数自动Trim、慢接口检测、请求链路追踪、IP黑白名单、防重放攻击 —— 一个 Starter 搞定 API 请求防护。</p>
+<p align="center">防重提交、接口限流、接口幂等、参数自动Trim、慢接口检测、请求链路追踪、IP黑白名单、防重放攻击、接口开关 —— 一个 Starter 搞定 API 请求防护。</p>
 
 <p align="center">
   <a href="https://github.com/BigGG-Guardian/guardian">GitHub</a> ·
@@ -27,16 +27,17 @@
 
 ## 功能一览
 
-| 功能 | Starter | 注解 | YAML | 说明 |
-|------|---------|------|------|------|
-| 防重复提交 | `guardian-repeat-submit-spring-boot-starter` | `@RepeatSubmit` | ✅ | 防止用户重复提交表单/请求 |
-| 接口限流 | `guardian-rate-limit-spring-boot-starter` | `@RateLimit` | ✅ | 滑动窗口 + 令牌桶，双算法可选 |
-| 接口幂等 | `guardian-idempotent-spring-boot-starter` | `@Idempotent` | — | Token 机制保证接口幂等性，支持结果缓存 |
-| 参数自动Trim | `guardian-auto-trim-spring-boot-starter` | — | ✅ | 自动去除请求参数首尾空格 + 不可见字符替换 |
-| 慢接口检测 | `guardian-slow-api-spring-boot-starter` | `@SlowApiThreshold` | ✅ | 慢接口检测 + Top N 统计 + Actuator 端点 |
-| 请求链路追踪 | `guardian-trace-spring-boot-starter` | — | ✅ | 自动生成/透传 TraceId，MDC 日志串联，支持跨线程传递、MQ 链路追踪 |
-| IP黑白名单 | `guardian-ip-filter-spring-boot-starter` | — | ✅ | 全局黑名单 + URL 绑定白名单，支持精确/通配符/CIDR |
-| 防重放攻击 | `guardian-anti-replay-spring-boot-starter` | — | ✅ | Timestamp + Nonce 双重校验，nonce TTL 与 timestamp 窗口解耦 |
+| 功能       | Starter                                      | 注解 | YAML | 说明                                           |
+|----------|----------------------------------------------|------|------|----------------------------------------------|
+| 防重复提交    | `guardian-repeat-submit-spring-boot-starter` | `@RepeatSubmit` | ✅ | 防止用户重复提交表单/请求                                |
+| 接口限流     | `guardian-rate-limit-spring-boot-starter`    | `@RateLimit` | ✅ | 滑动窗口 + 令牌桶，双算法可选                             |
+| 接口幂等     | `guardian-idempotent-spring-boot-starter`    | `@Idempotent` | — | Token 机制保证接口幂等性，支持结果缓存                       |
+| 参数自动Trim | `guardian-auto-trim-spring-boot-starter`     | — | ✅ | 自动去除请求参数首尾空格 + 不可见字符替换                       |
+| 慢接口检测    | `guardian-slow-api-spring-boot-starter`      | `@SlowApiThreshold` | ✅ | 慢接口检测 + Top N 统计 + Actuator 端点               |
+| 请求链路追踪   | `guardian-trace-spring-boot-starter`         | — | ✅ | 自动生成/透传 TraceId，MDC 日志串联，支持跨线程传递、MQ 链路追踪     |
+| IP黑白名单   | `guardian-ip-filter-spring-boot-starter`     | — | ✅ | 全局黑名单 + URL 绑定白名单，支持精确/通配符/CIDR              |
+| 防重放攻击    | `guardian-anti-replay-spring-boot-starter`   | — | ✅ | Timestamp + Nonce 双重校验，nonce TTL 与 timestamp 窗口解耦 |
+| 接口开关     | `guardian-api-switch-spring-boot-starter`    | — | ✅ | 动态关闭/开启接口                                    |
 
 每个功能独立模块、独立 Starter，**用哪个引哪个，互不依赖**。所有模块的 YAML 配置均支持**配置中心动态刷新**（Nacos / Apollo 等），无需重启即可生效。
 
@@ -50,7 +51,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-starter-all</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 </dependency>
 ```
 ><small>特别说明：`请求链路追踪模块`若开启RabbitMq/Kafka/RocketMq请求链路追踪，需额外引入对应的依赖(`guardian-trace-rabbitmq`/`guardian-trace-kafka`/`guardian-trace-rocketmq`)</small>
@@ -61,7 +62,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 </dependency>
 ```
 
@@ -79,7 +80,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 </dependency>
 ```
 
@@ -121,7 +122,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 </dependency>
 ```
 
@@ -149,7 +150,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 </dependency>
 ```
 
@@ -172,7 +173,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 </dependency>
 ```
 
@@ -194,7 +195,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-spring-boot-starter</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 </dependency>
 ```
 
@@ -212,7 +213,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 </dependency>
 ```
 
@@ -240,7 +241,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-anti-replay-spring-boot-starter</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 </dependency>
 ```
 
@@ -258,6 +259,28 @@ guardian:
 客户端请求头携带 `X-Timestamp`（毫秒时间戳）和 `X-Nonce`（UUID），服务端校验时间戳有效性 + Nonce 唯一性，双重防护拦截重放请求。
 
 > **关键设计**：`nonce-ttl` 与 `max-age` 解耦（默认 24h vs 60s），防止攻击者在 Nonce 过期后篡改 Timestamp 重放。搭配 `guardian-sign` 签名模块时，`nonce-ttl` 可缩短至与 `max-age` 相同。
+
+### 接口开关
+
+```xml
+<dependency>
+    <groupId>io.github.biggg-guardian</groupId>
+    <artifactId>guardian-api-switch-spring-boot-starter</artifactId>
+    <version>1.7.2</version>
+</dependency>
+```
+
+```yaml
+guardian:
+  api-switch:
+    enabled: true                        # 总开关（默认 true）
+    response-mode: json                  # exception / json
+    message: "接口暂时关闭，请稍后再试"    # 提示信息（支持 i18n Key）
+    log-enabled: true                    # 是否打印拦截日志
+    interceptor-order: 500             # 拦截器排序
+    disabled-urls:                       # 启动时默认关闭的接口
+      - /api-switch/disabled
+```
 
 ---
 
@@ -997,7 +1020,7 @@ Guardian 支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-rabbitmq</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 </dependency>
 ```
 
@@ -1010,7 +1033,7 @@ Guardian 支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-kafka</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 </dependency>
 ```
 
@@ -1033,7 +1056,7 @@ spring:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-rocketmq</artifactId>
-    <version>1.7.1</version>
+    <version>1.7.2</version>
 </dependency>
 ```
 
@@ -1331,6 +1354,92 @@ exclude-urls（白名单）> YAML 规则 > 注解 > 放行
 
 ---
 
+## 接口开关
+
+<details>
+<summary><b>展开查看完整文档</b></summary>
+
+### 功能说明
+
+基于yml/actuator实现接口的关闭/开启控制，接口链接支持AntPath
+
+### 全量配置
+
+```yaml
+guardian:
+  api-switch:
+    enabled: true                        # 总开关（默认 true）
+    response-mode: json                  # exception / json
+    message: "接口暂时关闭，请稍后再试"    # 提示信息（支持 i18n Key）
+    log-enabled: true                    # 是否打印拦截日志
+    interceptor-order: 500               # 拦截器排序
+    disabled-urls:                       # 启动时默认关闭的接口
+      - /api-switch/disabled
+```
+
+### 可观测性
+
+- **拦截日志**：`log-enabled: true`，前缀 `[Guardian-Api-Switch]`
+- **Actuator**：`GET /actuator/guardianApiSwitch`
+
+```json
+{
+  "disabledUrls": [
+    "/api-switch/disabled"
+  ]
+}
+```
+
+### 关闭接口
+
+- **Actuator**：`POST /actuator/guardianApiSwitch/{urlPattern}`
+><small>`关闭接口`需将接口内`{urlPattern}`替换为实际接口地址，例如：/actuator/guardianApiSwitch/api-switch/disabled </small>
+
+```json
+{
+  "action": "disabled",
+  "urlPattern": "/api-switch/disabled",
+  "disabledUrls": [
+    "/123",
+    "/api-switch/disabled"
+  ]
+}
+```
+
+### 开启接口
+
+- **Actuator**：`DELETE /actuator/guardianApiSwitch/{urlPattern}`
+><small>`开启接口`需将接口内`{urlPattern}`替换为实际接口地址，例如：/actuator/guardianApiSwitch/api-switch/disabled </small>
+
+```json
+{
+  "action": "enabled",
+  "urlPattern": "/api-switch/disabled",
+  "disabledUrls": [
+    "/123"
+  ]
+}
+```
+
+### 扩展点
+
+**自定义响应处理器（仅 `response-mode: json` 时生效）：**
+
+```java
+@Bean
+public ApiSwitchResponseHandler apiSwitchResponseHandler() {
+    return (request, response, code, data, message) -> {
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(JSONUtil.toJsonStr(CommonResult.result(code, data, message)));
+    };
+}
+```
+
+</details>
+
+---
+
 ## 动态配置
 
 Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo 等）动态刷新，**无需重启应用**即可生效。
@@ -1426,11 +1535,19 @@ Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo
 | `response-mode` | `exception` / `json` | `exception` | 响应模式 |
 | `log-enabled` | `boolean` | `false` | 是否打印拦截日志 |
 | `message` | `String` | `IP 访问被拒绝` | 拒绝提示信息（支持 i18n Key） |
-| `filter-order` | `int` | `-20000` | Filter 排序（值越小越先执行） |
 | `black-list` | `List<String>` | `[]` | 全局 IP 黑名单（精确 / 通配符 / CIDR） |
 | `urls` | `List` | `[]` | URL 绑定白名单规则列表，每项参数如下 |
 | `urls[].pattern` | `String` | — | 接口路径（AntPath） |
 | `urls[].white-list` | `List<String>` | `[]` | 允许访问的 IP 列表（精确 / 通配符 / CIDR） |
+
+**接口开关**（prefix: `guardian.api-switch`）
+
+| YAML Key | 类型 | 默认值 | 说明                 |
+|----------|------|--------|--------------------|
+| `response-mode` | `exception` / `json` | `exception` | 响应模式               |
+| `log-enabled` | `boolean` | `false` | 是否打印拦截日志           |
+| `message` | `String` | `IP 访问被拒绝` | 提示信息（支持 i18n Key）  |
+| `disabled-urls` | `List<String>` | `[]` | 默认关闭的接口路径（AntPath） |
 
 ### 使用方式
 
@@ -1550,6 +1667,13 @@ guardian:
       - pattern: /api/transfer/**
     exclude-urls:
       - /api/public/**
+
+  api-switch:
+    response-mode: json
+    message: "接口暂时关闭，请稍后再试"
+    log-enabled: true
+    disabled-urls:
+      - /api-switch/disabled
 ```
 
 > 只需配置你用到的模块，没用到的模块无需配置。修改任意参数后点击发布，下一次请求即可读取到最新值。
@@ -1684,6 +1808,10 @@ guardian-parent
 ├── guardian-anti-replay/                  # 防重放攻击
 │   ├── guardian-anti-replay-core/
 │   └── guardian-anti-replay-spring-boot-starter/
+├── guardian-api-switch/                  # 接口开关
+│   ├── guardian-api-switch-core/
+│   └── guardian-api-switch-spring-boot-starter/
+├── guardian-starter-all/                  # 整合引用所有Starter模块
 ├── guardian-storage-redis/                # Redis 存储（多模块共享）
 └── guardian-example/                      # 示例工程
 ```
@@ -1722,12 +1850,13 @@ Filter 在 Servlet 层执行，先于所有 Interceptor：
 
 Interceptor 在 Spring MVC 层执行，Filter 之后：
 
-| 顺序 | 模块 | 配置项 | 默认 order | 说明 |
-|------|------|--------|-----------|------|
-| 1 | 慢接口检测 | `guardian.slow-api.interceptor-order` | **-1000** | 最先进入最后退出，精确计算整体耗时 |
-| 2 | 接口限流 | `guardian.rate-limit.interceptor-order` | **1000** | 流量超限直接拒绝，避免后续无意义计算 |
-| 3 | 防重复提交 | `guardian.repeat-submit.interceptor-order` | **2000** | 通过限流后，判断是否短时间重复请求 |
-| 4 | 接口幂等 | `guardian.idempotent.interceptor-order` | **3000** | 最后执行，消费 Token 不可逆，确保前面校验都通过 |
+| 顺序 | 模块    | 配置项 | 默认 order  | 说明                          |
+|----|-------|--------|-----------|-----------------------------|
+| 1  | 慢接口检测 | `guardian.slow-api.interceptor-order` | **-1000** | 最先进入最后退出，精确计算整体耗时           |
+| 2  | 接口开关  | `guardian.api-switch.interceptor-order` | **500**   | 接口关闭直接拒绝，避免后续无意义计算          |
+| 3  | 接口限流  | `guardian.rate-limit.interceptor-order` | **1000**  | 流量超限直接拒绝，避免后续无意义计算          |
+| 4  | 防重复提交 | `guardian.repeat-submit.interceptor-order` | **2000**  | 通过限流后，判断是否短时间重复请求           |
+| 5  | 接口幂等  | `guardian.idempotent.interceptor-order` | **3000**  | 最后执行，消费 Token 不可逆，确保前面校验都通过 |
 
 每个模块的 order 均可通过 YAML 自定义，方便与项目中其他拦截器协调：
 
@@ -1747,6 +1876,8 @@ guardian:
   # Interceptor 排序
   slow-api:
     interceptor-order: -1000             # 慢接口检测
+  api-switch:
+    interceptor-order: 500               # 接口开关
   rate-limit:
     interceptor-order: 1000              # 接口限流
   repeat-submit:
@@ -1766,9 +1897,14 @@ guardian:
 
 ## 更新日志
 
+### v1.7.2
+
+- **新增**：接口开关模块（`guardian-api-switch`），动态关闭/开启接口
+
 ### v1.7.1
 
 - **新增**：整合所有starter模块（`guardian-starter-all`），以便于引用所有功能时只需引用此模块
+- **优化**：共享类重新分类分包
 
 ### v1.7.0
 

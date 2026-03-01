@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.sun.guardian.api.switchs.starter.config.GuardianApiSwitchAutoConfiguration

@@ -118,4 +118,13 @@ public class GuardianLogUtils {
             log.warn("{} 白名单拦截 | IP: {} | URI: {} | 不在白名单内", moduleTag, ip, uri);
         }
     }
+
+    /**
+     * 接口关闭拦截
+     */
+    public void disabledLog(boolean logEnable, Logger log, String uri, String ip) {
+        if (logEnable) {
+            log.debug("{} 接口关闭拦截 | URI: {} | IP: {}", moduleTag, uri, ip);
+        }
+    }
 }

@@ -24,9 +24,9 @@ import java.util.*;
  * @version java version 1.8
  * @since 2026-02-09 22:19
  */
-public class ArgsUtil {
+public class ArgsUtils {
 
-    private ArgsUtil() {
+    private ArgsUtils() {
     }
 
     /**
