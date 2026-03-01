@@ -1816,20 +1816,6 @@ guardian-parent
 └── guardian-example/                      # 示例工程
 ```
 
-### guardian-core 共享类
-
-| 类 | 作用 |
-|----|------|
-| `GuardianCoreProperties` | 全局共享配置（repeatableFilterOrder），prefix = `guardian` |
-| `BaseGuardianProperties` | 模块配置基类（storage / responseMode / logEnabled / interceptorOrder） |
-| `UserContext` | 用户上下文接口，实现一次所有模块共享 |
-| `GuardianResponseHandler` | 统一响应处理器接口 |
-| `DefaultGuardianResponseHandler` | 默认 JSON 响应实现 |
-| `BaseStatistics` | 拦截统计基类 |
-| `GuardianLogUtils` | 参数化日志工具 |
-| `IpMatcher` | IP 匹配工具（精确 / 通配符 / CIDR） |
-| `RepeatableRequestFilter` | 请求体缓存过滤器 |
-
 ### 执行顺序
 
 Guardian 的 Filter 和 Interceptor 通过 `order` 值控制执行优先级，**值越小越先执行**。
