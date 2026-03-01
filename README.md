@@ -1342,7 +1342,7 @@ public AntiReplayResponseHandler antiReplayResponseHandler() {
 
 ### 功能说明
 
-基于yml/actuator实现接口的关闭/开启控制，接口链接支持AntPath
+基于yml/actuator实现接口的关闭/开启控制，接口路径支持AntPath
 
 ### 全量配置
 
@@ -1374,7 +1374,7 @@ guardian:
 ### 关闭接口
 
 - **Actuator**：`POST /actuator/guardianApiSwitch/{urlPattern}`
-><small>`关闭接口`需将接口内`{urlPattern}`替换为实际接口地址，例如：/actuator/guardianApiSwitch/api-switch/disabled </small>
+><small>`关闭接口`需将接口内`{urlPattern}`替换为实际接口路径，例如：/actuator/guardianApiSwitch/api-switch/disabled </small>
 
 ```json
 {
@@ -1390,7 +1390,7 @@ guardian:
 ### 开启接口
 
 - **Actuator**：`DELETE /actuator/guardianApiSwitch/{urlPattern}`
-><small>`开启接口`需将接口内`{urlPattern}`替换为实际接口地址，例如：/actuator/guardianApiSwitch/api-switch/disabled </small>
+><small>`开启接口`需将接口内`{urlPattern}`替换为实际接口路径，例如：/actuator/guardianApiSwitch/api-switch/disabled </small>
 
 ```json
 {
