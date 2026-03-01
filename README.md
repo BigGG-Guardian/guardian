@@ -1546,7 +1546,7 @@ Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo
 |----------|------|--------|--------------------|
 | `response-mode` | `exception` / `json` | `exception` | 响应模式               |
 | `log-enabled` | `boolean` | `false` | 是否打印拦截日志           |
-| `message` | `String` | `IP 访问被拒绝` | 提示信息（支持 i18n Key）  |
+| `message` | `String` | `接口暂时关闭，请稍后再试` | 提示信息（支持 i18n Key）  |
 | `disabled-urls` | `List<String>` | `[]` | 默认关闭的接口路径（AntPath） |
 
 ### 使用方式
