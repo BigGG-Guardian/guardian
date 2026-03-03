@@ -1,12 +1,11 @@
 package com.sun.guardian.sign.core.advice;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.sun.guardian.core.utils.args.ArgsUtils;
-import com.sun.guardian.core.utils.json.GuardianJsonUtils;
 import com.sun.guardian.sign.core.config.SignConfig;
 import com.sun.guardian.sign.core.enums.algorithm.SignAlgorithm;
 import com.sun.guardian.sign.core.service.sign.SignService;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
@@ -17,7 +16,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 /**
  * 参数签名返回值签名
@@ -27,18 +25,25 @@ import java.util.TreeMap;
  * @since 2026-03-03
  */
 @ControllerAdvice
-public class SignResultSignAdvice implements ResponseBodyAdvice<Object> {
+public class SignResultSignAdvice implements ResponseBodyAdvice<Object>, Ordered {
     public static final String RESPONSE_SIGN_ALGORITHM_ATTRIBUTE = "guardian_sign_result_algorithm";
     private final SignConfig signConfig;
     private final SignService signService;
+    private final int order;
 
     public SignResultSignAdvice(SignConfig signConfig, SignService signService) {
         this.signConfig = signConfig;
         this.signService = signService;
+        this.order = signConfig.getResultAdviceOrder();
+    }
+
+    @Override
+    public int getOrder() {
+        return order;
     }
 
     /**
-     * 判断是否支持返回值缓存
+     * 判断是否支持返回值签名
      */
     @Override
     public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {

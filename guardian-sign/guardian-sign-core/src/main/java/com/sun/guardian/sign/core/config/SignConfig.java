@@ -64,4 +64,9 @@ public interface SignConfig extends BaseConfig {
      * 需要参数签名的 URL 规则列表 Getter
      */
     List<SignRule> getUrls();
+
+    /**
+     * 返回值签名 Advice 排序 Getter
+     */
+    int getResultAdviceOrder();
 }

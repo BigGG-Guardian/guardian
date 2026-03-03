@@ -1,9 +1,11 @@
 package com.sun.guardian.idempotent.core.advice;
 
 import com.sun.guardian.core.utils.json.GuardianJsonUtils;
+import com.sun.guardian.idempotent.core.config.IdempotentConfig;
 import com.sun.guardian.idempotent.core.domain.result.IdempotentResult;
 import com.sun.guardian.idempotent.core.storage.IdempotentResultCache;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
@@ -23,16 +25,23 @@ import javax.servlet.http.HttpServletRequest;
  * @since 2026-02-18 20:11
  */
 @ControllerAdvice
-public class IdempotentResultCacheAdvice implements ResponseBodyAdvice<Object> {
+public class IdempotentResultCacheAdvice implements ResponseBodyAdvice<Object>, Ordered {
     private final IdempotentResultCache resultCache;
+    private final int order;
 
     public static final String ATTR_KEY = "guardian_idempotent_result";
 
     /**
      * 构造幂等返回值缓存切面
      */
-    public IdempotentResultCacheAdvice(IdempotentResultCache resultCache) {
+    public IdempotentResultCacheAdvice(IdempotentResultCache resultCache, IdempotentConfig config) {
         this.resultCache = resultCache;
+        this.order = config.getResultAdviceOrder();
+    }
+
+    @Override
+    public int getOrder() {
+        return order;
     }
 
     /**

@@ -132,7 +132,7 @@ public class GuardianSignAutoConfiguration {
         @Bean
         @ConditionalOnMissingBean(SignResultSignAdvice.class)
         public SignResultSignAdvice signResultSignAdvice(GuardianSignProperties properties,
-                                                                SignService signService) {
+                                                        SignService signService) {
             return new SignResultSignAdvice(properties, signService);
         }
     }

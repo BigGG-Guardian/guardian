@@ -29,4 +29,11 @@ public interface IdempotentConfig extends BaseConfig {
     default String getMissingTokenMessage() {
         return "请求缺少幂等Token";
     }
+
+    /**
+     * 返回值缓存 Advice 排序 Getter
+     */
+    default int getResultAdviceOrder() {
+        return 200;
+    }
 }

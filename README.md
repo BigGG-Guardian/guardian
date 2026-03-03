@@ -52,7 +52,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-starter-all</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 ><small>特别说明：`请求链路追踪模块`若开启RabbitMq/Kafka/RocketMq请求链路追踪，需额外引入对应的依赖(`guardian-trace-rabbitmq`/`guardian-trace-kafka`/`guardian-trace-rocketmq`)</small>
@@ -63,7 +63,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 
@@ -81,7 +81,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 
@@ -123,7 +123,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 
@@ -151,7 +151,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 
@@ -174,7 +174,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 
@@ -196,7 +196,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-spring-boot-starter</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 
@@ -214,7 +214,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 
@@ -242,7 +242,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-anti-replay-spring-boot-starter</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 
@@ -267,7 +267,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-api-switch-spring-boot-starter</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 
@@ -289,7 +289,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-sign-spring-boot-starter</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 
@@ -319,6 +319,7 @@ guardian:
     enabled: true                        # 总开关（默认 true）
     secret-key: your-secret-key          # 签名密钥
     result-sign: true                    # 结果签名开关（默认 false）
+    result-advice-order: 100             # 返回值签名 Advice 排序（默认 100）
     response-mode: json                  # exception / json
     log-enabled: true                    # 是否打印拦截日志
     interceptor-order: 4000              # 拦截器排序
@@ -348,6 +349,7 @@ guardian:
 2. **结果签名**
    - 设置 `result-sign: true` 开启结果签名
    - 响应会包含签名信息，客户端可以验证响应的完整性
+   - 可通过 `result-advice-order` 配置执行顺序（推荐：幂等缓存 200 → 签名 100 → 加密 300）
 
 3. **多算法支持**
    - 支持多种签名算法：base64、md5、sha256、hmac_sha256
@@ -746,6 +748,7 @@ guardian:
     response-mode: exception          # exception / json
     log-enabled: false
     interceptor-order: 3000           # 拦截器排序（值越小越先执行）
+    result-advice-order: 200          # 返回值缓存 Advice 排序（默认 200）
     token-endpoint: true              # 是否注册内置 Token 获取接口
     result-cache: false               # 是否启用结果缓存
     missing-token-message: "请求缺少幂等Token"  # 缺少 Token 时的提示（支持 i18n Key）
@@ -1099,7 +1102,7 @@ Guardian 支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-rabbitmq</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 
@@ -1112,7 +1115,7 @@ Guardian 支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-kafka</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 
@@ -1135,7 +1138,7 @@ spring:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-rocketmq</artifactId>
-    <version>1.8.0</version>
+    <version>1.8.1</version>
 </dependency>
 ```
 
@@ -2466,6 +2469,12 @@ guardian:
     interceptor-order: 3000              # 接口幂等
   sign:
     interceptor-order: 4000             # 参数签名
+
+  # ResponseBodyAdvice 排序
+  idempotent:
+    result-advice-order: 200            # 幂等结果缓存（需开启 result-cache）
+  sign:
+    result-advice-order: 100            # 响应结果签名（需开启 result-sign）
 ```
 
 ## 存储对比
@@ -2478,6 +2487,15 @@ guardian:
 | 额外依赖 | 需要 Redis | 无 |
 
 ## 更新日志
+
+### v1.8.1
+
+- **新增**：ResponseBodyAdvice 执行顺序可配置，通过 YAML 动态控制
+- **新增**：签名模块 `result-advice-order` 配置项（默认100）
+- **新增**：幂等模块 `result-advice-order` 配置项（默认200）
+- **修复**：修复 `IdempotentResultCacheAdvice` 未添加 `@ControllerAdvice` 注解导致 Advice 不生效的问题
+- **修复**：修复 `SignResultSignAdvice` Advice 执行顺序不可控的问题
+- **优化**：完善拦截器与 Advice 执行顺序说明
 
 ### v1.8.0
 

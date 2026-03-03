@@ -80,6 +80,13 @@ public class GuardianSignProperties implements SignConfig {
     private int interceptorOrder = 4000;
 
     /**
+     * 返回值签名 Advice 排序（值越小越先执行，默认 100）
+     * 用于控制多个 ResponseBodyAdvice 的执行顺序
+     * 推荐顺序：幂等缓存(200) -> 签名(100) -> 加密(300)
+     */
+    private int resultAdviceOrder = 100;
+
+    /**
      * 响应模式：exception / json
      */
     private ResponseMode responseMode = ResponseMode.EXCEPTION;

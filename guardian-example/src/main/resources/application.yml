@@ -211,6 +211,7 @@ guardian:
     result-cache: true
     # 缺少 Token 时的拒绝提示（支持 i18n Key）
     missing-token-message: guardian.idempotent.missing-token
+    result-advice-order: 200
 
   # ==================== 接口开关配置 ====================
   api-switch:
@@ -235,6 +236,7 @@ guardian:
       - pattern: /guardian-example/sign/yml/**
         algorithm: sha256
         sign-verify-message: "YAML 配置的签名验证失败"
+    result-advice-order: 100
 
 
 # Actuator 监控端点的配置项

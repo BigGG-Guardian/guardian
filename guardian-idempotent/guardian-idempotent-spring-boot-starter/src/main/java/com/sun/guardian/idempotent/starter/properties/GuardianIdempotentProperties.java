@@ -54,6 +54,13 @@ public class GuardianIdempotentProperties extends BaseGuardianProperties impleme
      * 拦截器排序（值越小越先执行）
      */
     private int interceptorOrder = 3000;
+
+    /**
+     * 返回值缓存 Advice 排序（值越小越先执行，默认 200）
+     * 用于控制多个 ResponseBodyAdvice 的执行顺序
+     * 推荐顺序：幂等缓存(200) -> 签名(100) -> 加密(300)
+     */
+    private int resultAdviceOrder = 200;
     /**
      * 校验参数合法性，不合法时抛出 IllegalArgumentException
      */

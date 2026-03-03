@@ -207,8 +207,9 @@ public class GuardianIdempotentAutoConfiguration {
          */
         @Bean
         @ConditionalOnMissingBean(IdempotentResultCacheAdvice.class)
-        public IdempotentResultCacheAdvice idempotentResultCacheAdvice(IdempotentResultCache resultCache) {
-            return new IdempotentResultCacheAdvice(resultCache);
+        public IdempotentResultCacheAdvice idempotentResultCacheAdvice(IdempotentResultCache resultCache,
+                                                                       GuardianIdempotentProperties properties) {
+            return new IdempotentResultCacheAdvice(resultCache, properties);
         }
     }
 
