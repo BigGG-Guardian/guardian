@@ -222,6 +222,21 @@ guardian:
     disabled-urls: # 启动时默认关闭的接口
       - /api-switch/disabled
 
+  # ==================== 参数签名配置 ====================
+  sign:
+    enabled: true                        # 总开关（默认 true）
+    response-mode: json                  # exception / json
+    log-enabled: true                    # 是否打印拦截日志
+    interceptor-order: 4000               # 拦截器排序
+    secret-key: abcdefghijklmnopqrstuvwxyz
+    result-sign: true                    # 结果签名开关（默认 false）
+    # YAML 批量 URL 签名规则
+    urls:
+      - pattern: /guardian-example/sign/yml/**
+        algorithm: sha256
+        sign-verify-message: "YAML 配置的签名验证失败"
+
+
 # Actuator 监控端点的配置项
 management:
   endpoints:

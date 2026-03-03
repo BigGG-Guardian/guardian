@@ -28,6 +28,7 @@
     { "name": "MQ链路追踪-RocketMQ" },
     { "name": "防重放攻击" },
     { "name": "接口开关" },
+    { "name": "参数签名" },
     { "name": "Actuator监控端点" }
   ],
   "paths": {
@@ -1501,6 +1502,439 @@
         }
       }
     },
+    "/sign/test": {
+      "get": {
+        "tags": ["参数签名"],
+        "summary": "测试签名验证（默认算法 BASE64）",
+        "description": "@SignVerify 注解，使用默认算法 BASE64。测试：需要在请求头中携带 X-Sign 和 X-Sign-Timestamp。",
+        "operationId": "signTest",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "guardian" },
+            "description": "测试参数"
+          },
+          {
+            "name": "value",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "test123" },
+            "description": "测试参数值"
+          },
+          {
+            "name": "X-Sign",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "签名值"
+          },
+          {
+            "name": "X-Sign-Timestamp",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "时间戳"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "value": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sign/md5": {
+      "post": {
+        "tags": ["参数签名"],
+        "summary": "测试 MD5 算法签名验证",
+        "description": "@SignVerify(algorithm = SignAlgorithm.MD5)。测试：需要在请求头中携带 X-Sign 和 X-Sign-Timestamp。",
+        "operationId": "signMd5",
+        "parameters": [
+          {
+            "name": "X-Sign",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "签名值"
+          },
+          {
+            "name": "X-Sign-Timestamp",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "时间戳"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "guardian" },
+                  "value": { "type": "string", "example": "test123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "value": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sign/sha256": {
+      "post": {
+        "tags": ["参数签名"],
+        "summary": "测试 SHA256 算法签名验证",
+        "description": "@SignVerify(algorithm = SignAlgorithm.SHA256)。测试：需要在请求头中携带 X-Sign 和 X-Sign-Timestamp。",
+        "operationId": "signSha256",
+        "parameters": [
+          {
+            "name": "X-Sign",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "签名值"
+          },
+          {
+            "name": "X-Sign-Timestamp",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "时间戳"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "guardian" },
+                  "value": { "type": "string", "example": "test123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "value": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sign/hmac-sha256": {
+      "post": {
+        "tags": ["参数签名"],
+        "summary": "测试 HMAC-SHA256 算法签名验证",
+        "description": "@SignVerify(algorithm = SignAlgorithm.HMAC_SHA256)。测试：需要在请求头中携带 X-Sign 和 X-Sign-Timestamp。",
+        "operationId": "signHmacSha256",
+        "parameters": [
+          {
+            "name": "X-Sign",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "签名值"
+          },
+          {
+            "name": "X-Sign-Timestamp",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "时间戳"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "guardian" },
+                  "value": { "type": "string", "example": "test123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "value": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sign/result-sign": {
+      "post": {
+        "tags": ["参数签名"],
+        "summary": "测试返回值签名",
+        "description": "@SignVerify(algorithm = SignAlgorithm.SHA256)，开启 result-sign=true。测试：响应头会包含 X-Sign 和 X-Sign-Timestamp。",
+        "operationId": "signResultSign",
+        "parameters": [
+          {
+            "name": "X-Sign",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "签名值"
+          },
+          {
+            "name": "X-Sign-Timestamp",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "时间戳"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "guardian" },
+                  "value": { "type": "string", "example": "test123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "request": {
+                          "type": "object",
+                          "properties": {
+                            "name": { "type": "string" },
+                            "value": { "type": "string" }
+                          }
+                        },
+                        "message": { "type": "string", "example": "This response is signed" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sign/yml/test": {
+      "get": {
+        "tags": ["参数签名"],
+        "summary": "测试 YAML 配置的签名验证（GET）",
+        "description": "YAML 配置方式，pattern: /guardian-example/sign/yml/**，algorithm: sha256。测试：需要在请求头中携带 X-Sign 和 X-Sign-Timestamp。",
+        "operationId": "signYmlTest",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "guardian" },
+            "description": "测试参数"
+          },
+          {
+            "name": "value",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string", "example": "test123" },
+            "description": "测试参数值"
+          },
+          {
+            "name": "X-Sign",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "签名值"
+          },
+          {
+            "name": "X-Sign-Timestamp",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "时间戳"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "value": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sign/yml/post": {
+      "post": {
+        "tags": ["参数签名"],
+        "summary": "测试 YAML 配置的签名验证（POST）",
+        "description": "YAML 配置方式，pattern: /guardian-example/sign/yml/**，algorithm: sha256。测试：需要在请求头中携带 X-Sign 和 X-Sign-Timestamp。",
+        "operationId": "signYmlPost",
+        "parameters": [
+          {
+            "name": "X-Sign",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "签名值"
+          },
+          {
+            "name": "X-Sign-Timestamp",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "时间戳"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "guardian" },
+                  "value": { "type": "string", "example": "test123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "value": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/trace/passthrough": {
       "get": {
         "tags": ["请求链路TraceId"],
@@ -2672,6 +3106,36 @@
                     "topBlockedApis": {
                       "type": "object",
                       "example": { "/api/payment/submit": 12, "/api/transfer/confirm": 8 }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/actuator/guardianSign": {
+      "get": {
+        "tags": ["Actuator监控端点"],
+        "summary": "参数签名监控",
+        "description": "查看参数签名的运行时统计数据，包括：总请求数、通过数、拦截数、拦截率、被拦截接口排行。",
+        "operationId": "actuatorSign",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalRequestCount": { "type": "integer", "example": 1000 },
+                    "totalPassCount": { "type": "integer", "example": 990 },
+                    "totalBlockCount": { "type": "integer", "example": 10 },
+                    "blockRate": { "type": "string", "example": "1.00%" },
+                    "topBlockedApis": {
+                      "type": "object",
+                      "example": { "/api/payment/submit": 5, "/api/order/create": 3 }
                     }
                   }
                 }

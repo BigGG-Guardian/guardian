@@ -61,6 +61,11 @@
             <groupId>io.github.biggg-guardian</groupId>
             <artifactId>guardian-api-switch-spring-boot-starter</artifactId>
         </dependency>
+        <!-- Guardian 参数签名 -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-sign-spring-boot-starter</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

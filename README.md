@@ -38,6 +38,7 @@
 | IP黑白名单   | `guardian-ip-filter-spring-boot-starter`     | — | ✅ | 全局黑名单 + URL 绑定白名单，支持精确/通配符/CIDR              |
 | 防重放攻击    | `guardian-anti-replay-spring-boot-starter`   | — | ✅ | Timestamp + Nonce 双重校验，nonce TTL 与 timestamp 窗口解耦 |
 | 接口开关     | `guardian-api-switch-spring-boot-starter`    | — | ✅ | 动态关闭/开启接口                                    |
+| 参数签名     | `guardian-sign-spring-boot-starter`          | `@SignVerify` | ✅ | 支持多种签名算法，请求参数签名验证 + 响应结果签名               |
 
 每个功能独立模块、独立 Starter，**用哪个引哪个，互不依赖**。所有模块的 YAML 配置均支持**配置中心动态刷新**（Nacos / Apollo 等），无需重启即可生效。
 
@@ -51,7 +52,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-starter-all</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 ><small>特别说明：`请求链路追踪模块`若开启RabbitMq/Kafka/RocketMq请求链路追踪，需额外引入对应的依赖(`guardian-trace-rabbitmq`/`guardian-trace-kafka`/`guardian-trace-rocketmq`)</small>
@@ -62,7 +63,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
@@ -80,7 +81,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
@@ -122,7 +123,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
@@ -150,7 +151,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
@@ -173,7 +174,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
@@ -195,7 +196,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-spring-boot-starter</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
@@ -213,7 +214,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
@@ -241,7 +242,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-anti-replay-spring-boot-starter</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
@@ -266,7 +267,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-api-switch-spring-boot-starter</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
@@ -281,6 +282,84 @@ guardian:
     disabled-urls:                       # 启动时默认关闭的接口
       - /api-switch/disabled
 ```
+
+### 参数签名
+
+```xml
+<dependency>
+    <groupId>io.github.biggg-guardian</groupId>
+    <artifactId>guardian-sign-spring-boot-starter</artifactId>
+    <version>1.8.0</version>
+</dependency>
+```
+
+**使用注解：**
+
+```java
+// 基本用法
+@SignVerify(algorithm = SignAlgorithm.SHA256)
+@PostMapping("/submit")
+public Result submit(@RequestBody OrderDTO order) {
+    return orderService.submit(order);
+}
+
+// 自定义错误信息
+@SignVerify(algorithm = SignAlgorithm.HMAC_SHA256, signVerifyMessage = "签名验证失败，请检查参数")
+@PostMapping("/payment")
+public Result payment(@RequestBody PaymentDTO payment) {
+    return paymentService.process(payment);
+}
+```
+
+**配置示例：**
+
+```yaml
+guardian:
+  sign:
+    enabled: true                        # 总开关（默认 true）
+    secret-key: your-secret-key          # 签名密钥
+    result-sign: true                    # 结果签名开关（默认 false）
+    response-mode: json                  # exception / json
+    log-enabled: true                    # 是否打印拦截日志
+    interceptor-order: 4000              # 拦截器排序
+    sign-header: X-Sign                  # 签名请求头名称
+    timestamp-header: X-Sign-Timestamp   # 时间戳请求头名称
+    max-age: 60                          # 时间戳过期时间（秒）
+    max-age-unit: seconds                # 时间戳过期时间单位
+    missing-timestamp-message: "缺少时间戳"    # 缺少时间戳提示
+    missing-sign-message: "缺少参数签名"      # 缺少签名提示
+    expired-message: "请求已过期"            # 请求过期提示
+    urls:                                # 需要签名验证的 URL 规则
+      - pattern: /api/payment/**
+        algorithm: hmac_sha256
+        sign-verify-message: "签名验证失败"
+      - pattern: /api/order/**
+        algorithm: md5
+        sign-verify-message: "订单接口签名验证失败"
+```
+
+**详细使用示例：**
+
+1. **基础签名验证**
+   - 添加依赖和配置
+   - 在需要验证的接口上添加 `@SignVerify` 注解
+   - 客户端需要按照规则生成签名并在请求头中传递
+
+2. **结果签名**
+   - 设置 `result-sign: true` 开启结果签名
+   - 响应会包含签名信息，客户端可以验证响应的完整性
+
+3. **多算法支持**
+   - 支持多种签名算法：base64、md5、sha256、hmac_sha256
+   - 可以为不同的接口配置不同的算法
+
+4. **时间戳验证**
+   - 自动验证请求时间戳，防止重放攻击
+   - 可配置时间戳过期时间
+
+5. **自定义错误信息**
+   - 可以为不同的接口配置不同的错误提示信息
+   - 支持国际化消息
 
 ---
 
@@ -1020,7 +1099,7 @@ Guardian 支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-rabbitmq</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
@@ -1033,7 +1112,7 @@ Guardian 支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-kafka</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
@@ -1056,7 +1135,7 @@ spring:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-rocketmq</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.0</version>
 </dependency>
 ```
 
@@ -1421,6 +1500,715 @@ public ApiSwitchResponseHandler apiSwitchResponseHandler() {
 
 ---
 
+## 参数签名
+
+<details>
+<summary><b>展开查看完整文档</b></summary>
+
+### 功能说明
+
+对接口请求参数进行签名验证，防止参数被篡改。支持多种签名算法，包括 BASE64、MD5、SHA256 和 HMAC-SHA256。同时支持响应结果签名，确保返回数据的完整性。
+
+### 使用方式
+
+**注解：**
+
+```java
+// 使用默认算法（BASE64）
+@SignVerify
+
+// 指定算法
+@SignVerify(algorithm = SignAlgorithm.SHA256)
+
+// 自定义错误信息
+@SignVerify(algorithm = SignAlgorithm.HMAC_SHA256, signVerifyMessage = "签名验证失败")
+```
+
+**YAML 批量配置：**
+
+```yaml
+guardian:
+  sign:
+    urls:
+      - pattern: /api/payment/**
+        algorithm: hmac_sha256
+        sign-verify-message: "支付接口签名验证失败"
+      - pattern: /api/order/**
+        algorithm: sha256
+```
+
+### 全量配置
+
+```yaml
+guardian:
+  sign:
+    enabled: true                        # 总开关（默认 true）
+    secret-key: your-secret-key          # 签名密钥
+    result-sign: false                   # 结果签名开关（默认 false）
+    response-mode: exception             # exception / json
+    log-enabled: false                   # 是否打印拦截日志
+    interceptor-order: 4000             # 拦截器排序（值越小越先执行）
+    sign-header: X-Sign                  # 签名请求头名称
+    timestamp-header: X-Sign-Timestamp   # 时间戳请求头名称
+    max-age: 60                          # 时间戳过期时间（秒）
+    max-age-unit: seconds                # 时间戳过期时间单位
+    missing-timestamp-message: "缺少时间戳"    # 缺少时间戳提示（支持 i18n Key）
+    missing-sign-message: "缺少参数签名"      # 缺少签名提示（支持 i18n Key）
+    expired-message: "请求已过期"            # 请求过期提示（支持 i18n Key）
+    urls:                                # 需要签名验证的 URL 规则
+      - pattern: /api/payment/**
+        algorithm: hmac_sha256
+        sign-verify-message: "签名验证失败"
+```
+
+### 支持的签名算法
+
+| 算法 | YAML 值 | 注解值 | 说明 |
+|------|---------|--------|------|
+| BASE64 | `base64` | `SignAlgorithm.BASE64` | 基于 BASE64 的简单编码 |
+| MD5 | `md5` | `SignAlgorithm.MD5` | MD5 哈希算法 |
+| SHA256 | `sha256` | `SignAlgorithm.SHA256` | SHA256 哈希算法 |
+| HMAC-SHA256 | `hmac_sha256` | `SignAlgorithm.HMAC_SHA256` | 基于密钥的 HMAC-SHA256 算法 |
+
+### 签名计算规则
+
+1. **参数排序**：对请求参数（包括 Query 参数和 JSON Body）按字典序排序
+2. **拼接字符串**：`param1=value1&param2=value2&timestamp={timestamp}&key={secretKey}`
+3. **计算签名**：使用指定的算法对拼接后的字符串进行计算
+4. **验证签名**：将计算结果与请求头中的 `X-Sign` 进行比较
+
+### 前端 JavaScript 实现
+
+以下是与后端签名算法对应的前端 JavaScript 实现：
+
+```javascript
+/**
+ * 排序 JSON 对象（模拟后端 ArgsUtils.toSortedJsonNode 逻辑）
+ * @param {Object} obj - 要排序的对象
+ * @returns {Object} 排序后的对象
+ */
+function sortJson(obj) {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => sortJson(item));
+  }
+  
+  const sortedObj = {};
+  Object.keys(obj)
+    .sort()
+    .forEach(key => {
+      sortedObj[key] = sortJson(obj[key]);
+    });
+  
+  return sortedObj;
+}
+
+/**
+ * 生成签名
+ * @param {Object} queryParams - 查询参数
+ * @param {Object|string} body - 请求体（对象或字符串）
+ * @param {string} timestamp - 时间戳
+ * @param {string} secretKey - 签名密钥
+ * @param {string} algorithm - 签名算法：base64, md5, sha256, hmac_sha256
+ * @returns {string} 签名值
+ */
+function generateSign(queryParams, body, timestamp, secretKey, algorithm) {
+    // 1. 构建参数对象
+    const params = {};
+    
+    // 添加查询参数
+    if (queryParams && typeof queryParams === 'object') {
+        Object.assign(params, queryParams);
+    }
+    
+    // 添加请求体参数（与后端保持一致）
+    if (body) {
+        if (typeof body === 'object') {
+            if (Object.keys(body).length > 0) {
+                const sortedBody = sortJson(body);
+                params.body = JSON.stringify(sortedBody);
+            }
+        } else if (typeof body === 'string' && body.trim() !== '') {
+            params.body = body;
+        }
+    }
+    
+    // 2. 对参数按字典序排序
+    const sortedParams = Object.keys(params)
+        .sort()
+        .map(key => `${key}=${params[key]}`)
+        .join('&');
+    
+    // 3. 拼接字符串
+    const signatureStr = `${sortedParams}&timestamp=${timestamp}&key=${secretKey}`;
+    
+    // 4. 根据算法计算签名
+    switch (algorithm) {
+        case 'base64':
+            return btoa(signatureStr);
+        case 'md5':
+            return md5(signatureStr);
+        case 'sha256':
+            return sha256(signatureStr);
+        case 'hmac_sha256':
+            return hmacSha256(signatureStr, secretKey);
+        default:
+            throw new Error('Unsupported algorithm');
+    }
+}
+
+// 引入CryptoJS库
+// <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+// MD5 算法实现
+function md5(str) {
+    return CryptoJS.MD5(str).toString();
+}
+
+// SHA256 算法实现
+function sha256(str) {
+    return CryptoJS.SHA256(str).toString();
+}
+
+// HMAC-SHA256 算法实现
+function hmacSha256(str, key) {
+    return CryptoJS.HmacSHA256(str, key).toString();
+}
+
+```
+
+**完整前端使用示例：**
+
+```javascript
+// 1. 引入CryptoJS库
+// <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+// 2. 准备请求参数
+const queryParams = { page: 1, size: 10 };
+const requestBody = { name: "guardian", value: "test123" };
+const secretKey = "your-secret-key";
+const algorithm = "hmac_sha256";
+
+// 3. 生成时间戳
+const timestamp = Date.now().toString();
+
+// 4. 生成签名
+const sign = generateSign(queryParams, requestBody, timestamp, secretKey, algorithm);
+console.log("生成的签名:", sign);
+
+// 5. 发送请求
+fetch('/api/submit', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-Sign': sign,
+        'X-Sign-Timestamp': timestamp
+    },
+    body: JSON.stringify(requestBody)
+})
+.then(response => response.json())
+.then(data => {
+    console.log('响应:', data);
+    // 6. 验证响应签名（如果后端开启了结果签名）
+    if (data.sign) {
+        const responseSign = data.sign;
+        const responseData = { ...data };
+        delete responseData.sign;
+        
+        const expectedSign = generateSign({}, responseData, timestamp, secretKey, algorithm);
+        if (responseSign === expectedSign) {
+            console.log('响应签名验证通过');
+        } else {
+            console.log('响应签名验证失败');
+        }
+    }
+})
+.catch(error => {
+    console.error('请求失败:', error);
+});
+
+// 6. 工具函数：生成签名（同上）
+function sortJson(obj) {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => sortJson(item));
+  }
+  
+  const sortedObj = {};
+  Object.keys(obj)
+    .sort()
+    .forEach(key => {
+      sortedObj[key] = sortJson(obj[key]);
+    });
+  
+  return sortedObj;
+}
+
+function generateSign(queryParams, body, timestamp, secretKey, algorithm) {
+    const params = {};
+    
+    if (queryParams && typeof queryParams === 'object') {
+        Object.assign(params, queryParams);
+    }
+    
+    if (body) {
+        if (typeof body === 'object') {
+            if (Object.keys(body).length > 0) {
+                const sortedBody = sortJson(body);
+                params.body = JSON.stringify(sortedBody);
+            }
+        } else if (typeof body === 'string' && body.trim() !== '') {
+            params.body = body;
+        }
+    }
+    
+    const sortedParams = Object.keys(params)
+        .sort()
+        .map(key => `${key}=${params[key]}`)
+        .join('&');
+    
+    const signatureStr = `${sortedParams}&timestamp=${timestamp}&key=${secretKey}`;
+    
+    switch (algorithm) {
+        case 'base64':
+            return btoa(signatureStr);
+        case 'md5':
+            return CryptoJS.MD5(signatureStr).toString();
+        case 'sha256':
+            return CryptoJS.SHA256(signatureStr).toString();
+        case 'hmac_sha256':
+            return CryptoJS.HmacSHA256(signatureStr, secretKey).toString();
+        default:
+            throw new Error('Unsupported algorithm');
+    }
+}
+```
+
+**TypeScript 版本：**
+
+```typescript
+// 1. 安装CryptoJS
+// npm install crypto-js @types/crypto-js
+
+import * as CryptoJS from 'crypto-js';
+
+/**
+ * 签名算法类型
+ */
+export type SignAlgorithm = 'base64' | 'md5' | 'sha256' | 'hmac_sha256';
+
+/**
+ * 排序JSON对象
+ */
+export function sortJson(obj: any): any {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => sortJson(item));
+  }
+  
+  const sortedObj: Record<string, any> = {};
+  Object.keys(obj)
+    .sort()
+    .forEach(key => {
+      sortedObj[key] = sortJson(obj[key]);
+    });
+  
+  return sortedObj;
+}
+
+/**
+ * 生成签名
+ */
+export function generateSign(
+  queryParams: Record<string, any>,
+  body: any,
+  timestamp: string,
+  secretKey: string,
+  algorithm: SignAlgorithm
+): string {
+  const params: Record<string, any> = {};
+  
+  if (queryParams && typeof queryParams === 'object') {
+    Object.assign(params, queryParams);
+  }
+  
+  if (body) {
+    if (typeof body === 'object') {
+      if (Object.keys(body).length > 0) {
+        const sortedBody = sortJson(body);
+        params.body = JSON.stringify(sortedBody);
+      }
+    } else if (typeof body === 'string' && body.trim() !== '') {
+      params.body = body;
+    }
+  }
+  
+  const sortedParams = Object.keys(params)
+    .sort()
+    .map(key => `${key}=${params[key]}`)
+    .join('&');
+  
+  const signatureStr = `${sortedParams}&timestamp=${timestamp}&key=${secretKey}`;
+  
+  switch (algorithm) {
+    case 'base64':
+      return btoa(signatureStr);
+    case 'md5':
+      return CryptoJS.MD5(signatureStr).toString();
+    case 'sha256':
+      return CryptoJS.SHA256(signatureStr).toString();
+    case 'hmac_sha256':
+      return CryptoJS.HmacSHA256(signatureStr, secretKey).toString();
+    default:
+      throw new Error('Unsupported algorithm');
+  }
+}
+
+// 使用示例
+async function sendSignedRequest() {
+  const queryParams = { page: 1, size: 10 };
+  const requestBody = { name: "guardian", value: "test123" };
+  const secretKey = "your-secret-key";
+  const algorithm: SignAlgorithm = "hmac_sha256";
+  const timestamp = Date.now().toString();
+  
+  const sign = generateSign(queryParams, requestBody, timestamp, secretKey, algorithm);
+  
+  const response = await fetch('/api/submit', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Sign': sign,
+      'X-Sign-Timestamp': timestamp
+    },
+    body: JSON.stringify(requestBody)
+  });
+  
+  const data = await response.json();
+  console.log('响应:', data);
+}
+```
+/**
+ * 排序 JSON 对象（模拟后端 ArgsUtils.toSortedJsonNode 逻辑）
+ * @param {any} obj - 要排序的对象
+ * @returns {any} 排序后的对象
+ */
+export function sortJson(obj: any): any {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(item => sortJson(item));
+  }
+  
+  const sortedObj: Record<string, any> = {};
+  Object.keys(obj)
+    .sort()
+    .forEach(key => {
+      sortedObj[key] = sortJson(obj[key]);
+    });
+  
+  return sortedObj;
+}
+
+/**
+ * 生成签名
+ * @param {Record<string, any>} queryParams - 查询参数
+ * @param {any} body - 请求体（对象或字符串）
+ * @param {string} timestamp - 时间戳
+ * @param {string} secretKey - 签名密钥
+ * @param {string} algorithm - 签名算法
+ * @returns {string} 签名值
+ */
+export function generateSign(
+  queryParams: Record<string, any>,
+  body: any,
+  timestamp: string,
+  secretKey: string,
+  algorithm: 'base64' | 'md5' | 'sha256' | 'hmac_sha256'
+): string {
+  // 1. 构建参数对象
+  const params: Record<string, any> = {};
+  
+  // 添加查询参数
+  if (queryParams && typeof queryParams === 'object') {
+    Object.assign(params, queryParams);
+  }
+  
+  // 添加请求体参数（与后端保持一致）
+  if (body) {
+    if (typeof body === 'object') {
+      if (Object.keys(body).length > 0) {
+        const sortedBody = sortJson(body);
+        params.body = JSON.stringify(sortedBody);
+      }
+    } else if (typeof body === 'string' && body.trim() !== '') {
+      params.body = body;
+    }
+  }
+  
+  // 2. 对参数按字典序排序
+  const sortedParams = Object.keys(params)
+    .sort()
+    .map(key => `${key}=${params[key]}`)
+    .join('&');
+  
+  // 3. 拼接字符串
+  const signatureStr = `${sortedParams}&timestamp=${timestamp}&key=${secretKey}`;
+  
+  // 4. 根据算法计算签名
+  switch (algorithm) {
+    case 'base64':
+      return Buffer.from(signatureStr).toString('base64');
+    case 'md5':
+      return md5(signatureStr);
+    case 'sha256':
+      return sha256(signatureStr);
+    case 'hmac_sha256':
+      return hmacSha256(signatureStr, secretKey);
+    default:
+      throw new Error('Unsupported algorithm');
+  }
+}
+
+// 引入CryptoJS库
+// <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+// 声明CryptoJS类型
+declare const CryptoJS: any;
+
+// MD5 算法实现
+export function md5(str: string): string {
+  return CryptoJS.MD5(str).toString();
+}
+
+function sha256(str: string): string {
+  return CryptoJS.SHA256(str).toString();
+}
+
+function hmacSha256(str: string, key: string): string {
+  return CryptoJS.HmacSHA256(str, key).toString();
+}
+
+// 浏览器环境的 HMAC-SHA256 实现
+export async function hmacSha256Browser(str: string, key: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const keyData = encoder.encode(key);
+  
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
+  return Array.from(new Uint8Array(signature))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+```
+
+### 调用方式
+
+#### JavaScript 调用
+
+```javascript
+// 准备参数
+const queryParams = {}; // 查询参数
+const body = { name: 'guardian', value: 'test123' }; // 请求体
+const timestamp = Date.now().toString();
+const secretKey = 'your-secret-key';
+const algorithm = 'hmac_sha256';
+
+// 生成签名
+const sign = generateSign(queryParams, body, timestamp, secretKey, algorithm);
+
+// 发送请求时携带签名
+const headers = {
+  'X-Sign': sign,
+  'X-Sign-Timestamp': timestamp
+};
+
+// 发送请求
+fetch('https://api.example.com/guardian-example/sign/hmac-sha256', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    ...headers
+  },
+  body: JSON.stringify(body)
+}).then(response => response.json())
+  .then(data => console.log('响应:', data));
+```
+
+#### TypeScript 调用
+
+```typescript
+// 准备参数
+const queryParams: Record<string, any> = {}; // 查询参数
+const body = { name: 'guardian', value: 'test123' }; // 请求体
+const timestamp = Date.now().toString();
+const secretKey = 'your-secret-key';
+const algorithm: 'hmac_sha256' = 'hmac_sha256';
+
+// 生成签名
+const sign = generateSign(queryParams, body, timestamp, secretKey, algorithm);
+
+// 发送请求时携带签名
+const headers = {
+  'X-Sign': sign,
+  'X-Sign-Timestamp': timestamp
+};
+
+// 发送请求
+fetch('https://api.example.com/guardian-example/sign/hmac-sha256', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    ...headers
+  },
+  body: JSON.stringify(body)
+}).then(response => response.json())
+  .then(data => console.log('响应:', data));
+```
+
+### 响应结果签名
+
+开启 `result-sign: true` 后，响应结果会自动添加签名头：
+- `X-Sign`：响应结果的签名
+- `X-Sign-Timestamp`：签名时的时间戳
+
+**特别说明**：结果参数签名时会将controller返回的所有信息都进行签名，包括code、message、data等完整的响应结构。例如：
+
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "request": {
+      "name": "guardian",
+      "value": "test123"
+    },
+    "message": "This response is signed"
+  },
+  "timestamp": 1772534163534
+}
+```
+
+签名会基于上述完整的JSON结构进行计算，确保整个响应结果的完整性。
+
+### 可观测性
+
+- **拦截日志**：`log-enabled: true`，前缀 `[Guardian-Sign]`
+- **Actuator**：`GET /actuator/guardianSign`
+
+```json
+{
+  "totalRequestCount": 1000,
+  "totalPassCount": 990,
+  "totalBlockCount": 10,
+  "blockRate": "1.00%",
+  "topBlockedApis": {
+    "/api/payment/submit": 5,
+    "/api/order/create": 3
+  }
+}
+```
+
+### 扩展点
+
+**自定义签名服务：**
+
+```java
+@Bean
+public SignService customSignService() {
+    return new SignService() {
+        @Override
+        public String sign(SortedMap<String, String> params, String timestamp, String secretKey, SignAlgorithm algorithm) {
+            // 自定义签名逻辑
+        }
+    };
+}
+```
+
+**自定义响应处理器（仅 `response-mode: json` 时生效）：**
+
+```java
+@Bean
+public SignResponseHandler signResponseHandler() {
+    return (request, response, code, data, message) -> {
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write(JSONUtil.toJsonStr(CommonResult.result(code, data, message)));
+    };
+}
+```
+
+### 常见问题解答
+
+**Q: 签名验证失败怎么办？**
+A: 检查以下几点：
+- 确保前后端使用的算法一致
+- 确保时间戳在有效期内
+- 确保密钥一致
+- 确保参数排序逻辑一致
+- 检查请求体是否被正确处理
+
+**Q: 如何选择合适的签名算法？**
+A: 根据安全需求选择：
+- **base64**：仅用于测试，安全性最低
+- **md5**：适用于一般场景
+- **sha256**：适用于安全性要求较高的场景
+- **hmac_sha256**：适用于安全性要求高的场景，推荐使用
+
+**Q: 如何处理大请求体的签名？**
+A: 大请求体可能会影响签名性能，建议：
+- 考虑使用更高效的算法（如 hmac_sha256）
+- 合理设计 API，避免过大的请求体
+- 考虑对请求体进行压缩
+
+**Q: 签名密钥如何管理？**
+A: 建议：
+- 不要硬编码在代码中
+- 使用环境变量或配置中心管理
+- 定期更换密钥
+- 不同环境使用不同密钥
+
+**Q: 如何测试签名功能？**
+A: 可以使用以下方法：
+- 使用提供的 `sign-generator.html` 工具生成签名
+- 在 Apifox 中添加测试用例
+- 编写单元测试验证签名逻辑
+
+**Q: 结果签名有什么作用？**
+A: 结果签名可以：
+- 确保响应未被篡改
+- 验证响应的完整性
+- 防止中间人攻击
+
+**Q: 如何处理签名验证的性能问题？**
+A: 可以：
+- 对频繁请求的参数进行缓存
+- 使用更高效的算法
+- 合理设置拦截器顺序
+- 考虑异步验证（适用于非关键接口）
+
+</details>
+
+---
+
 ## 规则优先级
 
 Guardian 各模块（防重复提交、接口限流、慢接口检测）的规则匹配遵循以下优先级：
@@ -1548,6 +2336,26 @@ Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo
 | `log-enabled` | `boolean` | `false` | 是否打印拦截日志           |
 | `message` | `String` | `接口暂时关闭，请稍后再试` | 提示信息（支持 i18n Key）  |
 | `disabled-urls` | `List<String>` | `[]` | 默认关闭的接口路径（AntPath） |
+
+**参数签名**（prefix: `guardian.sign`）
+
+| YAML Key | 类型 | 默认值 | 说明 |
+|----------|------|--------|------|
+| `secret-key` | `String` | `""` | 签名密钥 |
+| `result-sign` | `boolean` | `false` | 结果签名开关 |
+| `response-mode` | `exception` / `json` | `exception` | 响应模式 |
+| `log-enabled` | `boolean` | `false` | 是否打印拦截日志 |
+| `sign-header` | `String` | `X-Sign` | 签名请求头名称 |
+| `timestamp-header` | `String` | `X-Sign-Timestamp` | 时间戳请求头名称 |
+| `max-age` | `long` | `60` | 时间戳过期时间 |
+| `max-age-unit` | `TimeUnit` | `seconds` | 时间戳过期时间单位 |
+| `missing-timestamp-message` | `String` | `缺少时间戳` | 缺少时间戳提示（支持 i18n Key） |
+| `missing-sign-message` | `String` | `缺少参数签名` | 缺少签名提示（支持 i18n Key） |
+| `expired-message` | `String` | `请求已过期` | 请求过期提示（支持 i18n Key） |
+| `urls` | `List` | `[]` | 签名验证规则列表，每项参数如下 |
+| `urls[].pattern` | `String` | — | 接口路径（AntPath） |
+| `urls[].algorithm` | `base64` / `md5` / `sha256` / `hmac_sha256` | `base64` | 签名算法 |
+| `urls[].sign-verify-message` | `String` | `签名校验失败` | 签名验证失败提示（支持 i18n Key） |
 
 ### 使用方式
 
@@ -1842,7 +2650,8 @@ Interceptor 在 Spring MVC 层执行，Filter 之后：
 | 2  | 接口开关  | `guardian.api-switch.interceptor-order` | **500**   | 接口关闭直接拒绝，避免后续无意义计算          |
 | 3  | 接口限流  | `guardian.rate-limit.interceptor-order` | **1000**  | 流量超限直接拒绝，避免后续无意义计算          |
 | 4  | 防重复提交 | `guardian.repeat-submit.interceptor-order` | **2000**  | 通过限流后，判断是否短时间重复请求           |
-| 5  | 接口幂等  | `guardian.idempotent.interceptor-order` | **3000**  | 最后执行，消费 Token 不可逆，确保前面校验都通过 |
+| 5  | 接口幂等  | `guardian.idempotent.interceptor-order` | **3000**  | 消费 Token 不可逆，确保前面校验都通过 |
+| 6  | 参数签名  | `guardian.sign.interceptor-order` | **4000** | 签名验证，确保请求参数未被篡改            |
 
 每个模块的 order 均可通过 YAML 自定义，方便与项目中其他拦截器协调：
 
@@ -1870,6 +2679,8 @@ guardian:
     interceptor-order: 2000              # 防重复提交
   idempotent:
     interceptor-order: 3000              # 接口幂等
+  sign:
+    interceptor-order: 4000             # 参数签名
 ```
 
 ## 存储对比
@@ -1883,7 +2694,19 @@ guardian:
 
 ## 更新日志
 
-### v1.7.2
+### v1.8.0
+
+- **新增**：参数签名模块（`guardian-sign`），支持多种签名算法，请求参数签名验证 + 响应结果签名
+- **新增**：`@SignVerify` 注解，支持指定签名算法和自定义错误信息
+- **新增**：签名验证拦截器（`SignVerifyInterceptor`），自动校验请求签名
+- **新增**：响应结果签名（`SignResultSignAdvice`），确保返回数据的完整性
+- **新增**：签名服务（`SignService`），支持 BASE64、MD5、SHA256 和 HMAC-SHA256 四种算法
+- **新增**：签名统计和 Actuator 端点（`GET /actuator/guardianSign`）
+- **修复**：HMAC-SHA256 算法实现错误，添加了密钥参数
+- **修复**：配置验证，添加了对 secretKey 的非空检查
+- **修复**：响应签名空值检查缺失问题
+
+### v1.8.0
 
 - **新增**：接口开关模块（`guardian-api-switch`），动态关闭/开启接口
 

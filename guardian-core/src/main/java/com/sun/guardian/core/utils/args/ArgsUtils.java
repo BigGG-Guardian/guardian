@@ -60,6 +60,61 @@ public class ArgsUtils {
     }
 
     /**
+     * 从 request 中提取参数，排序
+     */
+    public static SortedMap<String, String> toSorted(HttpServletRequest request) {
+        SortedMap<String, String> result = new TreeMap<>();
+
+        Map<String, String[]> paramMap = request.getParameterMap();
+        if (paramMap != null && !paramMap.isEmpty()) {
+            TreeMap<String, String> sorted = new TreeMap<>();
+            paramMap.forEach((k, v) -> sorted.put(k, v.length == 1 ? v[0] : String.join(",", v)));
+            result.putAll(sorted);
+        }
+
+        if (request instanceof RepeatableRequestWrapper) {
+            byte[] body = ((RepeatableRequestWrapper) request).getCachedBody();
+            if (body != null && body.length > 0) {
+                String bodyStr = new String(body, StandardCharsets.UTF_8).trim();
+                if (GuardianJsonUtils.isJson(bodyStr)) {
+                    JsonNode node = GuardianJsonUtils.readTree(bodyStr);
+                    JsonNode sortedNode = toSortedJsonNode(node);
+                    result.put("body", GuardianJsonUtils.toJsonStr(sortedNode));
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * 将对象转换为排序后的参数映射，保持JSON结构
+     */
+    public static SortedMap<String, String> toSorted(Object body) {
+        SortedMap<String, String> result = new TreeMap<>();
+        if (body == null) {
+            return result;
+        }
+
+        JsonNode node;
+        if (body instanceof String) {
+            String bodyStr = ((String) body).trim();
+            if (GuardianJsonUtils.isJson(bodyStr)) {
+                node = GuardianJsonUtils.readTree(bodyStr);
+            } else {
+                result.put("body", bodyStr);
+                return result;
+            }
+        } else {
+            node = GuardianJsonUtils.getMapper().valueToTree(body);
+        }
+
+        JsonNode sortedNode = toSortedJsonNode(node);
+        result.put("body", GuardianJsonUtils.toJsonStr(sortedNode));
+        return result;
+    }
+
+    /**
      * 方法参数数组排序后 Base64 编码
      */
     public static String toSortedJsonStr(Object[] args) {
@@ -135,7 +190,7 @@ public class ArgsUtils {
     /**
      * 递归转为字段按字典序排列的 JSON
      */
-    private static JsonNode toSortedJsonNode(JsonNode node) {
+    public static JsonNode toSortedJsonNode(JsonNode node) {
         if (node == null || node.isNull() || node.isValueNode()) {
             return node;
         }

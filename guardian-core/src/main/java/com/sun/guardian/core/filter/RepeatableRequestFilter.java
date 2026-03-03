@@ -18,7 +18,9 @@ import java.io.IOException;
  */
 public class RepeatableRequestFilter extends OncePerRequestFilter {
 
-    /** 对 JSON 请求包装为可重复读取的请求 */
+    /**
+     * 对 JSON 请求包装为可重复读取的请求
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {

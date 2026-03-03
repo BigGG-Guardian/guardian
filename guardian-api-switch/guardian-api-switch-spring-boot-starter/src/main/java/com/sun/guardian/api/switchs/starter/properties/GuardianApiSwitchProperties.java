@@ -32,7 +32,7 @@ public class GuardianApiSwitchProperties implements ApiSwitchConfig {
     /**
      * 拦截器排序（值越小越先执行）
      */
-    private int interceptorOrder = -2000;
+    private int interceptorOrder = 500;
 
     /**
      * 响应模式：exception / json
