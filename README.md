@@ -2246,6 +2246,28 @@ guardian:
     log-enabled: true
     disabled-urls:
       - /api-switch/disabled
+
+  sign:
+    enabled: true
+    secret-key: your-secret-key
+    result-sign: false
+    response-mode: exception
+    log-enabled: false
+    interceptor-order: 4000
+    sign-header: X-Sign
+    timestamp-header: X-Sign-Timestamp
+    max-age: 60
+    max-age-unit: seconds
+    missing-timestamp-message: "缺少时间戳"
+    missing-sign-message: "缺少参数签名"
+    expired-message: "请求已过期"
+    urls:
+      - pattern: /api/payment/**
+        algorithm: hmac_sha256
+        sign-verify-message: "签名验证失败"
+      - pattern: /api/order/**
+        algorithm: md5
+        sign-verify-message: "订单接口签名验证失败"
 ```
 
 > 只需配置你用到的模块，没用到的模块无需配置。修改任意参数后点击发布，下一次请求即可读取到最新值。
@@ -2383,6 +2405,9 @@ guardian-parent
 ├── guardian-api-switch/                  # 接口开关
 │   ├── guardian-api-switch-core/
 │   └── guardian-api-switch-spring-boot-starter/
+├── guardian-sign/                         # 参数签名
+│   ├── guardian-sign-core/
+│   └── guardian-sign-spring-boot-starter/
 ├── guardian-starter-all/                  # 整合引用所有Starter模块
 ├── guardian-storage-redis/                # Redis 存储（多模块共享）
 └── guardian-example/                      # 示例工程
@@ -2470,7 +2495,7 @@ guardian:
 - **修复**：配置验证，添加了对 secretKey 的非空检查
 - **修复**：响应签名空值检查缺失问题
 
-### v1.8.0
+### v1.7.2
 
 - **新增**：接口开关模块（`guardian-api-switch`），动态关闭/开启接口
 
