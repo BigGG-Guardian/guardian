@@ -2106,7 +2106,6 @@ Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo
 | YAML Key | 类型 | 默认值 | 说明 |
 |----------|------|--------|------|
 | `secret-key` | `String` | `""` | 签名密钥 |
-| `result-sign` | `boolean` | `false` | 结果签名开关 |
 | `response-mode` | `exception` / `json` | `exception` | 响应模式 |
 | `log-enabled` | `boolean` | `false` | 是否打印拦截日志 |
 | `sign-header` | `String` | `X-Sign` | 签名请求头名称 |
@@ -2248,12 +2247,9 @@ guardian:
       - /api-switch/disabled
 
   sign:
-    enabled: true
     secret-key: your-secret-key
-    result-sign: false
     response-mode: exception
     log-enabled: false
-    interceptor-order: 4000
     sign-header: X-Sign
     timestamp-header: X-Sign-Timestamp
     max-age: 60
@@ -2264,10 +2260,10 @@ guardian:
     urls:
       - pattern: /api/payment/**
         algorithm: hmac_sha256
-        sign-verify-message: "签名验证失败"
+        sign-verify-message: "签名校验失败"
       - pattern: /api/order/**
         algorithm: md5
-        sign-verify-message: "订单接口签名验证失败"
+        sign-verify-message: "签名校验失败"
 ```
 
 > 只需配置你用到的模块，没用到的模块无需配置。修改任意参数后点击发布，下一次请求即可读取到最新值。
