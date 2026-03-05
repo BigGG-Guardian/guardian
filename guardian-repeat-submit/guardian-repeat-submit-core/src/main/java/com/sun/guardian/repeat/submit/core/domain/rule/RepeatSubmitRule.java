@@ -48,6 +48,13 @@ public class RepeatSubmitRule extends BaseRule {
     private ClientType clientType = ClientType.PC;
 
     /**
+     * spEl表达式
+     * 有值-将根据spEl表达式取参数注入到防重键维度的args参数内
+     * 无值-原有逻辑，取所有请求参数注入到防重键维度的args参数内
+     */
+    private String spEl = "";
+
+    /**
      * 从 @RepeatSubmit 注解创建规则
      */
     public static RepeatSubmitRule fromAnnotation(RepeatSubmit annotation) {
@@ -56,7 +63,8 @@ public class RepeatSubmitRule extends BaseRule {
                 .setTimeUnit(annotation.timeUnit())
                 .setMessage(annotation.message())
                 .setKeyScope(annotation.keyScope())
-                .setClientType(annotation.clientType());
+                .setClientType(annotation.clientType())
+                .setSpEl(annotation.spEl());
     }
 
     /**

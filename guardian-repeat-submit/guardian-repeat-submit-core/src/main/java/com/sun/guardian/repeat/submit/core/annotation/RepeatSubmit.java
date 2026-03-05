@@ -42,4 +42,11 @@ public @interface RepeatSubmit {
      * 客户端类型
      */
     ClientType clientType() default ClientType.PC;
+
+    /**
+     * spEl表达式
+     * 有值-将根据spEl表达式取参数注入到防重键维度的args参数内
+     * 无值-原有逻辑，取所有请求参数注入到防重键维度的args参数内
+     */
+    String spEl() default "";
 }

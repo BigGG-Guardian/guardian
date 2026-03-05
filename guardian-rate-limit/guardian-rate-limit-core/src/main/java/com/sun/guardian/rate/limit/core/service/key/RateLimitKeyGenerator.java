@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface RateLimitKeyGenerator {
 
-    /** 生成限流令牌 */
+    /**
+     * 生成限流令牌
+     */
     RateLimitToken generate(RateLimitRule rule, HttpServletRequest request);
 }

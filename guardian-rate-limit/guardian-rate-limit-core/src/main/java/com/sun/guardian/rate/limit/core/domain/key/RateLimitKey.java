@@ -19,4 +19,5 @@ public class RateLimitKey {
     private String userId;
     private String clientIp;
     private String keyScope;
+    private String args;
 }

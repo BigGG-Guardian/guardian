@@ -3,12 +3,14 @@ package com.sun.guardian.repeat.submit.core.service.key.strategy;
 import com.sun.guardian.core.context.UserContext;
 import com.sun.guardian.core.utils.args.ArgsUtils;
 import com.sun.guardian.core.utils.ip.IpUtils;
+import com.sun.guardian.core.utils.spel.SpElUtils;
 import com.sun.guardian.core.utils.user.UserContextUtils;
 import com.sun.guardian.repeat.submit.core.domain.key.RepeatSubmitKey;
 import com.sun.guardian.repeat.submit.core.domain.rule.RepeatSubmitRule;
 import com.sun.guardian.repeat.submit.core.domain.token.RepeatSubmitToken;
 import com.sun.guardian.repeat.submit.core.service.encrypt.strategy.AbstractKeyEncrypt;
 import com.sun.guardian.repeat.submit.core.service.key.KeyGenerator;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -62,7 +64,7 @@ public abstract class AbstractKeyGenerator implements KeyGenerator {
                 .setClientIp(IpUtils.getClientIp(request))
                 .setMethod(request.getMethod())
                 .setServletUri(request.getServletPath())
-                .setArgs(ArgsUtils.toSortedJsonStr(request));
+                .setArgs(StringUtils.hasText(rule.getSpEl()) ? SpElUtils.evaluate(rule.getSpEl(), ArgsUtils.toSorted(request)) : ArgsUtils.toSortedJsonStr(request));
     }
 
     /**

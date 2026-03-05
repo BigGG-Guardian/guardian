@@ -52,7 +52,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-starter-all</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 ><small>特别说明：`请求链路追踪模块`若开启RabbitMq/Kafka/RocketMq请求链路追踪，需额外引入对应的依赖(`guardian-trace-rabbitmq`/`guardian-trace-kafka`/`guardian-trace-rocketmq`)</small>
@@ -63,7 +63,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 
@@ -75,13 +75,45 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 }
 ```
 
+**SpEL 动态 Key（v1.9.0+）：**
+- 通过 `spEl` 属性使用 SpEL 表达式动态生成防重 Key
+- `#参数名` - 从请求参数或请求体中获取
+- `#body.参数名` - 显式从请求体中获取
+
+```java
+// 仅请求体
+@RepeatSubmit(interval = 10, spEl = "#orderId", message = "请勿重复提交")
+
+// 仅请求参数
+@GetMapping("/test")
+@RepeatSubmit(interval = 10, spEl = "#orderId")
+
+// 组合使用
+@RepeatSubmit(interval = 10, spEl = "#userId + ':' + #body.orderId")
+```
+
+YAML 配置：
+```yaml
+guardian:
+  repeat-submit:
+    urls:
+      - pattern: /api/order/spel-body
+        interval: 10
+        key-scope: user
+        sp-el: "#orderId"
+      - pattern: /api/order/spel-mix
+        interval: 10
+        key-scope: user
+        sp-el: "#userId + ':' + #body.orderId"
+```
+
 ### 接口限流
 
 ```xml
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 
@@ -95,6 +127,38 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 
 ```java
 @RateLimit(qps = 5, capacity = 20, algorithm = RateLimitAlgorithm.TOKEN_BUCKET)
+```
+
+**SpEL 动态 Key（v1.9.0+）：**
+- 通过 `spEl` 属性使用 SpEL 表达式动态生成限流 Key
+- `#参数名` - 从请求参数或请求体中获取
+- `#body.参数名` - 显式从请求体中获取
+
+```java
+// 仅请求体
+@RateLimit(qps = 5, spEl = "#orderId", message = "操作过于频繁")
+
+// 仅请求参数
+@GetMapping("/search")
+@RateLimit(qps = 5, spEl = "#keyword")
+
+// 组合使用
+@RateLimit(qps = 5, spEl = "#userId + ':' + #body.productId")
+```
+
+YAML 配置：
+```yaml
+guardian:
+  rate-limit:
+    urls:
+      - pattern: /api/product/spel-body
+        qps: 5
+        rate-limit-scope: global
+        sp-el: "#productId"
+      - pattern: /api/order/spel-mix
+        qps: 5
+        rate-limit-scope: global
+        sp-el: "#userId + ':' + #body.productId"
 ```
 
 或 YAML 批量配置：
@@ -123,7 +187,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 
@@ -151,7 +215,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 
@@ -174,7 +238,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 
@@ -196,7 +260,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-spring-boot-starter</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 
@@ -214,7 +278,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 
@@ -242,7 +306,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-anti-replay-spring-boot-starter</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 
@@ -267,7 +331,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-api-switch-spring-boot-starter</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 
@@ -289,7 +353,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-sign-spring-boot-starter</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 
@@ -1102,7 +1166,7 @@ Guardian 支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-rabbitmq</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 
@@ -1115,7 +1179,7 @@ Guardian 支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-kafka</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 
@@ -1138,7 +1202,7 @@ spring:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-rocketmq</artifactId>
-    <version>1.8.1</version>
+    <version>1.9.0</version>
 </dependency>
 ```
 
@@ -2015,6 +2079,7 @@ Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo
 | `urls[].interval` | `int` | `5` | 防重间隔 |
 | `urls[].time-unit` | `TimeUnit` | `seconds` | 间隔时间单位 |
 | `urls[].key-scope` | `user` / `ip` / `global` | `user` | 防重维度 |
+| `urls[].sp-el` | `String` | — | SpEL 表达式，动态生成 Key（v1.9.0+，如 `#orderId`） |
 | `urls[].message` | `String` | `您的请求过于频繁，请稍后再试` | 拦截提示信息 |
 | `urls[].client-type` | `pc` / `app` | `pc` | 客户端类型 |
 
@@ -2033,6 +2098,7 @@ Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo
 | `urls[].algorithm` | `sliding_window` / `token_bucket` | `sliding_window` | 限流算法 |
 | `urls[].capacity` | `int` | `-1` | 令牌桶容量（≤0 时取 qps 值） |
 | `urls[].rate-limit-scope` | `global` / `ip` / `user` | `global` | 限流维度 |
+| `urls[].sp-el` | `String` | — | SpEL 表达式，动态生成 Key（v1.9.0+，如 `#orderId`） |
 | `urls[].message` | `String` | `请求过于频繁，请稍后再试` | 拦截提示信息 |
 
 **接口幂等**（prefix: `guardian.idempotent`）
@@ -2170,6 +2236,15 @@ guardian:
         time-unit: seconds
         key-scope: user
         message: "请勿重复提交"
+      # SpEL 动态 Key 示例（v1.9.0+）
+      - pattern: /api/order/spel-body
+        interval: 10
+        key-scope: user
+        sp-el: "#orderId"
+      - pattern: /api/order/spel-mix
+        interval: 10
+        key-scope: user
+        sp-el: "#userId + ':' + #body.orderId"
 
   rate-limit:
     response-mode: exception
@@ -2188,6 +2263,15 @@ guardian:
         algorithm: token_bucket
         rate-limit-scope: global
         message: "抢购太火爆，请稍后重试"
+      # SpEL 动态 Key 示例（v1.9.0+）
+      - pattern: /api/product/spel-body
+        qps: 5
+        rate-limit-scope: global
+        sp-el: "#productId"
+      - pattern: /api/order/spel-mix
+        qps: 5
+        rate-limit-scope: global
+        sp-el: "#userId + ':' + #body.productId"
 
   idempotent:
     timeout: 300
@@ -2487,6 +2571,12 @@ guardian:
 | 额外依赖 | 需要 Redis | 无 |
 
 ## 更新日志
+
+### v1.9.0
+
+- **新增**：防重复提交模块支持 SpEL 表达式动态生成 Key（`spEl` 属性）
+- **新增**：接口限流模块支持 SpEL 表达式动态生成 Key（`spEl` 属性）
+- **新增**：`SpElUtils` 工具类，支持 `#参数名` 和 `#body.参数名` 访问请求参数
 
 ### v1.8.1
 

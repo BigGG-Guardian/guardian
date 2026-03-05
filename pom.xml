@@ -8,7 +8,7 @@
     <packaging>pom</packaging>
 
     <name>Guardian</name>
-    <description>轻量级 Spring Boot API 请求层防护框架（防重提交 + 接口限流 + 接口幂等 + 参数自动Trim + 慢接口检测 + 请求链路追踪 + IP黑白名单 + 防重放攻击）</description>
+    <description>轻量级 Spring Boot API 请求层防护框架（防重提交 + 接口限流 + 接口幂等 + 参数自动Trim + 慢接口检测 + 请求链路追踪 + IP黑白名单 + 防重放攻击 + 接口开关 + 参数签名）</description>
     <url>https://github.com/BigGG-Guardian/guardian</url>
 
     <licenses>
@@ -41,7 +41,7 @@
 
     <!--  参数管理  -->
     <properties>
-        <revision>1.8.1</revision>
+        <revision>1.9.0</revision>
         <java.version>1.8</java.version>
         <spring-boot.version>2.7.18</spring-boot.version>
         <servlet.version>4.0.1</servlet.version>

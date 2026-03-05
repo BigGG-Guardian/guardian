@@ -345,6 +345,256 @@
         }
       }
     },
+    "/repeat-submit/spel/params": {
+      "get": {
+        "tags": ["防重复提交-SpEL"],
+        "summary": "SpEL-仅Params",
+        "description": "@RepeatSubmit(spEl=\"#orderId\")，从URL参数中取orderId",
+        "operationId": "repeatSubmitSpelParams",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "40001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repeat-submit/spel/body": {
+      "post": {
+        "tags": ["防重复提交-SpEL"],
+        "summary": "SpEL-仅Body",
+        "description": "@RepeatSubmit(spEl=\"#orderId\")，从请求体中取orderId（只有body时直接用#字段名）",
+        "operationId": "repeatSubmitSpelBody",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "40001"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repeat-submit/spel/mix": {
+      "post": {
+        "tags": ["防重复提交-SpEL"],
+        "summary": "SpEL-Params+Body混合",
+        "description": "@RepeatSubmit(spEl=\"#userId + ':' + #body.orderId\")，需加body前缀区分",
+        "operationId": "repeatSubmitSpelMix",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "user001"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "40001"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repeat-submit/yml/spel-params": {
+      "get": {
+        "tags": ["防重复提交-YAML规则"],
+        "summary": "YAML-SpEL-仅Params",
+        "description": "yml配置spEl=\"#orderId\"，从URL参数中取orderId",
+        "operationId": "repeatSubmitYmlSpelParams",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "40001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repeat-submit/yml/spel-body": {
+      "post": {
+        "tags": ["防重复提交-YAML规则"],
+        "summary": "YAML-SpEL-仅Body",
+        "description": "yml配置spEl=\"#orderId\"，从请求体中取orderId",
+        "operationId": "repeatSubmitYmlSpelBody",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "40001"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/repeat-submit/yml/spel-mix": {
+      "post": {
+        "tags": ["防重复提交-YAML规则"],
+        "summary": "YAML-SpEL-Params+Body混合",
+        "description": "yml配置spEl=\"#userId + ':' + #body.orderId\"",
+        "operationId": "repeatSubmitYmlSpelMix",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "user001"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "40001"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/rate-limit/yml/search": {
       "get": {
         "tags": ["接口限流-YAML规则"],
@@ -979,6 +1229,256 @@
                 "properties": {
                   "data": { "type": "string", "example": "test" }
                 }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/spel/params": {
+      "get": {
+        "tags": ["限流-SpEL"],
+        "summary": "SpEL-仅Params",
+        "description": "@RateLimit(spEl=\"#keyword\")，从URL参数中取keyword",
+        "operationId": "rateLimitSpelParams",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "test"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/spel/body": {
+      "post": {
+        "tags": ["限流-SpEL"],
+        "summary": "SpEL-仅Body",
+        "description": "@RateLimit(spEl=\"#orderId\")，从请求体中取orderId（只有body时直接用#字段名）",
+        "operationId": "rateLimitSpelBody",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "40001"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/spel/mix": {
+      "post": {
+        "tags": ["限流-SpEL"],
+        "summary": "SpEL-Params+Body混合",
+        "description": "@RateLimit(spEl=\"#userId + ':' + #body.orderId\")，需加body前缀区分",
+        "operationId": "rateLimitSpelMix",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "user001"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "40001"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/yml/spel-params": {
+      "get": {
+        "tags": ["限流-YAML规则"],
+        "summary": "YAML-SpEL-仅Params",
+        "description": "yml配置spEl=\"#keyword\"，从URL参数中取keyword",
+        "operationId": "rateLimitYmlSpelParams",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "test"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/yml/spel-body": {
+      "post": {
+        "tags": ["限流-YAML规则"],
+        "summary": "YAML-SpEL-仅Body",
+        "description": "yml配置spEl=\"#orderId\"，从请求体中取orderId",
+        "operationId": "rateLimitYmlSpelBody",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "40001"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rate-limit/yml/spel-mix": {
+      "post": {
+        "tags": ["限流-YAML规则"],
+        "summary": "YAML-SpEL-Params+Body混合",
+        "description": "yml配置spEl=\"#userId + ':' + #body.orderId\"",
+        "operationId": "rateLimitYmlSpelMix",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "user001"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": { "type": "string" }
+              },
+              "example": {
+                "orderId": "40001"
               }
             }
           }

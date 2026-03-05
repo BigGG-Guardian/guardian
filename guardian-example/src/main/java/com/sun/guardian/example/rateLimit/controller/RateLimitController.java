@@ -62,6 +62,35 @@ public class RateLimitController {
         return CommonResult.success("白名单接口，不受限流限制");
     }
 
+    // ==================== YAML SpEL 形式限流 ====================
+
+    /**
+     * YAML SpEL - 仅 params（URL参数）
+     * sp-el: "#keyword" 在 yml 中配置
+     */
+    @GetMapping("/yml/spel-params")
+    public CommonResult<String> ymlSpelParams(@RequestParam(defaultValue = "test") String keyword) {
+        return CommonResult.success("YAML SpEL-Params 限流接口调用成功，keyword=" + keyword);
+    }
+
+    /**
+     * YAML SpEL - 仅 body（JSON请求体）
+     * sp-el: "#orderId" 在 yml 中配置
+     */
+    @PostMapping("/yml/spel-body")
+    public CommonResult<String> ymlSpelBody(@RequestBody Map<String, String> body) {
+        return CommonResult.success("YAML SpEL-Body 限流接口调用成功，body=" + body);
+    }
+
+    /**
+     * YAML SpEL - params + body 混合
+     * sp-el: "#userId + ':' + #body.orderId" 在 yml 中配置
+     */
+    @PostMapping("/yml/spel-mix")
+    public CommonResult<String> ymlSpelMix(@RequestParam String userId, @RequestBody Map<String, String> body) {
+        return CommonResult.success("YAML SpEL-Mix 限流接口调用成功，userId=" + userId + ", body=" + body);
+    }
+
     // ==================== 注解（滑动窗口） ====================
 
     /**
@@ -155,5 +184,38 @@ public class RateLimitController {
     @GetMapping("/annotation/token-bucket/slow-refill")
     public CommonResult<String> tokenBucketSlowRefill() {
         return CommonResult.success("分钟级令牌桶接口调用成功");
+    }
+
+    // ==================== SpEL 形式限流 ====================
+
+    /**
+     * SpEL - 仅 params（URL参数）
+     * spEl = "#keyword" 表示从请求参数中取 keyword
+     */
+    @RateLimit(qps = 5, spEl = "#keyword", message = "搜索过于频繁，请稍后重试")
+    @GetMapping("/spel/params")
+    public CommonResult<String> spelParams(@RequestParam(defaultValue = "test") String keyword) {
+        return CommonResult.success("SpEL-Params 限流接口调用成功，keyword=" + keyword);
+    }
+
+    /**
+     * SpEL - 仅 body（JSON请求体）
+     * spEl = "#orderId" 表示从请求体中取 orderId（只有body时，直接用#字段名）
+     */
+    @RateLimit(qps = 5, spEl = "#orderId", message = "订单操作过于频繁，请稍后重试")
+    @PostMapping("/spel/body")
+    public CommonResult<String> spelBody(@RequestBody Map<String, String> body) {
+        return CommonResult.success("SpEL-Body 限流接口调用成功，body=" + body);
+    }
+
+    /**
+     * SpEL - params + body 混合
+     * spEl = "#userId + ':' + #body.orderId" 表示组合 userId 和 orderId
+     * 其中 #userId 来自 URL 参数，#body.orderId 来自请求体（需加body前缀区分）
+     */
+    @RateLimit(qps = 5, spEl = "#userId + ':' + #body.orderId", message = "操作过于频繁，请稍后重试")
+    @PostMapping("/spel/mix")
+    public CommonResult<String> spelMix(@RequestParam String userId, @RequestBody Map<String, String> body) {
+        return CommonResult.success("SpEL-Mix 限流接口调用成功，userId=" + userId + ", body=" + body);
     }
 }

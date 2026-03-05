@@ -14,11 +14,15 @@ import java.util.Map;
  */
 public class TemplateUtils {
 
-    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() {};
+    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<Map<String, Object>>() {
+    };
 
-    private TemplateUtils() {}
+    private TemplateUtils() {
+    }
 
-    /** 将 {fieldName} 占位符替换为 Bean 字段值 */
+    /**
+     * 将 {fieldName} 占位符替换为 Bean 字段值
+     */
     public static String formatByBean(String template, Object bean) {
         Map<String, Object> params = GuardianJsonUtils.getMapper().convertValue(bean, MAP_TYPE);
         String result = template;

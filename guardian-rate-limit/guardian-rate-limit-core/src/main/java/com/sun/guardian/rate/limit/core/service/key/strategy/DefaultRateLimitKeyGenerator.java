@@ -3,6 +3,7 @@ package com.sun.guardian.rate.limit.core.service.key.strategy;
 import com.sun.guardian.core.context.UserContext;
 import com.sun.guardian.core.utils.template.TemplateUtils;
 import com.sun.guardian.rate.limit.core.domain.key.RateLimitKey;
+import org.springframework.util.StringUtils;
 
 import static com.sun.guardian.rate.limit.core.constants.RateLimitKeyPrefixConstants.getSuffixByKeyScope;
 
@@ -22,9 +23,15 @@ public class DefaultRateLimitKeyGenerator extends AbstractRateLimitKeyGenerator 
         super(userContext);
     }
 
-    /** 拼接限流 Key */
+    /**
+     * 拼接限流 Key
+     */
     @Override
     protected String buildKey(RateLimitKey key) {
-        return TemplateUtils.formatByBean(getSuffixByKeyScope(key.getKeyScope()), key);
+        String resultKey = TemplateUtils.formatByBean(getSuffixByKeyScope(key.getKeyScope()), key);
+        if (StringUtils.hasText(key.getArgs())) {
+            resultKey = resultKey.concat(":").concat(key.getArgs());
+        }
+        return resultKey;
     }
 }

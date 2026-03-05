@@ -1,13 +1,16 @@
 package com.sun.guardian.rate.limit.core.service.key.strategy;
 
 import com.sun.guardian.core.context.UserContext;
+import com.sun.guardian.core.utils.args.ArgsUtils;
 import com.sun.guardian.core.utils.ip.IpUtils;
+import com.sun.guardian.core.utils.spel.SpElUtils;
 import com.sun.guardian.core.utils.user.UserContextUtils;
 import com.sun.guardian.rate.limit.core.domain.key.RateLimitKey;
 import com.sun.guardian.rate.limit.core.domain.rule.RateLimitRule;
 import com.sun.guardian.rate.limit.core.domain.token.RateLimitToken;
 import com.sun.guardian.rate.limit.core.enums.algorithm.RateLimitAlgorithm;
 import com.sun.guardian.rate.limit.core.service.key.RateLimitKeyGenerator;
+import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -32,7 +35,9 @@ public abstract class AbstractRateLimitKeyGenerator implements RateLimitKeyGener
         this.userContextUtils = new UserContextUtils(userContext);
     }
 
-    /** 生成限流令牌 */
+    /**
+     * 生成限流令牌
+     */
     @Override
     public RateLimitToken generate(RateLimitRule rule, HttpServletRequest request) {
         RateLimitKey rateLimitKey = buildRateLimitKey(rule, request);
@@ -50,16 +55,25 @@ public abstract class AbstractRateLimitKeyGenerator implements RateLimitKeyGener
                 .setCapacity(rule.getCapacity());
     }
 
-    /** 组装限流键数据 */
+    /**
+     * 组装限流键数据
+     */
     private RateLimitKey buildRateLimitKey(RateLimitRule rule, HttpServletRequest request) {
-        return new RateLimitKey()
+        RateLimitKey rateLimitKey = new RateLimitKey()
                 .setServletUri(request.getServletPath())
                 .setMethod(request.getMethod())
                 .setUserId(userContextUtils.resolveUserId(request))
                 .setClientIp(IpUtils.getClientIp(request))
                 .setKeyScope(rule.getRateLimitScope().key);
+        if (StringUtils.hasText(rule.getSpEl())) {
+            rateLimitKey.setArgs(SpElUtils.evaluate(rule.getSpEl(), ArgsUtils.toSorted(request)));
+        }
+
+        return rateLimitKey;
     }
 
-    /** 子类实现：拼接限流 Key */
+    /**
+     * 子类实现：拼接限流 Key
+     */
     protected abstract String buildKey(RateLimitKey rateLimitKey);
 }

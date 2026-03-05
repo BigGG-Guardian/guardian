@@ -60,6 +60,24 @@ guardian:
         interval: 10
         key-scope: user
 
+      # SpEL - 仅 params
+      - pattern: /guardian-example/repeat-submit/yml/spel-params
+        interval: 10
+        key-scope: user
+        sp-el: "#orderId"
+
+      # SpEL - 仅 body
+      - pattern: /guardian-example/repeat-submit/yml/spel-body
+        interval: 10
+        key-scope: user
+        sp-el: "#orderId"
+
+      # SpEL - params + body 混合
+      - pattern: /guardian-example/repeat-submit/yml/spel-mix
+        interval: 10
+        key-scope: user
+        sp-el: "#userId + ':' + #body.orderId"
+
     # 排除规则（白名单，优先级最高，命中直接放行）
     exclude-urls:
       - /guardian-example/repeat-submit/yml/whitelist
@@ -101,6 +119,24 @@ guardian:
         algorithm: token_bucket
         rate-limit-scope: global
         message: "抢购太火爆，请稍后重试"
+
+      # SpEL - 仅 params
+      - pattern: /guardian-example/rate-limit/yml/spel-params
+        qps: 5
+        rate-limit-scope: global
+        sp-el: "#keyword"
+
+      # SpEL - 仅 body
+      - pattern: /guardian-example/rate-limit/yml/spel-body
+        qps: 5
+        rate-limit-scope: global
+        sp-el: "#orderId"
+
+      # SpEL - params + body 混合
+      - pattern: /guardian-example/rate-limit/yml/spel-mix
+        qps: 5
+        rate-limit-scope: global
+        sp-el: "#userId + ':' + #body.orderId"
 
     # 排除规则（白名单，优先级最高，命中直接放行）
     exclude-urls:

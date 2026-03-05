@@ -14,6 +14,8 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface KeyGenerator {
 
-    /** 生成防重令牌 */
+    /**
+     * 生成防重令牌
+     */
     RepeatSubmitToken generate(RepeatSubmitRule rule, HttpServletRequest request);
 }

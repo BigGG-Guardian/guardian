@@ -52,7 +52,7 @@ public class ArgsUtils {
             }
         }
 
-        if (result.size() == 0) {
+        if (result.isEmpty()) {
             return "";
         }
         return Base64.getEncoder().encodeToString(

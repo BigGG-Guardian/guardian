@@ -32,6 +32,12 @@ public class RateLimitRule extends BaseRule {
      * 令牌桶容量，<= 0 时取 qps
      */
     private int capacity = -1;
+    /**
+     * spEl表达式
+     * 有值-将根据spEl表达式取参数注入到防重键维度的args参数内
+     * 无值-原有逻辑，不存入参数
+     */
+    private String spEl = "";
 
     /**
      * 从注解创建规则
@@ -44,7 +50,8 @@ public class RateLimitRule extends BaseRule {
                 .setMessage(annotation.message())
                 .setRateLimitScope(annotation.rateLimitScope())
                 .setAlgorithm(annotation.algorithm())
-                .setCapacity(annotation.capacity());
+                .setCapacity(annotation.capacity())
+                .setSpEl(annotation.spEl());
     }
 
     /**

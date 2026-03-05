@@ -1,6 +1,7 @@
 package com.sun.guardian.core.utils.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -31,6 +32,14 @@ public class GuardianJsonUtils {
     public static <T> T toBean(String json, Class<T> clazz) {
         try {
             return MAPPER.readValue(json, clazz);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("JSON deserialize failed", e);
+        }
+    }
+
+    public static <T> T toBean(String json, TypeReference<T> typeRef) {
+        try {
+            return MAPPER.readValue(json, typeRef);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("JSON deserialize failed", e);
         }

@@ -44,6 +44,35 @@ public class RepeatSubmitController {
         return CommonResult.success("YAML GET 防重接口调用成功，参数：" + params);
     }
 
+    // ==================== YAML SpEL 形式防重 ====================
+
+    /**
+     * YAML SpEL - 仅 params（URL参数）
+     * sp-el: "#orderId" 在 yml 中配置
+     */
+    @GetMapping("/yml/spel-params")
+    public CommonResult<String> ymlSpelParams(@RequestParam String orderId) {
+        return CommonResult.success("YAML SpEL-Params 防重接口调用成功，orderId=" + orderId);
+    }
+
+    /**
+     * YAML SpEL - 仅 body（JSON请求体）
+     * sp-el: "#orderId" 在 yml 中配置
+     */
+    @PostMapping("/yml/spel-body")
+    public CommonResult<String> ymlSpelBody(@RequestBody Map<String, String> body) {
+        return CommonResult.success("YAML SpEL-Body 防重接口调用成功，body=" + body);
+    }
+
+    /**
+     * YAML SpEL - params + body 混合
+     * sp-el: "#userId + ':' + #body.orderId" 在 yml 中配置
+     */
+    @PostMapping("/yml/spel-mix")
+    public CommonResult<String> ymlSpelMix(@RequestParam String userId, @RequestBody Map<String, String> body) {
+        return CommonResult.success("YAML SpEL-Mix 防重接口调用成功，userId=" + userId + ", body=" + body);
+    }
+
     // ==================== 注解方式防重 ====================
 
     /**
@@ -89,5 +118,38 @@ public class RepeatSubmitController {
     @PostMapping("/annotation/exception-release")
     public CommonResult<String> annotationExceptionRelease(@RequestBody Map<String, String> body) {
         throw new RuntimeException("模拟业务异常，验证防重锁自动释放");
+    }
+
+    // ==================== SpEL 形式防重 ====================
+
+    /**
+     * SpEL - 仅 params（URL参数）
+     * spEl = "#orderId" 表示从请求参数中取 orderId
+     */
+    @RepeatSubmit(interval = 10, spEl = "#orderId", message = "请勿重复提交订单")
+    @GetMapping("/spel/params")
+    public CommonResult<String> spelParams(@RequestParam String orderId) {
+        return CommonResult.success("SpEL-Params 防重接口调用成功，orderId=" + orderId);
+    }
+
+    /**
+     * SpEL - 仅 body（JSON请求体）
+     * spEl = "#orderId" 表示从请求体中取 orderId（只有body时，直接用#字段名）
+     */
+    @RepeatSubmit(interval = 10, spEl = "#orderId", message = "请勿重复提交订单")
+    @PostMapping("/spel/body")
+    public CommonResult<String> spelBody(@RequestBody Map<String, String> body) {
+        return CommonResult.success("SpEL-Body 防重接口调用成功，body=" + body);
+    }
+
+    /**
+     * SpEL - params + body 混合
+     * spEl = "#userId + ':' + #body.orderId" 表示组合 userId 和 orderId
+     * 其中 #userId 来自 URL 参数，#body.orderId 来自请求体（需加body前缀区分）
+     */
+    @RepeatSubmit(interval = 10, spEl = "#userId + ':' + #body.orderId", message = "请勿重复提交订单")
+    @PostMapping("/spel/mix")
+    public CommonResult<String> spelMix(@RequestParam String userId, @RequestBody Map<String, String> body) {
+        return CommonResult.success("SpEL-Mix 防重接口调用成功，userId=" + userId + ", body=" + body);
     }
 }
