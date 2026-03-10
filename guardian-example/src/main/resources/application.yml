@@ -39,8 +39,9 @@ spring:
 #    group: guardian-example-producer
 
 guardian:
-  # 请求体缓存过滤器排序（全局共享，防重 / 幂等模块共用，默认 -100）
-  repeatable-filter-order: -100
+  # 请求体缓存过滤器排序（全局共享，防重 / 幂等模块共用，默认 -100000）
+  # 值越小越先执行，确保在所有其他 Filter 之前
+  repeatable-filter-order: -100000
 
   # ==================== 防重复提交配置 ====================
   # 也可使用 @RepeatSubmit 注解，YAML 优先级高于注解
@@ -273,6 +274,63 @@ guardian:
         algorithm: sha256
         sign-verify-message: "YAML 配置的签名验证失败"
     result-advice-order: 100
+
+  # ==================== 请求解密配置 ====================
+  decrypt:
+    enabled: true
+    filter-order: -50
+    log-enabled: true
+    # RSA 私钥（Base64格式，用于解密前端传来的 AES 密钥）
+    key:
+      private-key: "A+dz7LZ+vPSZHShdp9oHxItAw4r9eziS6TKywTNBwiw="
+    data:
+      param-alias: encryptParams
+      body-alias: encryptBody
+      data-key-header: X-Encrypt-Key
+      key-mode: DYNAMIC
+    urls:
+      - pattern: /guardian-example/encrypt/decrypt/**
+        key-algorithm: sm2
+        data-algorithm: sm4
+      - pattern: /guardian-example/encrypt/both/**
+        key-algorithm: sm2
+        data-algorithm: sm4
+      - pattern: /guardian-example/encrypt/large
+        key-algorithm: sm2
+        data-algorithm: sm4
+      - pattern: /guardian-example/encrypt/special-chars
+        key-algorithm: sm2
+        data-algorithm: sm4
+    exclude-urls:
+      - /guardian-example/encrypt/normal
+
+  # ==================== 响应加密配置 ====================
+  encrypt:
+    enabled: true
+    result-advice-order: 300
+    log-enabled: true
+    # RSA 公钥（Base64格式，用于加密返回给前端的 AES 密钥）
+    key:
+      public-key: "BNk/59FNs2GWOKjSfz4doh5gesBo4buUwH9QHDoqjD9oin0E4CoGWc80FTw1yETHTybHhJj5XLbIV+kSQZBmcWg="
+    data:
+      body-alias: encryptBody
+      data-key-header: X-Encrypt-Key
+      key-mode: DYNAMIC
+    urls:
+      - pattern: /guardian-example/encrypt/encrypt/**
+        key-algorithm: sm2
+        data-algorithm: sm4
+      - pattern: /guardian-example/encrypt/both/**
+        key-algorithm: sm2
+        data-algorithm: sm4
+      - pattern: /guardian-example/encrypt/large
+        key-algorithm: sm2
+        data-algorithm: sm4
+      - pattern: /guardian-example/encrypt/special-chars
+        key-algorithm: sm2
+        data-algorithm: sm4
+    exclude-urls:
+      - /guardian-example/encrypt/normal
 
 
 # Actuator 监控端点的配置项

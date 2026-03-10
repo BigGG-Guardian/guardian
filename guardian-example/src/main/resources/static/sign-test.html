@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardian 签名接口测试</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+    <script src="node_modules/sm-crypto/dist/sm2.js"></script>
+    <script src="node_modules/sm-crypto/dist/sm3.js"></script>
+    <script src="node_modules/sm-crypto/dist/sm4.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { text-align: center; color: #333; margin-bottom: 20px; }
+        .config-panel { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .config-panel h3 { margin-bottom: 15px; color: #333; }
+        .config-row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .config-item { flex: 1; min-width: 300px; }
+        .config-item label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
+        .config-item input, .config-item textarea, .config-item select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .config-item textarea { height: 120px; font-family: monospace; resize: vertical; }
+        .test-section { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .test-section h3 { margin-bottom: 15px; color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .btn-primary { background: #4CAF50; color: white; }
+        .btn-primary:hover { background: #45a049; }
+        .btn-secondary { background: #2196F3; color: white; }
+        .btn-secondary:hover { background: #1976D2; }
+        .btn-warning { background: #ff9800; color: white; }
+        .btn-warning:hover { background: #f57c00; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-danger:hover { background: #d32f2f; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .console-panel { background: #1e1e1e; border-radius: 8px; padding: 20px; margin-top: 20px; }
+        .console-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .console-header h3 { color: #4CAF50; }
+        .console-content { background: #0d0d0d; border-radius: 4px; padding: 15px; max-height: 500px; overflow-y: auto; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; line-height: 1.6; }
+        .log-item { margin-bottom: 10px; padding: 10px; border-radius: 4px; }
+        .log-info { background: #1a3a1a; border-left: 3px solid #4CAF50; }
+        .log-request { background: #1a2a3a; border-left: 3px solid #2196F3; }
+        .log-response { background: #3a2a1a; border-left: 3px solid #ff9800; }
+        .log-sign { background: #3a1a3a; border-left: 3px solid #9c27b0; }
+        .log-error { background: #3a1a1a; border-left: 3px solid #f44336; }
+        .log-label { color: #888; font-size: 12px; margin-bottom: 5px; }
+        .log-content { color: #d4d4d4; white-space: pre-wrap; word-break: break-all; }
+        .log-time { color: #666; font-size: 11px; margin-top: 5px; }
+        .clear-btn { background: #555; color: #fff; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; }
+        .clear-btn:hover { background: #666; }
+        .result-panel { background: #f8f9fa; border-radius: 8px; padding: 15px; margin-top: 15px; }
+        .result-panel h4 { margin-bottom: 10px; color: #333; }
+        .result-item { margin-bottom: 8px; }
+        .result-item label { font-weight: bold; color: #666; margin-right: 10px; }
+        .result-item code { background: #e9ecef; padding: 2px 6px; border-radius: 4px; font-family: monospace; word-break: break-all; }
+        .algorithm-tabs { display: flex; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
+        .algorithm-tab { padding: 8px 16px; border: 2px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.3s; background: #fff; }
+        .algorithm-tab:hover { border-color: #4CAF50; }
+        .algorithm-tab.active { border-color: #4CAF50; background: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>🔐 Guardian 签名接口测试</h1>
+        
+        <div class="config-panel">
+            <h3>⚙️ 配置</h3>
+            <div class="config-row">
+                <div class="config-item">
+                    <label>服务地址</label>
+                    <input type="text" v-model="config.baseUrl">
+                </div>
+                <div class="config-item">
+                    <label>签名密钥 (secretKey)</label>
+                    <input type="text" v-model="config.secretKey">
+                </div>
+            </div>
+            <div class="config-row" style="margin-top: 15px;">
+                <div class="config-item">
+                    <label>签名算法</label>
+                    <select v-model="config.algorithm">
+                        <option value="base64">BASE64</option>
+                        <option value="md5">MD5</option>
+                        <option value="sha256">SHA256</option>
+                        <option value="hmac_sha256">HMAC-SHA256</option>
+                        <option value="sm3">SM3 (国密)</option>
+                    </select>
+                </div>
+                <div class="config-item">
+                    <label>查询参数 (JSON 格式)</label>
+                    <textarea v-model="config.queryParamsStr"></textarea>
+                </div>
+            </div>
+            <div class="config-row" style="margin-top: 15px;">
+                <div class="config-item">
+                    <label>请求体 (JSON 格式)</label>
+                    <textarea v-model="config.bodyStr"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 快速测试</h3>
+            <div class="algorithm-tabs">
+                <button v-for="alg in algorithms" :key="alg.value" 
+                        class="algorithm-tab" 
+                        :class="{ active: config.algorithm === alg.value }"
+                        @click="quickTest(alg.value)">
+                    {{ alg.label }}
+                </button>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-primary" @click="testCurrentAlgorithm" :disabled="loading">测试当前算法</button>
+                <button class="btn btn-secondary" @click="testResultSign" :disabled="loading">测试返回值签名</button>
+                <button class="btn btn-warning" @click="generateSignOnly" :disabled="loading">仅生成签名</button>
+            </div>
+            <div class="result-panel" v-if="result.timestamp">
+                <h4>签名结果</h4>
+                <div class="result-item"><label>时间戳:</label><code>{{ result.timestamp }}</code></div>
+                <div class="result-item"><label>签名:</label><code>{{ result.sign }}</code></div>
+                <div class="result-item"><label>签名字符串:</label><code>{{ result.signatureStr }}</code></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 所有算法测试</h3>
+            <div class="btn-group">
+                <button class="btn btn-secondary" @click="testAllAlgorithms" :disabled="loading">测试所有算法</button>
+                <button class="btn btn-danger" @click="clearConsole">清空控制台</button>
+            </div>
+        </div>
+
+        <div class="console-panel">
+            <div class="console-header">
+                <h3>📋 控制台</h3>
+                <button class="clear-btn" @click="clearConsole">清空</button>
+            </div>
+            <div class="console-content">
+                <div v-for="(log, index) in logs" :key="index" class="log-item" :class="'log-' + log.type">
+                    <div class="log-label">{{ log.label }}</div>
+                    <div class="log-content">{{ typeof log.content === 'object' ? JSON.stringify(log.content, null, 2) : log.content }}</div>
+                    <div class="log-time">{{ log.time }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const { createApp, ref, reactive } = Vue;
+
+    const GuardianSign = {
+        sortObject(obj) {
+            if (obj === null || typeof obj !== 'object') return obj;
+            if (Array.isArray(obj)) return obj.map(item => GuardianSign.sortObject(item));
+            const sortedObj = {};
+            Object.keys(obj).sort().forEach(key => {
+                try { sortedObj[key] = GuardianSign.sortObject(obj[key]); } 
+                catch (e) { sortedObj[key] = obj[key]; }
+            });
+            return sortedObj;
+        },
+
+        MD5: {
+            hex(data) {
+                if (typeof CryptoJS !== 'undefined') return CryptoJS.MD5(data).toString();
+                throw new Error('MD5 需要 CryptoJS 库支持');
+            }
+        },
+
+        SHA256: {
+            hex(data) {
+                if (typeof CryptoJS !== 'undefined') return CryptoJS.SHA256(data).toString();
+                throw new Error('SHA256 需要 CryptoJS 库支持');
+            }
+        },
+
+        HMAC_SHA256: {
+            hex(data, key) {
+                if (typeof CryptoJS !== 'undefined') return CryptoJS.HmacSHA256(data, key).toString();
+                throw new Error('HMAC-SHA256 需要 CryptoJS 库支持');
+            }
+        },
+
+        SM3: {
+            hex(data) {
+                if (typeof window.sm3 !== 'undefined') return window.sm3(data);
+                throw new Error('SM3 需要 sm-crypto 库支持');
+            }
+        },
+
+        BASE64: {
+            encode(data) {
+                return btoa(unescape(encodeURIComponent(data)));
+            }
+        },
+
+        buildSignatureString(options) {
+            const { queryParams = {}, body, timestamp, secretKey } = options;
+            const params = {};
+            
+            if (queryParams && typeof queryParams === 'object' && Object.keys(queryParams).length > 0) {
+                Object.keys(queryParams).forEach(key => {
+                    params[key] = queryParams[key];
+                });
+            }
+            
+            if (body && typeof body === 'object' && Object.keys(body).length > 0) {
+                const sortedBody = GuardianSign.sortObject(body);
+                params.body = JSON.stringify(sortedBody);
+            }
+            
+            const sortedKeys = Object.keys(params).sort();
+            const paramStr = sortedKeys.map(key => `${key}=${params[key]}`).join('&');
+            
+            const signatureStr = `${paramStr}&timestamp=${timestamp}&key=${secretKey}`;
+            return { signatureStr, paramStr };
+        },
+
+        sign(options) {
+            const { algorithm = 'hmac_sha256', queryParams = {}, body, secretKey } = options;
+            const timestamp = options.timestamp || Date.now().toString();
+            const { signatureStr } = GuardianSign.buildSignatureString({ queryParams, body, timestamp, secretKey });
+            
+            let sign;
+            switch (algorithm.toLowerCase()) {
+                case 'base64': sign = GuardianSign.BASE64.encode(signatureStr); break;
+                case 'md5': sign = GuardianSign.MD5.hex(signatureStr); break;
+                case 'sha256': sign = GuardianSign.SHA256.hex(signatureStr); break;
+                case 'hmac_sha256': sign = GuardianSign.HMAC_SHA256.hex(signatureStr, secretKey); break;
+                case 'sm3': sign = GuardianSign.SM3.hex(signatureStr); break;
+                default: throw new Error(`Unsupported algorithm: ${algorithm}`);
+            }
+            return { sign, signatureStr, timestamp };
+        },
+
+        verify(options) {
+            const { sign: providedSign, algorithm = 'hmac_sha256', queryParams = {}, body, timestamp, secretKey } = options;
+            const { signatureStr } = GuardianSign.buildSignatureString({ queryParams, body, timestamp, secretKey });
+            
+            let expectedSign;
+            switch (algorithm.toLowerCase()) {
+                case 'base64': expectedSign = GuardianSign.BASE64.encode(signatureStr); break;
+                case 'md5': expectedSign = GuardianSign.MD5.hex(signatureStr); break;
+                case 'sha256': expectedSign = GuardianSign.SHA256.hex(signatureStr); break;
+                case 'hmac_sha256': expectedSign = GuardianSign.HMAC_SHA256.hex(signatureStr, secretKey); break;
+                case 'sm3': expectedSign = GuardianSign.SM3.hex(signatureStr); break;
+                default: throw new Error(`Unsupported algorithm: ${algorithm}`);
+            }
+            
+            return { valid: providedSign === expectedSign, expectedSign, signatureStr };
+        }
+    };
+
+    createApp({
+        setup() {
+            const loading = ref(false);
+            const logs = ref([]);
+            
+            const config = reactive({
+                baseUrl: 'http://localhost:49999/guardian-example',
+                secretKey: 'abcdefghijklmnopqrstuvwxyz',
+                algorithm: 'hmac_sha256',
+                queryParamsStr: '{"name": "test", "value": "123"}',
+                bodyStr: JSON.stringify({
+                    name: "guardian",
+                    value: "test123",
+                    nested: {
+                        user: { id: 123, name: "张三" }
+                    }
+                }, null, 2)
+            });
+
+            const result = reactive({
+                timestamp: '',
+                sign: '',
+                signatureStr: ''
+            });
+
+            const algorithms = [
+                { value: 'base64', label: 'BASE64' },
+                { value: 'md5', label: 'MD5' },
+                { value: 'sha256', label: 'SHA256' },
+                { value: 'hmac_sha256', label: 'HMAC-SHA256' },
+                { value: 'sm3', label: 'SM3' }
+            ];
+
+            function log(type, label, content) {
+                logs.value.push({ type, label, content, time: new Date().toLocaleTimeString() });
+            }
+
+            function clearConsole() {
+                logs.value = [];
+            }
+
+            function getParams() {
+                return {
+                    queryParams: JSON.parse(config.queryParamsStr || '{}'),
+                    body: JSON.parse(config.bodyStr || '{}')
+                };
+            }
+
+            function showResult(timestamp, sign, signatureStr) {
+                result.timestamp = timestamp;
+                result.sign = sign;
+                result.signatureStr = signatureStr;
+            }
+
+            function generateSignOnly() {
+                const { queryParams, body } = getParams();
+                try {
+                    const signResult = GuardianSign.sign({
+                        algorithm: config.algorithm,
+                        queryParams,
+                        body,
+                        secretKey: config.secretKey
+                    });
+                    log('sign', '🔐 签名结果', { 算法: config.algorithm, 时间戳: signResult.timestamp, 签名: signResult.sign, 签名字符串: signResult.signatureStr });
+                    showResult(signResult.timestamp, signResult.sign, signResult.signatureStr);
+                } catch (error) {
+                    log('error', '❌ 签名错误', error.message);
+                }
+            }
+
+            async function testSignVerify(algorithm) {
+                const { queryParams, body } = getParams();
+                loading.value = true;
+                try {
+                    // BASE64 算法是 GET 请求，只使用 queryParams
+                    // 其他算法是 POST 请求，只使用 body（后端接口只接收 @RequestBody）
+                    let signResult;
+                    if (algorithm === 'base64') {
+                        signResult = GuardianSign.sign({ algorithm, queryParams, secretKey: config.secretKey });
+                    } else {
+                        signResult = GuardianSign.sign({ algorithm, body, secretKey: config.secretKey });
+                    }
+                    log('sign', '🔐 生成签名', { 算法: algorithm, 签名: signResult.sign });
+                    log('sign', '📝 签名字符串', signResult.signatureStr);
+
+                    let url, options;
+                    
+                    if (algorithm === 'base64') {
+                        // BASE64: GET /sign/test with query params + headers
+                        const queryStr = Object.keys(queryParams).map(k => `${k}=${encodeURIComponent(queryParams[k])}`).join('&');
+                        url = `${config.baseUrl}/sign/test?${queryStr}`;
+                        options = {
+                            method: 'GET',
+                            headers: {
+                                'X-Sign': signResult.sign,
+                                'X-Sign-Timestamp': signResult.timestamp
+                            }
+                        };
+                        log('request', '📤 请求参数', { url, method: 'GET', headers: options.headers });
+                    } else {
+                        // 其他算法: POST /sign/{algorithm}
+                        const algorithmPath = algorithm.replace('_', '-');
+                        url = `${config.baseUrl}/sign/${algorithmPath}`;
+                        options = {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Sign': signResult.sign,
+                                'X-Sign-Timestamp': signResult.timestamp
+                            },
+                            body: JSON.stringify(body)
+                        };
+                        log('request', '📤 请求参数', { url, headers: options.headers, body });
+                    }
+
+                    const response = await fetch(url, options);
+                    
+                    // 打印所有响应头用于调试
+                    const allHeaders = {};
+                    response.headers.forEach((value, key) => { allHeaders[key] = value; });
+                    console.log('=== 响应头调试 ===');
+                    console.log('所有响应头:', allHeaders);
+                    
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        log('response', '✅ 响应成功', data);
+                        
+                        // 验证响应签名
+                        const responseSign = response.headers.get('x-sign') || response.headers.get('X-Sign');
+                        const responseTimestamp = response.headers.get('x-sign-timestamp') || response.headers.get('X-Sign-Timestamp');
+                        
+                        console.log('responseSign:', responseSign);
+                        console.log('responseTimestamp:', responseTimestamp);
+                        
+                        if (responseSign && responseTimestamp) {
+                            log('sign', '🔐 检测到响应签名', { 签名: responseSign, 时间戳: responseTimestamp });
+                            
+                            // 后端对整个响应体进行签名，不是只对 data 字段
+                            const verifyResult = GuardianSign.verify({
+                                sign: responseSign,
+                                algorithm,
+                                queryParams: {},
+                                body: data,
+                                timestamp: responseTimestamp,
+                                secretKey: config.secretKey
+                            });
+                            
+                            if (verifyResult.valid) {
+                                log('sign', '✅ 响应验签成功', { '响应签名': responseSign, '计算签名': verifyResult.expectedSign });
+                            } else {
+                                log('error', '❌ 响应验签失败', { '响应签名': responseSign, '计算签名': verifyResult.expectedSign });
+                            }
+                        }
+                    } else {
+                        log('error', '❌ 响应错误', data);
+                    }
+                    
+                    showResult(signResult.timestamp, signResult.sign, signResult.signatureStr);
+                    return { success: response.ok, data };
+                } catch (error) {
+                    log('error', '❌ 请求错误', error.message);
+                    return { success: false, error: error.message };
+                } finally {
+                    loading.value = false;
+                }
+            }
+
+            async function testCurrentAlgorithm() {
+                await testSignVerify(config.algorithm);
+            }
+
+            async function quickTest(algorithm) {
+                config.algorithm = algorithm;
+                await testSignVerify(algorithm);
+            }
+
+            async function testResultSign() {
+                const { body } = getParams();
+                loading.value = true;
+                try {
+                    const signResult = GuardianSign.sign({ algorithm: 'sha256', queryParams: {}, body, secretKey: config.secretKey });
+                    log('sign', '🔐 生成签名', { 算法: 'sha256', 签名: signResult.sign });
+
+                    const url = `${config.baseUrl}/sign/result-sign`;
+                    const options = {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Sign': signResult.sign, 'X-Sign-Timestamp': signResult.timestamp },
+                        body: JSON.stringify(body)
+                    };
+
+                    log('request', '📤 请求参数', { url, headers: options.headers, body });
+
+                    const response = await fetch(url, options);
+                    const responseHeaders = {};
+                    response.headers.forEach((value, key) => { responseHeaders[key] = value; });
+                    const data = await response.json();
+
+                    log('response', '📥 响应头', responseHeaders);
+                    log('response', '📥 响应数据', data);
+
+                    const responseSign = responseHeaders['x-sign'] || responseHeaders['X-Sign'];
+                    const responseTimestamp = responseHeaders['x-sign-timestamp'] || responseHeaders['X-Sign-Timestamp'];
+                    
+                    if (responseSign && responseTimestamp) {
+                        log('sign', '🔐 响应签名', { 签名: responseSign, 时间戳: responseTimestamp });
+                        
+                        // 后端对整个响应体进行签名
+                        const verifyResult = GuardianSign.verify({
+                            sign: responseSign,
+                            algorithm: 'sha256',
+                            queryParams: {},
+                            body: data,
+                            timestamp: responseTimestamp,
+                            secretKey: config.secretKey
+                        });
+                        
+                        if (verifyResult.valid) {
+                            log('sign', '✅ 响应验签成功', { '响应签名': responseSign, '计算签名': verifyResult.expectedSign });
+                        } else {
+                            log('error', '❌ 响应验签失败', { '响应签名': responseSign, '计算签名': verifyResult.expectedSign });
+                        }
+                    }
+                } catch (error) {
+                    log('error', '❌ 请求错误', error.message);
+                } finally {
+                    loading.value = false;
+                }
+            }
+
+            async function testAllAlgorithms() {
+                log('info', '🚀 开始测试所有算法', algorithms.map(a => a.value));
+                for (const alg of algorithms) {
+                    log('info', `📝 测试 ${alg.label}`, '---');
+                    await testSignVerify(alg.value);
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                log('info', '✅ 所有算法测试完成', '');
+            }
+
+            return {
+                loading, logs, config, result, algorithms,
+                clearConsole, generateSignOnly, testCurrentAlgorithm, quickTest, testResultSign, testAllAlgorithms
+            };
+        }
+    }).mount('#app');
+    </script>
+
+</body>
+</html>

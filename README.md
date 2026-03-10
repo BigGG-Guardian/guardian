@@ -39,6 +39,7 @@
 | 防重放攻击    | `guardian-anti-replay-spring-boot-starter`   | — | ✅ | Timestamp + Nonce 双重校验，nonce TTL 与 timestamp 窗口解耦 |
 | 接口开关     | `guardian-api-switch-spring-boot-starter`    | — | ✅ | 动态关闭/开启接口                                    |
 | 参数签名     | `guardian-sign-spring-boot-starter`          | `@SignVerify` | ✅ | 支持多种签名算法，请求参数签名验证 + 响应结果签名               |
+| 请求加解密   | `guardian-encrypt-spring-boot-starter`       | — | ✅ | 支持 RSA+AES / SM2+SM4 加密，请求解密 + 响应加密             |
 
 每个功能独立模块、独立 Starter，**用哪个引哪个，互不依赖**。所有模块的 YAML 配置均支持**配置中心动态刷新**（Nacos / Apollo 等），无需重启即可生效。
 
@@ -52,7 +53,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-starter-all</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 ><small>特别说明：`请求链路追踪模块`若开启RabbitMq/Kafka/RocketMq请求链路追踪，需额外引入对应的依赖(`guardian-trace-rabbitmq`/`guardian-trace-kafka`/`guardian-trace-rocketmq`)</small>
@@ -63,7 +64,7 @@
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 
@@ -113,7 +114,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 
@@ -187,7 +188,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 
@@ -215,7 +216,7 @@ public Result submitOrder(@RequestBody OrderDTO order) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 
@@ -238,7 +239,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 
@@ -260,7 +261,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-spring-boot-starter</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 
@@ -278,7 +279,7 @@ public Result getDetail(@RequestParam Long id) {
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 
@@ -306,7 +307,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-anti-replay-spring-boot-starter</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 
@@ -331,7 +332,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-api-switch-spring-boot-starter</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 
@@ -353,7 +354,7 @@ guardian:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-sign-spring-boot-starter</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 
@@ -457,7 +458,7 @@ guardian:
 
 ```yaml
 guardian:
-  repeatable-filter-order: -100       # 请求体缓存过滤器排序（全局共享，仅需配置一次）
+  repeatable-filter-order: -100000       # 请求体缓存过滤器排序（全局共享，仅需配置一次）
   repeat-submit:
     storage: redis                    # redis / local
     key-encrypt: md5                  # none / md5
@@ -803,7 +804,7 @@ public RateLimitResponseHandler rateLimitResponseHandler() {
 
 ```yaml
 guardian:
-  repeatable-filter-order: -100       # 请求体缓存过滤器排序（全局共享，仅需配置一次）
+  repeatable-filter-order: -100000       # 请求体缓存过滤器排序（全局共享，仅需配置一次）
   idempotent:
     enabled: true                     # 总开关
     storage: redis                    # redis / local
@@ -1166,7 +1167,7 @@ Guardian 支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-rabbitmq</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 
@@ -1179,7 +1180,7 @@ Guardian 支持 RabbitMQ、Kafka、RocketMQ 三种消息队列的 TraceId 自动
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-kafka</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 
@@ -1202,7 +1203,7 @@ spring:
 <dependency>
     <groupId>io.github.biggg-guardian</groupId>
     <artifactId>guardian-trace-rocketmq</artifactId>
-    <version>1.9.0</version>
+    <version>1.10.0</version>
 </dependency>
 ```
 
@@ -1636,6 +1637,7 @@ guardian:
 | MD5 | `md5` | `SignAlgorithm.MD5` | MD5 哈希算法 |
 | SHA256 | `sha256` | `SignAlgorithm.SHA256` | SHA256 哈希算法 |
 | HMAC-SHA256 | `hmac_sha256` | `SignAlgorithm.HMAC_SHA256` | 基于密钥的 HMAC-SHA256 算法 |
+| SM3 | `sm3` | `SignAlgorithm.SM3` | 国密 SM3 哈希算法 |
 
 ### 签名计算规则
 
@@ -1644,326 +1646,16 @@ guardian:
 3. **计算签名**：使用指定的算法对拼接后的字符串进行计算
 4. **验证签名**：将计算结果与请求头中的 `X-Sign` 进行比较
 
-### 前端 JavaScript 实现
+### 前端实现参考
 
-以下是与后端签名算法对应的前端 JavaScript 实现：
+前端实现请参考示例项目中的测试页面：
+- **文件位置**：`guardian-example/src/main/resources/static/sign-test.html`
+- **关键依赖**：CryptoJS（MD5/SHA256/HMAC-SHA256）、sm-crypto（SM3）
 
-```javascript
-/**
- * 排序 JSON 对象（模拟后端 ArgsUtils.toSortedJsonNode 逻辑）
- * @param {Object} obj - 要排序的对象
- * @returns {Object} 排序后的对象
- */
-function sortJson(obj) {
-  if (obj === null || typeof obj !== 'object') {
-    return obj;
-  }
-  
-  if (Array.isArray(obj)) {
-    return obj.map(item => sortJson(item));
-  }
-  
-  const sortedObj = {};
-  Object.keys(obj)
-    .sort()
-    .forEach(key => {
-      sortedObj[key] = sortJson(obj[key]);
-    });
-  
-  return sortedObj;
-}
-
-/**
- * 生成签名
- * @param {Object} queryParams - 查询参数
- * @param {Object|string} body - 请求体（对象或字符串）
- * @param {string} timestamp - 时间戳
- * @param {string} secretKey - 签名密钥
- * @param {string} algorithm - 签名算法：base64, md5, sha256, hmac_sha256
- * @returns {string} 签名值
- */
-function generateSign(queryParams, body, timestamp, secretKey, algorithm) {
-    // 1. 构建参数对象
-    const params = {};
-    
-    // 添加查询参数
-    if (queryParams && typeof queryParams === 'object') {
-        Object.assign(params, queryParams);
-    }
-    
-    // 添加请求体参数（与后端保持一致）
-    if (body) {
-        if (typeof body === 'object') {
-            if (Object.keys(body).length > 0) {
-                const sortedBody = sortJson(body);
-                params.body = JSON.stringify(sortedBody);
-            }
-        } else if (typeof body === 'string' && body.trim() !== '') {
-            params.body = body;
-        }
-    }
-    
-    // 2. 对参数按字典序排序
-    const sortedParams = Object.keys(params)
-        .sort()
-        .map(key => `${key}=${params[key]}`)
-        .join('&');
-    
-    // 3. 拼接字符串
-    const signatureStr = `${sortedParams}&timestamp=${timestamp}&key=${secretKey}`;
-    
-    // 4. 根据算法计算签名
-    switch (algorithm) {
-        case 'base64':
-            return btoa(signatureStr);
-        case 'md5':
-            return md5(signatureStr);
-        case 'sha256':
-            return sha256(signatureStr);
-        case 'hmac_sha256':
-            return hmacSha256(signatureStr, secretKey);
-        default:
-            throw new Error('Unsupported algorithm');
-    }
-}
-
-// 引入CryptoJS库
-// <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
-// MD5 算法实现
-function md5(str) {
-    return CryptoJS.MD5(str).toString();
-}
-
-// SHA256 算法实现
-function sha256(str) {
-    return CryptoJS.SHA256(str).toString();
-}
-
-// HMAC-SHA256 算法实现
-function hmacSha256(str, key) {
-    return CryptoJS.HmacSHA256(str, key).toString();
-}
-
-```
-
-**完整前端使用示例：**
-
-```javascript
-// 1. 引入CryptoJS库
-// <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
-// 2. 准备请求参数
-const queryParams = { page: 1, size: 10 };
-const requestBody = { name: "guardian", value: "test123" };
-const secretKey = "your-secret-key";
-const algorithm = "hmac_sha256";
-
-// 3. 生成时间戳
-const timestamp = Date.now().toString();
-
-// 4. 生成签名
-const sign = generateSign(queryParams, requestBody, timestamp, secretKey, algorithm);
-console.log("生成的签名:", sign);
-
-// 5. 发送请求
-fetch('/api/submit', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-Sign': sign,
-        'X-Sign-Timestamp': timestamp
-    },
-    body: JSON.stringify(requestBody)
-})
-.then(response => response.json())
-.then(data => {
-    console.log('响应:', data);
-    // 6. 验证响应签名（如果后端开启了结果签名）
-    if (data.sign) {
-        const responseSign = data.sign;
-        const responseData = { ...data };
-        delete responseData.sign;
-        
-        const expectedSign = generateSign({}, responseData, timestamp, secretKey, algorithm);
-        if (responseSign === expectedSign) {
-            console.log('响应签名验证通过');
-        } else {
-            console.log('响应签名验证失败');
-        }
-    }
-})
-.catch(error => {
-    console.error('请求失败:', error);
-});
-
-// 6. 工具函数：生成签名（同上）
-function sortJson(obj) {
-  if (obj === null || typeof obj !== 'object') {
-    return obj;
-  }
-  
-  if (Array.isArray(obj)) {
-    return obj.map(item => sortJson(item));
-  }
-  
-  const sortedObj = {};
-  Object.keys(obj)
-    .sort()
-    .forEach(key => {
-      sortedObj[key] = sortJson(obj[key]);
-    });
-  
-  return sortedObj;
-}
-
-function generateSign(queryParams, body, timestamp, secretKey, algorithm) {
-    const params = {};
-    
-    if (queryParams && typeof queryParams === 'object') {
-        Object.assign(params, queryParams);
-    }
-    
-    if (body) {
-        if (typeof body === 'object') {
-            if (Object.keys(body).length > 0) {
-                const sortedBody = sortJson(body);
-                params.body = JSON.stringify(sortedBody);
-            }
-        } else if (typeof body === 'string' && body.trim() !== '') {
-            params.body = body;
-        }
-    }
-    
-    const sortedParams = Object.keys(params)
-        .sort()
-        .map(key => `${key}=${params[key]}`)
-        .join('&');
-    
-    const signatureStr = `${sortedParams}&timestamp=${timestamp}&key=${secretKey}`;
-    
-    switch (algorithm) {
-        case 'base64':
-            return btoa(signatureStr);
-        case 'md5':
-            return CryptoJS.MD5(signatureStr).toString();
-        case 'sha256':
-            return CryptoJS.SHA256(signatureStr).toString();
-        case 'hmac_sha256':
-            return CryptoJS.HmacSHA256(signatureStr, secretKey).toString();
-        default:
-            throw new Error('Unsupported algorithm');
-    }
-}
-```
-
-**TypeScript 版本：**
-
-```typescript
-// 1. 安装CryptoJS
-// npm install crypto-js @types/crypto-js
-
-import * as CryptoJS from 'crypto-js';
-
-/**
- * 签名算法类型
- */
-export type SignAlgorithm = 'base64' | 'md5' | 'sha256' | 'hmac_sha256';
-
-/**
- * 排序JSON对象
- */
-export function sortJson(obj: any): any {
-  if (obj === null || typeof obj !== 'object') {
-    return obj;
-  }
-  
-  if (Array.isArray(obj)) {
-    return obj.map(item => sortJson(item));
-  }
-  
-  const sortedObj: Record<string, any> = {};
-  Object.keys(obj)
-    .sort()
-    .forEach(key => {
-      sortedObj[key] = sortJson(obj[key]);
-    });
-  
-  return sortedObj;
-}
-
-/**
- * 生成签名
- */
-export function generateSign(
-  queryParams: Record<string, any>,
-  body: any,
-  timestamp: string,
-  secretKey: string,
-  algorithm: SignAlgorithm
-): string {
-  const params: Record<string, any> = {};
-  
-  if (queryParams && typeof queryParams === 'object') {
-    Object.assign(params, queryParams);
-  }
-  
-  if (body) {
-    if (typeof body === 'object') {
-      if (Object.keys(body).length > 0) {
-        const sortedBody = sortJson(body);
-        params.body = JSON.stringify(sortedBody);
-      }
-    } else if (typeof body === 'string' && body.trim() !== '') {
-      params.body = body;
-    }
-  }
-  
-  const sortedParams = Object.keys(params)
-    .sort()
-    .map(key => `${key}=${params[key]}`)
-    .join('&');
-  
-  const signatureStr = `${sortedParams}&timestamp=${timestamp}&key=${secretKey}`;
-  
-  switch (algorithm) {
-    case 'base64':
-      return btoa(signatureStr);
-    case 'md5':
-      return CryptoJS.MD5(signatureStr).toString();
-    case 'sha256':
-      return CryptoJS.SHA256(signatureStr).toString();
-    case 'hmac_sha256':
-      return CryptoJS.HmacSHA256(signatureStr, secretKey).toString();
-    default:
-      throw new Error('Unsupported algorithm');
-  }
-}
-
-// 使用示例
-async function sendSignedRequest() {
-  const queryParams = { page: 1, size: 10 };
-  const requestBody = { name: "guardian", value: "test123" };
-  const secretKey = "your-secret-key";
-  const algorithm: SignAlgorithm = "hmac_sha256";
-  const timestamp = Date.now().toString();
-  
-  const sign = generateSign(queryParams, requestBody, timestamp, secretKey, algorithm);
-  
-  const response = await fetch('/api/submit', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Sign': sign,
-      'X-Sign-Timestamp': timestamp
-    },
-    body: JSON.stringify(requestBody)
-  });
-  
-  const data = await response.json();
-  console.log('响应:', data);
-}
-```
+**核心实现要点：**
+1. **BASE64 算法（GET 请求）**：只使用 Query 参数，不使用 Body
+2. **其他算法（POST 请求）**：只使用 Body，不使用 Query 参数
+3. **响应验签**：后端对整个响应体进行签名，前端需使用完整响应数据验签
 
 
 ### 响应结果签名
@@ -2036,6 +1728,225 @@ public SignResponseHandler signResponseHandler() {
     };
 }
 ```
+</details>
+
+---
+
+## 请求加解密
+
+<details>
+<summary><b>展开查看完整文档</b></summary>
+
+### 功能说明
+
+对接口请求参数进行解密，对响应结果进行加密，确保数据传输的安全性。支持两种加密方案：
+- **RSA + AES**：RSA 加密 AES 密钥，AES 加密数据
+- **SM2 + SM4**：国密算法，SM2 加密 SM4 密钥，SM4 加密数据
+
+### 使用方式
+
+**YAML 配置：**
+
+```yaml
+guardian:
+  # 请求解密配置
+  decrypt:
+    enabled: true
+    key:
+      private-key: "your-private-key-base64"    # 解密密钥时使用的私钥
+    data:
+      data-key-header: "X-Encrypt-Key"          # 数据密钥请求头名称
+    urls:
+      - pattern: /api/sensitive/**
+        key-algorithm: rsa                      # 密钥加密算法：rsa / sm2
+        data-algorithm: aes                     # 数据加密算法：aes / sm4
+
+  # 响应加密配置
+  encrypt:
+    enabled: true
+    key:
+      public-key: "your-public-key-base64"      # 加密密钥时使用的公钥
+    data:
+      data-key-header: "X-Encrypt-Key"          # 数据密钥响应头名称
+    urls:
+      - pattern: /api/sensitive/**
+        key-algorithm: rsa
+        data-algorithm: aes
+```
+
+### 全量配置
+
+```yaml
+guardian:
+  decrypt:
+    enabled: true                               # 总开关（默认 true）
+    filter-order: -40000                        # Filter 排序（默认 -40000）
+    log-enabled: false                          # 是否打印拦截日志（默认 false）
+    response-mode: exception                    # 响应模式：exception / json（默认 exception）
+    key:
+      private-key: ""                           # 私钥（Base64 格式）
+    data:
+      param-alias: "encryptParam"               # param 数据加密后别名（默认 encryptParam）
+      body-alias: "encryptBody"                 # body 数据加密后别名（默认 encryptBody）
+      data-key-header: "X-Encrypt-Key"          # 数据密钥请求头名称（默认 X-Encrypt-Key）
+    missing-data-key-header-message: "缺少数据密钥请求头"  # 缺少密钥头提示
+    urls:                                       # 需要解密的 URL 规则
+      - pattern: /api/sensitive/**
+        key-algorithm: rsa
+        data-algorithm: aes
+    exclude-urls:                               # 排除规则（白名单）
+      - /api/public/**
+
+  encrypt:
+    enabled: true                               # 总开关（默认 true）
+    result-advice-order: 300                    # 返回值加密 Advice 排序（默认 300）
+    key:
+      public-key: ""                            # 公钥（Base64 格式）
+    data:
+      param-alias: "encryptParam"               # param 数据加密后别名（默认 encryptParam）
+      body-alias: "encryptBody"                 # body 数据加密后别名（默认 encryptBody）
+      data-key-header: "X-Encrypt-Key"          # 数据密钥响应头名称（默认 X-Encrypt-Key）
+      key-mode: dynamic                         # 密钥模式：dynamic / static（默认 dynamic）
+      key: ""                                   # 静态密钥（key-mode=static 时使用）
+    urls:                                       # 需要加密的 URL 规则
+      - pattern: /api/sensitive/**
+        key-algorithm: rsa
+        data-algorithm: aes
+    exclude-urls:                               # 排除规则（白名单）
+      - /api/public/**
+```
+
+### 支持的加密算法
+
+| 密钥算法 | YAML 值 | 说明 |
+|---------|---------|------|
+| RSA | `rsa` | RSA 加密 AES 密钥 |
+| SM2 | `sm2` | 国密 SM2 加密 SM4 密钥 |
+
+| 数据算法 | YAML 值 | 说明 |
+|---------|---------|------|
+| AES | `aes` | AES-GCM 模式加密数据 |
+| SM4 | `sm4` | 国密 SM4-CBC 模式加密数据 |
+
+### 工作流程
+
+**请求解密流程：**
+
+```
+客户端请求
+  │
+  ├─ 1. 生成随机数据密钥（AES/SM4）
+  ├─ 2. 使用数据密钥加密请求参数（param 或 body）
+  ├─ 3. 使用服务端公钥加密数据密钥
+  ├─ 4. 发送请求：
+  │      Header: X-Encrypt-Key: {加密后的密钥}
+  │      Param: encryptParam={加密后的参数} 或
+  │      Body: {"encryptBody": "{加密后的数据}"}
+  │
+  ▼
+服务端 DecryptFilter
+  │
+  ├─ 1. 从 Header 获取加密的密钥
+  ├─ 2. 使用私钥解密得到数据密钥
+  ├─ 3. 从 param 或 body 中获取加密数据
+  ├─ 4. 使用数据密钥解密数据
+  ├─ 5. 将解密后的数据传递给业务层
+  │
+  ▼
+业务处理
+```
+
+**响应加密流程：**
+
+```
+业务层返回数据
+  │
+  ▼
+EncryptResponseAdvice
+  │
+  ├─ 1. 生成随机数据密钥（或使用静态密钥）
+  ├─ 2. 使用数据密钥加密响应数据
+  ├─ 3. 使用客户端公钥加密数据密钥
+  ├─ 4. 返回响应：
+  │      Header: X-Encrypt-Key: {加密后的密钥}
+  │      Body: {"encryptBody": "{加密后的数据}"}
+  │
+  ▼
+客户端
+  │
+  ├─ 1. 从 Header 获取加密的密钥
+  ├─ 2. 使用私钥解密得到数据密钥
+  ├─ 3. 使用数据密钥解密响应数据
+  │
+  ▼
+业务处理
+```
+
+### 密钥模式
+
+支持两种密钥模式：
+
+| 模式 | YAML 值 | 说明 |
+|------|---------|------|
+| 动态密钥 | `dynamic` | 每次请求动态生成密钥（默认） |
+| 静态密钥 | `static` | 使用配置的固定密钥 |
+
+### 前端实现参考
+
+前端实现请参考示例项目中的测试页面：
+- **文件位置**：`guardian-example/src/main/resources/static/encrypt-test.html`
+- **关键依赖**：CryptoJS（AES）、sm-crypto（SM2/SM4）、jsencrypt（RSA）
+
+**核心实现要点：**
+
+1. **RSA + AES 方案**
+   - 生成 16 字节 AES 密钥
+   - 使用 AES-GCM 模式加密数据
+   - 使用 RSA 公钥加密 AES 密钥
+
+2. **SM2 + SM4 方案**
+   - 生成 16 字节 SM4 密钥
+   - 使用 SM4-CBC 模式加密数据
+   - 使用 SM2 公钥加密 SM4 密钥（C1C3C2 格式）
+
+### 扩展点
+
+**自定义密钥解密服务：**
+
+```java
+@Bean
+public KeyDecryptService customKeyDecryptService() {
+    return new KeyDecryptService() {
+        @Override
+        public String decrypt(String encryptedKey, String privateKey) {
+            // 自定义密钥解密逻辑
+        }
+        @Override
+        public KeyEncryptAlgorithm getAlgorithm() {
+            return KeyEncryptAlgorithm.RSA;
+        }
+    };
+}
+```
+
+**自定义数据解密服务：**
+
+```java
+@Bean
+public DataDecryptService customDataDecryptService() {
+    return new DataDecryptService() {
+        @Override
+        public String decrypt(String encryptedData, String key) {
+            // 自定义数据解密逻辑
+        }
+        @Override
+        public DataEncryptAlgorithm getAlgorithm() {
+            return DataEncryptAlgorithm.AES;
+        }
+    };
+}
+```
+
 </details>
 
 ---
@@ -2186,8 +2097,45 @@ Guardian 所有模块的 YAML 配置均支持通过配置中心（Nacos、Apollo
 | `expired-message` | `String` | `请求已过期` | 请求过期提示（支持 i18n Key） |
 | `urls` | `List` | `[]` | 签名验证规则列表，每项参数如下 |
 | `urls[].pattern` | `String` | — | 接口路径（AntPath） |
-| `urls[].algorithm` | `base64` / `md5` / `sha256` / `hmac_sha256` | `base64` | 签名算法 |
+| `urls[].algorithm` | `base64` / `md5` / `sha256` / `hmac_sha256` / `sm3` | `base64` | 签名算法 |
 | `urls[].sign-verify-message` | `String` | `签名校验失败` | 签名验证失败提示（支持 i18n Key） |
+
+**请求解密**（prefix: `guardian.decrypt`）
+
+| YAML Key | 类型 | 默认值 | 说明 |
+|----------|------|--------|------|
+| `enabled` | `boolean` | `true` | 总开关 |
+| `filter-order` | `int` | `-40000` | Filter 排序（值越小越先执行） |
+| `log-enabled` | `boolean` | `false` | 是否打印拦截日志 |
+| `response-mode` | `exception` / `json` | `exception` | 响应模式 |
+| `key.private-key` | `String` | `""` | 私钥（Base64 格式，用于解密密钥） |
+| `data.param-alias` | `String` | `encryptParam` | param 数据加密后别名 |
+| `data.body-alias` | `String` | `encryptBody` | body 数据加密后别名 |
+| `data.data-key-header` | `String` | `X-Encrypt-Key` | 数据密钥请求头名称 |
+| `missing-data-key-header-message` | `String` | `缺少数据密钥请求头` | 缺少密钥头提示（支持 i18n Key） |
+| `urls` | `List` | `[]` | 解密规则列表，每项参数如下 |
+| `urls[].pattern` | `String` | — | 接口路径（AntPath） |
+| `urls[].key-algorithm` | `rsa` / `sm2` | `rsa` | 密钥加密算法 |
+| `urls[].data-algorithm` | `aes` / `sm4` | `aes` | 数据加密算法 |
+| `exclude-urls` | `List<String>` | `[]` | 排除规则（白名单，优先级最高，AntPath） |
+
+**响应加密**（prefix: `guardian.encrypt`）
+
+| YAML Key | 类型 | 默认值 | 说明 |
+|----------|------|--------|------|
+| `enabled` | `boolean` | `true` | 总开关 |
+| `result-advice-order` | `int` | `300` | 返回值加密 Advice 排序 |
+| `key.public-key` | `String` | `""` | 公钥（Base64 格式，用于加密密钥） |
+| `data.param-alias` | `String` | `encryptParam` | param 数据加密后别名 |
+| `data.body-alias` | `String` | `encryptBody` | body 数据加密后别名 |
+| `data.data-key-header` | `String` | `X-Encrypt-Key` | 数据密钥响应头名称 |
+| `data.key-mode` | `dynamic` / `static` | `dynamic` | 密钥模式：动态生成 / 静态配置 |
+| `data.key` | `String` | `""` | 静态密钥（key-mode=static 时使用） |
+| `urls` | `List` | `[]` | 加密规则列表，每项参数如下 |
+| `urls[].pattern` | `String` | — | 接口路径（AntPath） |
+| `urls[].key-algorithm` | `rsa` / `sm2` | `rsa` | 密钥加密算法 |
+| `urls[].data-algorithm` | `aes` / `sm4` | `aes` | 数据加密算法 |
+| `exclude-urls` | `List<String>` | `[]` | 排除规则（白名单，优先级最高，AntPath） |
 
 ### 使用方式
 
@@ -2351,6 +2299,49 @@ guardian:
       - pattern: /api/order/**
         algorithm: md5
         sign-verify-message: "签名校验失败"
+
+  decrypt:
+    enabled: true
+    filter-order: -40000
+    log-enabled: false
+    response-mode: exception
+    key:
+      private-key: "your-private-key-base64"
+    data:
+      param-alias: "encryptParam"
+      body-alias: "encryptBody"
+      data-key-header: "X-Encrypt-Key"
+    missing-data-key-header-message: "缺少数据密钥请求头"
+    urls:
+      - pattern: /api/sensitive/**
+        key-algorithm: rsa
+        data-algorithm: aes
+      - pattern: /api/government/**
+        key-algorithm: sm2
+        data-algorithm: sm4
+    exclude-urls:
+      - /api/public/**
+
+  encrypt:
+    enabled: true
+    result-advice-order: 300
+    key:
+      public-key: "your-public-key-base64"
+    data:
+      param-alias: "encryptParam"
+      body-alias: "encryptBody"
+      data-key-header: "X-Encrypt-Key"
+      key-mode: dynamic
+      key: ""
+    urls:
+      - pattern: /api/sensitive/**
+        key-algorithm: rsa
+        data-algorithm: aes
+      - pattern: /api/government/**
+        key-algorithm: sm2
+        data-algorithm: sm4
+    exclude-urls:
+      - /api/public/**
 ```
 
 > 只需配置你用到的模块，没用到的模块无需配置。修改任意参数后点击发布，下一次请求即可读取到最新值。
@@ -2491,6 +2482,9 @@ guardian-parent
 ├── guardian-sign/                         # 参数签名
 │   ├── guardian-sign-core/
 │   └── guardian-sign-spring-boot-starter/
+├── guardian-encrypt/                      # 请求加解密
+│   ├── guardian-encrypt-core/
+│   └── guardian-encrypt-spring-boot-starter/
 ├── guardian-starter-all/                  # 整合引用所有Starter模块
 ├── guardian-storage-redis/                # Redis 存储（多模块共享）
 └── guardian-example/                      # 示例工程
@@ -2506,11 +2500,12 @@ Filter 在 Servlet 层执行，先于所有 Interceptor：
 
 | 顺序 | 模块 | 配置项 | 默认 order | 说明 |
 |------|------|--------|-----------|------|
-| 1 | 请求链路追踪 | `guardian.trace.filter-order` | **-30000** | 最先执行，为后续所有操作提供 TraceId |
-| 2 | IP 黑白名单 | `guardian.ip-filter.filter-order` | **-20000** | 拦截恶意 IP，尽早阻断 |
-| 3 | 防重放攻击 | `guardian.anti-replay.filter-order` | **-14000** | 校验 Timestamp + Nonce，拦截重放请求 |
-| 4 | 参数自动 Trim | `guardian.auto-trim.filter-order` | **-10000** | 参数预处理，在业务逻辑前清洗数据 |
-| 5 | 请求体缓存 | `guardian.repeatable-filter-order` | **-100** | 缓存请求体供防重 / 幂等模块重复读取 |
+| 1 | 请求体缓存 | `guardian.repeatable-filter-order` | **-100000** | 最先执行，缓存请求体供后续模块重复读取 |
+| 2 | 请求解密 | `guardian.decrypt.filter-order` | **-40000** | 解密请求数据 |
+| 3 | 请求链路追踪 | `guardian.trace.filter-order` | **-30000** | 为后续所有操作提供 TraceId |
+| 4 | IP 黑白名单 | `guardian.ip-filter.filter-order` | **-20000** | 拦截恶意 IP，尽早阻断 |
+| 5 | 防重放攻击 | `guardian.anti-replay.filter-order` | **-14000** | 校验 Timestamp + Nonce，拦截重放请求 |
+| 6 | 参数自动 Trim | `guardian.auto-trim.filter-order` | **-10000** | 参数预处理，在业务逻辑前清洗数据 |
 
 #### Interceptor 执行顺序
 
@@ -2530,7 +2525,9 @@ Interceptor 在 Spring MVC 层执行，Filter 之后：
 ```yaml
 guardian:
   # Filter 排序
-  repeatable-filter-order: -100          # 请求体缓存（全局共享）
+  repeatable-filter-order: -100000       # 请求体缓存（最先执行，全局共享）
+  decrypt:
+    filter-order: -40000                 # 请求解密
   trace:
     filter-order: -30000                 # 链路追踪
   ip-filter:
@@ -2552,13 +2549,15 @@ guardian:
   idempotent:
     interceptor-order: 3000              # 接口幂等
   sign:
-    interceptor-order: 4000             # 参数签名
+    interceptor-order: 4000              # 参数签名
 
   # ResponseBodyAdvice 排序
   idempotent:
-    result-advice-order: 200            # 幂等结果缓存（需开启 result-cache）
+    result-advice-order: 200             # 幂等结果缓存（需开启 result-cache）
   sign:
-    result-advice-order: 100            # 响应结果签名（需开启 result-sign）
+    result-advice-order: 100             # 响应结果签名（需开启 result-sign）
+  encrypt:
+    result-advice-order: 300             # 响应结果加密
 ```
 
 ## 存储对比
@@ -2571,6 +2570,19 @@ guardian:
 | 额外依赖 | 需要 Redis | 无 |
 
 ## 更新日志
+
+### v1.10.0
+
+- **新增**：请求加解密模块（`guardian-encrypt`），支持 RSA+AES / SM2+SM4 加密方案
+- **新增**：请求解密过滤器（`DecryptFilter`），自动解密请求参数
+- **新增**：响应加密 Advice（`EncryptResponseAdvice`），自动加密响应结果
+- **新增**：密钥加密服务（`KeyEncryptService`），支持 RSA 和 SM2 算法
+- **新增**：数据加密服务（`DataEncryptService`），支持 AES-GCM 和 SM4-CBC 算法
+- **新增**：加密模块 Actuator 端点（`GET /actuator/guardianEncrypt`）
+- **新增**：前端示例页面（`sign-test.html`、`encrypt-test.html`），提供完整的前端实现参考
+- **新增**：签名模块支持 SM3 算法
+- **优化**：签名模块前端实现文档简化，指向示例页面
+- **优化**：加密模块支持动态密钥和静态密钥两种模式
 
 ### v1.9.0
 

@@ -2246,6 +2246,67 @@
         }
       }
     },
+    "/sign/sm3": {
+      "post": {
+        "tags": ["参数签名"],
+        "summary": "测试 SM3 算法签名验证",
+        "description": "@SignVerify(algorithm = SignAlgorithm.SM3)。测试：需要在请求头中携带 X-Sign 和 X-Sign-Timestamp。SM3 是国密摘要算法。",
+        "operationId": "signSm3",
+        "parameters": [
+          {
+            "name": "X-Sign",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "签名值"
+          },
+          {
+            "name": "X-Sign-Timestamp",
+            "in": "header",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "时间戳"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": { "type": "string", "example": "guardian" },
+                  "value": { "type": "string", "example": "test123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": { "type": "integer", "example": 200 },
+                    "message": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "name": { "type": "string" },
+                        "value": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/sign/result-sign": {
       "post": {
         "tags": ["参数签名"],

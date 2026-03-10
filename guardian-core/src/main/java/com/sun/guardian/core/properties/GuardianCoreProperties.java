@@ -15,8 +15,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class GuardianCoreProperties {
 
     /**
-     * RepeatableRequestFilter 排序（值越小越先执行，默认 -100）
+     * RepeatableRequestFilter 排序（值越小越先执行，默认 -100000）
      * 全局只需配置一次，防重 / 幂等模块共用同一个 Filter 实例
      */
-    private int repeatableFilterOrder = -100;
+    private int repeatableFilterOrder = -100000;
 }

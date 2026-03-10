@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+com.sun.guardian.encrypt.starter.config.GuardianDecryptAutoConfiguration,\
+com.sun.guardian.encrypt.starter.config.GuardianEncryptAutoConfiguration

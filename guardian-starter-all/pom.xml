@@ -66,6 +66,11 @@
             <groupId>io.github.biggg-guardian</groupId>
             <artifactId>guardian-sign-spring-boot-starter</artifactId>
         </dependency>
+        <!-- Guardian 请求加密解密 -->
+        <dependency>
+            <groupId>io.github.biggg-guardian</groupId>
+            <artifactId>guardian-encrypt-spring-boot-starter</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

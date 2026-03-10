@@ -1,0 +1,40 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.biggg-guardian</groupId>
+        <artifactId>guardian-parent</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>guardian-encrypt</artifactId>
+    <packaging>pom</packaging>
+
+    <name>guardian-encrypt</name>
+    <description>
+        Guardian 请求加密解密模块
+    </description>
+    <modules>
+        <module>guardian-encrypt-spring-boot-starter</module>
+        <module>guardian-encrypt-core</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- 自定义模块-核心模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!-- 自定义模块-请求加密解密核心模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-encrypt-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>

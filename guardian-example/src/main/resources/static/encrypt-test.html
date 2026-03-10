@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guardian 加密解密接口测试</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsencrypt@3.3.2/bin/jsencrypt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+    <script src="node_modules/sm-crypto/dist/sm2.js"></script>
+    <script src="node_modules/sm-crypto/dist/sm3.js"></script>
+    <script src="node_modules/sm-crypto/dist/sm4.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { text-align: center; color: #333; margin-bottom: 20px; }
+        .config-panel { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .config-panel h3 { margin-bottom: 15px; color: #333; }
+        .config-row { display: flex; gap: 20px; flex-wrap: wrap; }
+        .config-item { flex: 1; min-width: 300px; }
+        .config-item label { display: block; margin-bottom: 5px; color: #666; font-size: 14px; }
+        .config-item input, .config-item textarea, .config-item select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .config-item textarea { height: 80px; font-family: monospace; }
+        .algorithm-switch { display: flex; gap: 10px; margin-bottom: 15px; }
+        .algorithm-btn { padding: 12px 24px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; background: #fff; }
+        .algorithm-btn:hover { border-color: #4CAF50; }
+        .algorithm-btn.active { border-color: #4CAF50; background: #4CAF50; color: white; }
+        .algorithm-info { background: #e8f5e9; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
+        .algorithm-info h4 { color: #2e7d32; margin-bottom: 8px; }
+        .algorithm-info p { color: #666; font-size: 14px; margin: 0; }
+        .test-section { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .test-section h3 { margin-bottom: 15px; color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .btn-primary { background: #4CAF50; color: white; }
+        .btn-primary:hover { background: #45a049; }
+        .btn-secondary { background: #2196F3; color: white; }
+        .btn-secondary:hover { background: #1976D2; }
+        .btn-warning { background: #ff9800; color: white; }
+        .btn-warning:hover { background: #f57c00; }
+        .btn-danger { background: #f44336; color: white; }
+        .btn-danger:hover { background: #d32f2f; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+        .console-panel { background: #1e1e1e; border-radius: 8px; padding: 20px; margin-top: 20px; }
+        .console-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .console-header h3 { color: #4CAF50; }
+        .console-content { background: #0d0d0d; border-radius: 4px; padding: 15px; max-height: 500px; overflow-y: auto; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; line-height: 1.6; }
+        .log-item { margin-bottom: 10px; padding: 10px; border-radius: 4px; }
+        .log-info { background: #1a3a1a; border-left: 3px solid #4CAF50; }
+        .log-request { background: #1a2a3a; border-left: 3px solid #2196F3; }
+        .log-response { background: #3a2a1a; border-left: 3px solid #ff9800; }
+        .log-decrypt { background: #3a1a3a; border-left: 3px solid #9c27b0; }
+        .log-error { background: #3a1a1a; border-left: 3px solid #f44336; }
+        .log-label { color: #888; font-size: 12px; margin-bottom: 5px; }
+        .log-content { color: #d4d4d4; white-space: pre-wrap; word-break: break-all; }
+        .log-time { color: #666; font-size: 11px; margin-top: 5px; }
+        .clear-btn { background: #555; color: #fff; border: none; padding: 5px 15px; border-radius: 4px; cursor: pointer; }
+        .clear-btn:hover { background: #666; }
+        .hidden { display: none !important; }
+        .loading { opacity: 0.7; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <h1>🔐 Guardian 加密解密接口测试</h1>
+        
+        <div class="config-panel">
+            <h3>⚙️ 配置</h3>
+            <div class="config-row">
+                <div class="config-item">
+                    <label>服务地址</label>
+                    <input type="text" v-model="config.baseUrl">
+                </div>
+            </div>
+            
+            <div class="algorithm-switch">
+                <button class="algorithm-btn" :class="{ active: config.algorithm === 'RSA_AES' }" @click="switchAlgorithm('RSA_AES')">RSA + AES (国际算法)</button>
+                <button class="algorithm-btn" :class="{ active: config.algorithm === 'SM2_SM4' }" @click="switchAlgorithm('SM2_SM4')">SM2 + SM4 (国密算法)</button>
+            </div>
+            
+            <div class="algorithm-info">
+                <h4 v-if="config.algorithm === 'RSA_AES'">🔒 RSA + AES 加密模式</h4>
+                <h4 v-else>🛡️ SM2 + SM4 加密模式 (国密)</h4>
+                <p v-if="config.algorithm === 'RSA_AES'">使用 RSA 非对称加密算法加密 AES 密钥，AES-GCM 对称加密算法加密数据。适用于国际标准场景。</p>
+                <p v-else>使用 SM2 非对称加密算法加密 SM4 密钥，SM4 对称加密算法加密数据。适用于国密标准场景。</p>
+            </div>
+            
+            <div v-if="config.algorithm === 'RSA_AES'">
+                <div class="config-row">
+                    <div class="config-item">
+                        <label>RSA 公钥 (用于加密 AES 密钥)</label>
+                        <textarea v-model="config.rsaPublicKey"></textarea>
+                    </div>
+                    <div class="config-item">
+                        <label>RSA 私钥 (用于解密响应中的 AES 密钥)</label>
+                        <textarea v-model="config.rsaPrivateKey"></textarea>
+                    </div>
+                </div>
+                <div class="btn-group" style="margin-top: 10px;">
+                    <button class="btn btn-warning" @click="generateRSAKeyPair">🔑 生成 RSA 密钥对</button>
+                </div>
+            </div>
+            
+            <div v-else>
+                <div class="config-row">
+                    <div class="config-item">
+                        <label>SM2 公钥 (Base64格式)</label>
+                        <textarea v-model="config.sm2PublicKey"></textarea>
+                    </div>
+                    <div class="config-item">
+                        <label>SM2 私钥 (Base64格式)</label>
+                        <textarea v-model="config.sm2PrivateKey"></textarea>
+                    </div>
+                </div>
+                <div class="btn-group" style="margin-top: 10px;">
+                    <button class="btn btn-warning" @click="generateSM2KeyPair">🔑 生成 SM2 密钥对</button>
+                </div>
+                <p style="color: #e65100; font-size: 12px; margin-top: 10px;">⚠️ 注意：SM2+SM4 模式需要后端配置对应的密钥</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔓 解密测试</h3>
+            <div class="btn-group">
+                <button class="btn btn-primary" @click="testDecryptParams" :disabled="loading">解密-仅Params</button>
+                <button class="btn btn-primary" @click="testDecryptBody" :disabled="loading">解密-仅Body</button>
+                <button class="btn btn-primary" @click="testDecryptMix" :disabled="loading">解密-Params+Body</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔒 加密测试</h3>
+            <div class="btn-group">
+                <button class="btn btn-secondary" @click="testEncryptObject" :disabled="loading">加密-返回对象</button>
+                <button class="btn btn-secondary" @click="testEncryptString" :disabled="loading">加密-返回字符串</button>
+                <button class="btn btn-warning" @click="testEncryptNull" :disabled="loading">加密-返回null</button>
+                <button class="btn btn-secondary" @click="testEncryptEmpty" :disabled="loading">加密-返回空对象</button>
+                <button class="btn btn-secondary" @click="testEncryptArray" :disabled="loading">加密-返回数组</button>
+                <button class="btn btn-secondary" @click="testEncryptNested" :disabled="loading">加密-嵌套对象</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔄 加密+解密测试</h3>
+            <div class="btn-group">
+                <button class="btn btn-primary" @click="testBothPost" :disabled="loading">加密解密-POST</button>
+                <button class="btn btn-primary" @click="testBothMix" :disabled="loading">加密解密-Params+Body</button>
+                <button class="btn btn-warning" @click="testBothNull" :disabled="loading">加密解密-返回null</button>
+                <button class="btn btn-secondary" @click="testBothEmpty" :disabled="loading">加密解密-返回空Map</button>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 边界测试</h3>
+            <div class="btn-group">
+                <button class="btn btn-secondary" @click="testLarge" :disabled="loading">大数据量</button>
+                <button class="btn btn-secondary" @click="testSpecialChars" :disabled="loading">特殊字符</button>
+                <button class="btn btn-danger" @click="testNormal" :disabled="loading">无需加密解密</button>
+            </div>
+        </div>
+
+        <div class="console-panel">
+            <div class="console-header">
+                <h3>📋 控制台</h3>
+                <button class="clear-btn" @click="clearConsole">清空</button>
+            </div>
+            <div class="console-content">
+                <div v-for="(log, index) in logs" :key="index" class="log-item" :class="'log-' + log.type">
+                    <div class="log-label">{{ log.label }}</div>
+                    <div class="log-content">{{ typeof log.content === 'object' ? JSON.stringify(log.content, null, 2) : log.content }}</div>
+                    <div class="log-time">{{ log.time }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const { createApp, ref, reactive } = Vue;
+    
+    const GuardianCrypto = {
+        arrayBufferToBase64(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.length; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        },
+
+        base64ToArrayBuffer(base64) {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes.buffer;
+        },
+
+        stringToUint8Array(str) {
+            return new TextEncoder().encode(str);
+        },
+
+        uint8ArrayToString(arr) {
+            return new TextDecoder().decode(arr);
+        },
+
+        generateRandomBytes(length) {
+            const array = new Uint8Array(length);
+            crypto.getRandomValues(array);
+            return array;
+        },
+
+        base64ToHex(base64) {
+            const binary = atob(base64);
+            let hex = '';
+            for (let i = 0; i < binary.length; i++) {
+                hex += binary.charCodeAt(i).toString(16).padStart(2, '0');
+            }
+            return hex;
+        },
+
+        hexToBase64(hex) {
+            const bytes = new Uint8Array(hex.length / 2);
+            for (let i = 0; i < hex.length; i += 2) {
+                bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+            }
+            let binary = '';
+            for (let i = 0; i < bytes.length; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        },
+
+        AES: {
+            async generateKey(length = 16) {
+                const keyBytes = GuardianCrypto.generateRandomBytes(length);
+                return btoa(String.fromCharCode(...keyBytes));
+            },
+
+            async encrypt(data, keyBase64) {
+                const keyBuffer = GuardianCrypto.base64ToArrayBuffer(keyBase64);
+                const cryptoKey = await crypto.subtle.importKey(
+                    'raw', keyBuffer, { name: 'AES-GCM' }, false, ['encrypt']
+                );
+                const iv = GuardianCrypto.generateRandomBytes(12);
+                const dataBytes = GuardianCrypto.stringToUint8Array(data);
+                const encrypted = await crypto.subtle.encrypt(
+                    { name: 'AES-GCM', iv: iv }, cryptoKey, dataBytes
+                );
+                const combined = new Uint8Array(iv.length + encrypted.byteLength);
+                combined.set(iv, 0);
+                combined.set(new Uint8Array(encrypted), iv.length);
+                return GuardianCrypto.arrayBufferToBase64(combined.buffer);
+            },
+
+            async decrypt(encryptedData, keyBase64) {
+                const keyBuffer = GuardianCrypto.base64ToArrayBuffer(keyBase64);
+                const cryptoKey = await crypto.subtle.importKey(
+                    'raw', keyBuffer, { name: 'AES-GCM' }, false, ['decrypt']
+                );
+                const combined = new Uint8Array(GuardianCrypto.base64ToArrayBuffer(encryptedData));
+                const iv = combined.slice(0, 12);
+                const ciphertext = combined.slice(12);
+                const decrypted = await crypto.subtle.decrypt(
+                    { name: 'AES-GCM', iv: iv }, cryptoKey, ciphertext
+                );
+                return GuardianCrypto.uint8ArrayToString(new Uint8Array(decrypted));
+            }
+        },
+
+        SM4: {
+            generateKey(length = 16) {
+                const keyBytes = GuardianCrypto.generateRandomBytes(length);
+                return btoa(String.fromCharCode(...keyBytes));
+            },
+
+            encrypt(data, keyBase64) {
+                if (typeof window.sm4 === 'undefined') {
+                    throw new Error('SM4 加密需要引入 sm-crypto 库');
+                }
+                const keyHex = GuardianCrypto.base64ToHex(keyBase64);
+                const dataHex = Array.from(new TextEncoder().encode(data)).map(b => b.toString(16).padStart(2, '0')).join('');
+                const iv = Array.from(GuardianCrypto.generateRandomBytes(16)).map(b => b.toString(16).padStart(2, '0')).join('');
+                const encryptedHex = window.sm4.encrypt(dataHex, keyHex, { mode: 'cbc', iv: iv });
+                return GuardianCrypto.hexToBase64(iv + encryptedHex);
+            },
+
+            decrypt(encryptedData, keyBase64) {
+                if (typeof window.sm4 === 'undefined') {
+                    throw new Error('SM4 解密需要引入 sm-crypto 库');
+                }
+                const keyHex = GuardianCrypto.base64ToHex(keyBase64);
+                const encryptedHex = GuardianCrypto.base64ToHex(encryptedData);
+                const iv = encryptedHex.substr(0, 32);
+                const ciphertext = encryptedHex.substr(32);
+                const decryptedHex = window.sm4.decrypt(ciphertext, keyHex, { mode: 'cbc', iv: iv });
+                const bytes = new Uint8Array(decryptedHex.match(/.{2}/g).map(b => parseInt(b, 16)));
+                return new TextDecoder().decode(bytes);
+            }
+        },
+
+        RSA: {
+            encrypt(data, publicKey) {
+                if (typeof JSEncrypt === 'undefined') {
+                    throw new Error('RSA 加密需要引入 JSEncrypt 库');
+                }
+                const encrypt = new JSEncrypt();
+                encrypt.setPublicKey(publicKey);
+                return encrypt.encrypt(data);
+            },
+
+            decrypt(encryptedData, privateKey) {
+                if (typeof JSEncrypt === 'undefined') {
+                    throw new Error('RSA 解密需要引入 JSEncrypt 库');
+                }
+                const decrypt = new JSEncrypt();
+                decrypt.setPrivateKey(privateKey);
+                return decrypt.decrypt(encryptedData);
+            }
+        },
+
+        SM2: {
+            encrypt(data, publicKey) {
+                if (typeof window.sm2 === 'undefined') {
+                    throw new Error('SM2 加密需要引入 sm-crypto 库');
+                }
+                const publicKeyHex = GuardianCrypto.base64ToHex(publicKey);
+                const dataHex = Array.from(new TextEncoder().encode(data)).map(b => b.toString(16).padStart(2, '0')).join('');
+                console.log('=== SM2 加密调试 ===');
+                console.log('公钥 (Base64):', publicKey);
+                console.log('公钥:', publicKeyHex);
+                console.log('数据:', data);
+                console.log('数据:', dataHex);
+                // cipherMode: 1 = C1C3C2（国密标准，与 BouncyCastle C1C3C2 模式兼容）
+                const encryptedHex = window.sm2.doEncrypt(dataHex, publicKeyHex, 1);
+                console.log('加密结果 (原始):', encryptedHex);
+                console.log('加密结果长度:', encryptedHex.length);
+                // sm-crypto 返回的 C1 不含 04 前缀，需要添加以兼容 BouncyCastle
+                // SM2 密文格式: 04 + C1(64字节) + C3(32字节) + C2(变长)
+                const resultHex = '04' + encryptedHex;
+                console.log('添加04前缀后:', resultHex);
+                const result = GuardianCrypto.hexToBase64(resultHex);
+                console.log('加密结果 (Base64):', result);
+                return result;
+            },
+
+            decrypt(encryptedData, privateKey) {
+                if (typeof window.sm2 === 'undefined') {
+                    throw new Error('SM2 解密需要引入 sm-crypto 库');
+                }
+                const privateKeyHex = GuardianCrypto.base64ToHex(privateKey);
+                const encryptedHex = GuardianCrypto.base64ToHex(encryptedData);
+                // 移除 04 前缀
+                const hexWithout04 = encryptedHex.startsWith('04') ? encryptedHex.substr(2) : encryptedHex;
+                // cipherMode: 1 = C1C3C2（国密标准）
+                const decryptedHex = window.sm2.doDecrypt(hexWithout04, privateKeyHex, 1);
+                const bytes = new Uint8Array(decryptedHex.match(/.{2}/g).map(b => parseInt(b, 16)));
+                return new TextDecoder().decode(bytes);
+            }
+        }
+    };
+
+    createApp({
+        setup() {
+            const loading = ref(false);
+            const logs = ref([]);
+            
+            const config = reactive({
+                baseUrl: 'http://localhost:49999/guardian-example',
+                algorithm: 'RSA_AES',
+                rsaPublicKey: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmeC/r9UvFtxMypcsSFp7Kra8QYZOsqq/Nu5wDf40ijcgfLA+BMmHbKMhZCmdjoL8DuwWMDhGfvmKhcxtydzlFHrKBTOMk9VpGV203dUbQAyJk1WXrQNklInqPXJXGtR4wUT3Ua7xS3fAqYotjoPxOSYJrWc8SanTEKVf70Q14h05vdmZT/9Hcyl14UQeXflFGRWWMoJgjYBzoI1rhdaBIt5cenFpAlMqqzCmnuIbXZFZE4FQ+ly88A9A6V6/HffzU77NhCroeSU+MooF7eTkiDFumhP+YVNYAylfII+eRV1Y7JpsVMilt5R0YxeRiXw8JS/Bh1vh/zxl5g30XGutRQIDAQAB',
+                rsaPrivateKey: 'MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCZ4L+v1S8W3EzKlyxIWnsqtrxBhk6yqr827nAN/jSKNyB8sD4EyYdsoyFkKZ2OgvwO7BYwOEZ++YqFzG3J3OUUesoFM4yT1WkZXbTd1RtADImTVZetA2SUieo9clca1HjBRPdRrvFLd8Cpii2Og/E5JgmtZzxJqdMQpV/vRDXiHTm92ZlP/0dzKXXhRB5d+UUZFZYygmCNgHOgjWuF1oEi3lx6cWkCUyqrMKae4htdkVkTgVD6XLzwD0DpXr8d9/NTvs2EKuh5JT4yigXt5OSIMW6aE/5hU1gDKV8gj55FXVjsmmxUyKW3lHRjF5GJfDwlL8GHW+H/PGXmDfRca61FAgMBAAECggEAOBofCSZ6kqUjQkG3nXGPslUJcgJbsvxZ1tc7934U/cd3ir5e/jPTsiIPzIr3rLvI1k/xDweVfDnS7VFJPe3Rf5P9D8RpnoSSWvM1PCO0Wbe4eQUd1bCE/TsDMf/8DgYlOKHCYf+cbd1tWuLMFUe5rRJXOOeIrXrDPzBsN7nww00/WtZOqjZ3ZcJ/H8Ym74rUmDRDaoKigPm8RJX1lj6SMOYKGRaS23TlH3cxb2jJRmq1Nbp58kiAjbokaZE8Mt5l05rnzSgub872eG4Up8NoHZMPITfWwBvOwpxhx3KpTvH3KseU+fFaGsWWPeNv7zsPswW28oA6+G94ukcEA+wBiQKBgQDWBV4oIlSfV+et4VPV+Ps/OVg9qdGsDNL+KxKlFp9ZUNStB3JdiKwdgu98DyrnliIrHu+oewYWFBeGrUb4CqW5Kw6+bp8crZxD3+/OTHFLXIDLdYuxd5ihdRj1pLlsS462LbiWSrjMjXejFmN2Cne0EVxGQI7PsM2HKftGm2OjrwKBgQC4D2tKblh2kATlGJap1K1o0TlEk4LGKdlO/gQl5NT3yN07qWqHMzM0n6tVC+5ktSgK6nrRx+6AvIaAJYhyzFLtRnx3ewd2FVFpf1wLCm0xUfgdCyFA73HTxzjBudgzi1US2Ut6hoiSr8Mb9daFyw4OmfM3eeTns0+uDZD42VoXSwKBgQC+pTtxjttIsdpr9rticI8Gi8OB8mMW2rmctau/KX665hj9JRQII7YF99vy6+PxNbisJrufni8WvcETNAly7LEhWCyjEBFmT3RStgl9AHUvh3AnTUcpx/pLYO7h6mFOCaRPvjyejGM/u4jl2wywWrS0z34eCmXstnbuv0PZapQAewKBgBIcqlEjtJ7OIz0sAz9pBztmQz1lSpwXaCPmyR+1eeN8J5EEZdAyEJrgD2sKBoZwcSVJ15YnF2ghpRadGuU5B/wDUKItQBm1lVJNTxBjEUWmLEUnYDlUlp3hX8tob0b7Mf7t1QiUjoHou8lXkqmNxq9XJODTpNvMAE4/VYG3Wa8rAoGBAI+y/VICT8pXjMDE8BmXTW+XrlngbYnAjfIakYV0c7dCaB8ckKndnyjM6S/g9BnnV7Di2LwgTR3iZ3tUejEko/IwQownn8t1mL4MPHFXqSdjh9ocRcYFcBHigHTTRAG1vKTTfWYLJg2dqU3+gJm86Bz028NbxzpuOOIWH5grr0QE',
+                sm2PublicKey: 'BNk/59FNs2GWOKjSfz4doh5gesBo4buUwH9QHDoqjD9oin0E4CoGWc80FTw1yETHTybHhJj5XLbIV+kSQZBmcWg=',
+                sm2PrivateKey: 'A+dz7LZ+vPSZHShdp9oHxItAw4r9eziS6TKywTNBwiw='
+            });
+
+            function log(type, label, content) {
+                logs.value.push({
+                    type,
+                    label,
+                    content,
+                    time: new Date().toLocaleTimeString()
+                });
+            }
+
+            function clearConsole() {
+                logs.value = [];
+            }
+
+            function switchAlgorithm(algorithm) {
+                config.algorithm = algorithm;
+                log('info', '🔄 切换加密模式', algorithm === 'RSA_AES' ? 'RSA + AES' : 'SM2 + SM4');
+            }
+
+            async function generateDataKey() {
+                if (config.algorithm === 'RSA_AES') {
+                    return await GuardianCrypto.AES.generateKey();
+                } else {
+                    return GuardianCrypto.SM4.generateKey();
+                }
+            }
+
+            async function encryptData(data, keyBase64) {
+                if (config.algorithm === 'RSA_AES') {
+                    return await GuardianCrypto.AES.encrypt(data, keyBase64);
+                } else {
+                    return GuardianCrypto.SM4.encrypt(data, keyBase64);
+                }
+            }
+
+            async function decryptData(encryptedData, keyBase64) {
+                if (config.algorithm === 'RSA_AES') {
+                    return await GuardianCrypto.AES.decrypt(encryptedData, keyBase64);
+                } else {
+                    return GuardianCrypto.SM4.decrypt(encryptedData, keyBase64);
+                }
+            }
+
+            function encryptKey(dataKey) {
+                try {
+                    if (config.algorithm === 'RSA_AES') {
+                        if (!config.rsaPublicKey) {
+                            throw new Error('请先配置 RSA 公钥');
+                        }
+                        return GuardianCrypto.RSA.encrypt(dataKey, config.rsaPublicKey);
+                    } else {
+                        if (!config.sm2PublicKey) {
+                            throw new Error('请先配置 SM2 公钥');
+                        }
+                        console.log('SM2 公钥 (Base64):', config.sm2PublicKey);
+                        console.log('SM2 公钥长度:', config.sm2PublicKey.length);
+                        const result = GuardianCrypto.SM2.encrypt(dataKey, config.sm2PublicKey);
+                        console.log('SM2 加密结果:', result);
+                        return result;
+                    }
+                } catch (error) {
+                    log('error', '❌ 密钥加密失败', error.message);
+                    throw error;
+                }
+            }
+
+            function decryptKey(encryptedKey) {
+                if (config.algorithm === 'RSA_AES') {
+                    return GuardianCrypto.RSA.decrypt(encryptedKey, config.rsaPrivateKey);
+                } else {
+                    return GuardianCrypto.SM2.decrypt(encryptedKey, config.sm2PrivateKey);
+                }
+            }
+
+            async function sendRequest(url, options) {
+                const fullUrl = config.baseUrl + url;
+                
+                log('info', '📤 请求URL', fullUrl);
+                log('info', '🔐 加密模式', config.algorithm === 'RSA_AES' ? 'RSA + AES' : 'SM2 + SM4');
+                log('request', '📤 请求参数', { method: options.method || 'GET', headers: options.headers || {}, body: options.body || '无' });
+
+                try {
+                    const response = await fetch(fullUrl, options);
+                    const responseHeaders = {};
+                    response.headers.forEach((value, key) => { responseHeaders[key] = value; });
+                    
+                    log('response', '📥 响应头', responseHeaders);
+
+                    const data = await response.json();
+                    log('response', '📥 响应数据(原始)', data);
+                    
+                    const encryptedKey = responseHeaders['x-encrypt-key'] || responseHeaders['X-Encrypt-key'];
+                    const encryptedBody = data.encryptBody;
+                    if (encryptedKey && encryptedBody) {
+                        log('info', '🔑 检测到加密响应', '开始解密...');
+                        
+                        const decryptedDataKey = decryptKey(encryptedKey);
+                        log('decrypt', '🔑 解密后的数据密钥', decryptedDataKey);
+                        
+                        const decryptedData = await decryptData(encryptedBody, decryptedDataKey);
+                        log('decrypt', '🔓 解密后的数据', decryptedData);
+                        
+                        try {
+                            const parsedData = JSON.parse(decryptedData);
+                            log('decrypt', '🔓 解密后数据(JSON)', parsedData);
+                        } catch (e) {}
+                    }
+                    
+                    return data;
+                } catch (error) {
+                    log('error', '❌ 请求错误', error.message);
+                    throw error;
+                }
+            }
+
+            async function testDecryptParams() {
+                if (config.algorithm === 'RSA_AES' && !config.rsaPublicKey) { 
+                    log('error', '❌ 配置错误', '请先配置 RSA 公钥'); return; 
+                }
+                if (config.algorithm === 'SM2_SM4' && !config.sm2PublicKey) { 
+                    log('error', '❌ 配置错误', '请先配置 SM2 公钥'); return; 
+                }
+                
+                loading.value = true;
+                try {
+                    const dataKey = await generateDataKey();
+                    const params = { name: 'test', value: '123' };
+                    const encryptedParams = await encryptData(JSON.stringify(params), dataKey);
+                    const encryptedKey = encryptKey(dataKey);
+                    
+                    log('info', '🔐 加密参数', { 原始: params, 加密后: encryptedParams, 数据密钥: dataKey });
+
+                    await sendRequest(`/encrypt/decrypt/params?encryptParams=${encodeURIComponent(encryptedParams)}`, {
+                        method: 'GET',
+                        headers: { 'X-Encrypt-Key': encryptedKey }
+                    });
+                } finally {
+                    loading.value = false;
+                }
+            }
+
+            async function testDecryptBody() {
+                if (config.algorithm === 'RSA_AES' && !config.rsaPublicKey) { 
+                    log('error', '❌ 配置错误', '请先配置 RSA 公钥'); return; 
+                }
+                if (config.algorithm === 'SM2_SM4' && !config.sm2PublicKey) { 
+                    log('error', '❌ 配置错误', '请先配置 SM2 公钥'); return; 
+                }
+                
+                loading.value = true;
+                try {
+                    const dataKey = await generateDataKey();
+                    const body = { orderId: 'ORDER001', amount: 100 };
+                    const encryptedBody = await encryptData(JSON.stringify(body), dataKey);
+                    const encryptedKey = encryptKey(dataKey);
+
+                    log('info', '🔐 加密Body', { 原始: body, 加密后: encryptedBody, 数据密钥: dataKey });
+
+                    await sendRequest('/encrypt/decrypt/body', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Encrypt-Key': encryptedKey },
+                        body: JSON.stringify({ encryptBody: encryptedBody })
+                    });
+                } finally {
+                    loading.value = false;
+                }
+            }
+
+            async function testDecryptMix() {
+                if (config.algorithm === 'RSA_AES' && !config.rsaPublicKey) { 
+                    log('error', '❌ 配置错误', '请先配置 RSA 公钥'); return; 
+                }
+                if (config.algorithm === 'SM2_SM4' && !config.sm2PublicKey) { 
+                    log('error', '❌ 配置错误', '请先配置 SM2 公钥'); return; 
+                }
+                
+                loading.value = true;
+                try {
+                    const dataKey = await generateDataKey();
+                    const params = { userId: 'user001' };
+                    const encryptedParams = await encryptData(JSON.stringify(params), dataKey);
+                    const body = { orderId: 'ORDER002', product: 'iPhone' };
+                    const encryptedBody = await encryptData(JSON.stringify(body), dataKey);
+                    const encryptedKey = encryptKey(dataKey);
+
+                    log('info', '🔐 加密Params+Body', { params原始: params, body原始: body, 数据密钥: dataKey });
+
+                    await sendRequest(`/encrypt/decrypt/mix?encryptParams=${encodeURIComponent(encryptedParams)}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Encrypt-Key': encryptedKey },
+                        body: JSON.stringify({ encryptBody: encryptedBody })
+                    });
+                } finally {
+                    loading.value = false;
+                }
+            }
+
+            async function testEncryptObject() { loading.value = true; try { await sendRequest('/encrypt/encrypt/object', { method: 'GET' }); } finally { loading.value = false; } }
+            async function testEncryptString() { loading.value = true; try { await sendRequest('/encrypt/encrypt/string', { method: 'GET' }); } finally { loading.value = false; } }
+            async function testEncryptNull() { log('info', '⚠️ 测试返回null', '此接口返回data为null'); loading.value = true; try { await sendRequest('/encrypt/encrypt/null', { method: 'GET' }); } finally { loading.value = false; } }
+            async function testEncryptEmpty() { loading.value = true; try { await sendRequest('/encrypt/encrypt/empty', { method: 'GET' }); } finally { loading.value = false; } }
+            async function testEncryptArray() { loading.value = true; try { await sendRequest('/encrypt/encrypt/array', { method: 'GET' }); } finally { loading.value = false; } }
+            async function testEncryptNested() { loading.value = true; try { await sendRequest('/encrypt/encrypt/nested', { method: 'GET' }); } finally { loading.value = false; } }
+
+            async function testBothPost() {
+                loading.value = true;
+                try {
+                    const dataKey = await generateDataKey();
+                    const body = { action: 'create', data: { name: 'test', value: 123 } };
+                    const encryptedBody = await encryptData(JSON.stringify(body), dataKey);
+                    const encryptedKey = encryptKey(dataKey);
+
+                    log('info', '🔐 加密请求Body', { 原始: body, 数据密钥: dataKey });
+
+                    await sendRequest('/encrypt/both/post', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Encrypt-Key': encryptedKey },
+                        body: JSON.stringify({ encryptBody: encryptedBody })
+                    });
+                } finally {
+                    loading.value = false;
+                }
+            }
+
+            async function testBothMix() {
+                loading.value = true;
+                try {
+                    const dataKey = await generateDataKey();
+                    const params = { action: 'update' };
+                    const encryptedParams = await encryptData(JSON.stringify(params), dataKey);
+                    const body = { id: 1, name: 'updated' };
+                    const encryptedBody = await encryptData(JSON.stringify(body), dataKey);
+                    const encryptedKey = encryptKey(dataKey);
+
+                    log('info', '🔐 加密Params+Body', { params原始: params, body原始: body, 数据密钥: dataKey });
+
+                    await sendRequest(`/encrypt/both/mix?encryptParams=${encodeURIComponent(encryptedParams)}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Encrypt-Key': encryptedKey },
+                        body: JSON.stringify({ encryptBody: encryptedBody })
+                    });
+                } finally {
+                    loading.value = false;
+                }
+            }
+
+            async function testBothNull() {
+                loading.value = true;
+                try {
+                    log('info', '⚠️ 测试返回null', '此接口返回data为null');
+                    const dataKey = await generateDataKey();
+                    const body = { test: 'null response' };
+                    const encryptedBody = await encryptData(JSON.stringify(body), dataKey);
+                    const encryptedKey = encryptKey(dataKey);
+
+                    await sendRequest('/encrypt/both/null', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Encrypt-Key': encryptedKey },
+                        body: JSON.stringify({ encryptBody: encryptedBody })
+                    });
+                } finally {
+                    loading.value = false;
+                }
+            }
+
+            async function testBothEmpty() {
+                loading.value = true;
+                try {
+                    const dataKey = await generateDataKey();
+                    const body = { test: 'empty response' };
+                    const encryptedBody = await encryptData(JSON.stringify(body), dataKey);
+                    const encryptedKey = encryptKey(dataKey);
+
+                    await sendRequest('/encrypt/both/empty', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Encrypt-Key': encryptedKey },
+                        body: JSON.stringify({ encryptBody: encryptedBody })
+                    });
+                } finally {
+                    loading.value = false;
+                }
+            }
+
+            async function testLarge() {
+                loading.value = true;
+                try {
+                    const dataKey = await generateDataKey();
+                    const largeData = {};
+                    for (let i = 0; i < 100; i++) { largeData[`field${i}`] = `value${i}`.repeat(10); }
+                    const encryptedBody = await encryptData(JSON.stringify(largeData), dataKey);
+                    const encryptedKey = encryptKey(dataKey);
+
+                    log('info', '📊 大数据量测试', `字段数: 100`);
+
+                    await sendRequest('/encrypt/large', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Encrypt-Key': encryptedKey },
+                        body: JSON.stringify({ encryptBody: encryptedBody })
+                    });
+                } finally {
+                    loading.value = false;
+                }
+            }
+
+            async function testSpecialChars() {
+                loading.value = true;
+                try {
+                    const dataKey = await generateDataKey();
+                    const body = { special: '!@#$%^&*()_+-=[]{}|;\':",./<>?', chinese: '中文测试', emoji: '😀🎉🔥' };
+                    const encryptedBody = await encryptData(JSON.stringify(body), dataKey);
+                    const encryptedKey = encryptKey(dataKey);
+
+                    log('info', '🔤 特殊字符测试', body);
+
+                    await sendRequest('/encrypt/special-chars', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Encrypt-Key': encryptedKey },
+                        body: JSON.stringify({ encryptBody: encryptedBody })
+                    });
+                } finally {
+                    loading.value = false;
+                }
+            }
+
+            async function testNormal() {
+                loading.value = true;
+                try {
+                    log('info', 'ℹ️ 普通请求', '此接口无需加密解密');
+                    await sendRequest('/encrypt/normal', { method: 'GET' });
+                } finally {
+                    loading.value = false;
+                }
+            }
+
+            async function generateRSAKeyPair() {
+                if (typeof JSEncrypt === 'undefined') {
+                    log('error', '❌ RSA 密钥生成需要 JSEncrypt 库');
+                    return;
+                }
+                try {
+                    const crypt = new JSEncrypt({default_key_size: 2048});
+                    const publicKey = crypt.getPublicKey();
+                    const privateKey = crypt.getPrivateKey();
+                    
+                    config.rsaPublicKey = publicKey;
+                    config.rsaPrivateKey = privateKey;
+                    
+                    log('info', '🔑 RSA 密钥对已生成', { 公钥: publicKey, 私钥: privateKey });
+                } catch (error) {
+                    log('error', '❌ RSA 密钥生成失败', error.message);
+                }
+            }
+
+            function generateSM2KeyPair() {
+                if (typeof window.sm2 === 'undefined' || !window.sm2.generateKeyPairHex) {
+                    log('error', '❌ SM2 密钥生成需要 sm-crypto 库');
+                    return;
+                }
+                try {
+                    const keyPair = window.sm2.generateKeyPairHex();
+                    const publicKey = hexToBase64(keyPair.publicKey);
+                    const privateKey = hexToBase64(keyPair.privateKey);
+                    
+                    config.sm2PublicKey = publicKey;
+                    config.sm2PrivateKey = privateKey;
+                    
+                    log('info', '🔑 SM2 密钥对已生成', { 公钥: publicKey, 私钥: privateKey });
+                    log('info', '📋 后端配置', {
+                        'guardian.encrypt.key.public-key': publicKey,
+                        'guardian.decrypt.key.private-key': privateKey
+                    });
+                } catch (error) {
+                    log('error', '❌ SM2 密钥生成失败', error.message);
+                }
+            }
+
+            function hexToBase64(hex) {
+                const bytes = new Uint8Array(hex.match(/.{2}/g).map(b => parseInt(b, 16)));
+                let binary = '';
+                for (let i = 0; i < bytes.length; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                return btoa(binary);
+            }
+
+            return {
+                loading,
+                logs,
+                config,
+                clearConsole,
+                switchAlgorithm,
+                generateRSAKeyPair,
+                generateSM2KeyPair,
+                testDecryptParams,
+                testDecryptBody,
+                testDecryptMix,
+                testEncryptObject,
+                testEncryptString,
+                testEncryptNull,
+                testEncryptEmpty,
+                testEncryptArray,
+                testEncryptNested,
+                testBothPost,
+                testBothMix,
+                testBothNull,
+                testBothEmpty,
+                testLarge,
+                testSpecialChars,
+                testNormal
+            };
+        }
+    }).mount('#app');
+    </script>
+
+</body>
+</html>

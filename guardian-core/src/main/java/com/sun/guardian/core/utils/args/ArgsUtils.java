@@ -1,5 +1,6 @@
 package com.sun.guardian.core.utils.args;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -7,6 +8,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.sun.guardian.core.utils.json.GuardianJsonUtils;
 import com.sun.guardian.core.utils.string.CharacterSanitizer;
 import com.sun.guardian.core.wrapper.RepeatableRequestWrapper;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.ServletRequest;
@@ -115,6 +117,37 @@ public class ArgsUtils {
     }
 
     /**
+     * 解析 JSON 参数字符串为 Map
+     * 格式: {"name":"test","age":18}
+     */
+    public static Map<String, String[]> parseParams(String jsonParamsStr) {
+        if (!StringUtils.hasText(jsonParamsStr)) {
+            return new HashMap<>();
+        }
+
+        Map<String, Object> map = GuardianJsonUtils.toBean(jsonParamsStr,
+                new TypeReference<Map<String, Object>>() {
+                });
+
+        Map<String, String[]> result = new LinkedHashMap<>();
+        map.forEach((key, value) -> {
+            if (value != null) {
+                if (value instanceof List) {
+                    List<?> list = (List<?>) value;
+                    String[] arr = list.stream()
+                            .map(Object::toString)
+                            .toArray(String[]::new);
+                    result.put(key, arr);
+                } else {
+                    result.put(key, new String[]{value.toString()});
+                }
+            }
+        });
+
+        return result;
+    }
+
+    /**
      * 方法参数数组排序后 Base64 编码
      */
     public static String toSortedJsonStr(Object[] args) {
@@ -131,7 +164,7 @@ public class ArgsUtils {
             jsonArray.add(toSortedJsonNode(node));
         }
 
-        if (jsonArray.size() == 0) {
+        if (jsonArray.isEmpty()) {
             return "";
         }
         String json = jsonArray.size() == 1

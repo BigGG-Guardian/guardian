@@ -12,5 +12,6 @@ public enum SignAlgorithm {
     MD5,
     SHA256,
     HMAC_SHA256,
+    SM3,
     ;
 }

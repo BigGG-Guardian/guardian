@@ -58,6 +58,15 @@ public class SignController {
     }
 
     /**
+     * 测试 SM3 算法签名验证（国密）
+     */
+    @SignVerify(algorithm = SignAlgorithm.SM3)
+    @PostMapping("/sm3")
+    public CommonResult<Map<String, Object>> testSm3Sign(@RequestBody Map<String, Object> body) {
+        return CommonResult.success(body);
+    }
+
+    /**
      * 测试返回值签名
      */
     @SignVerify(algorithm = SignAlgorithm.SHA256)
