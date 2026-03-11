@@ -22,12 +22,6 @@
             <artifactId>guardian-encrypt-core</artifactId>
         </dependency>
 
-        <!-- 自定义模块-请求加密解密核心模块 -->
-        <dependency>
-            <groupId>io.github.biggg-guardian</groupId>
-            <artifactId>guardian-encrypt-core</artifactId>
-        </dependency>
-
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
