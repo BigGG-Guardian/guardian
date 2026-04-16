@@ -41,7 +41,7 @@
 
     <!--  参数管理  -->
     <properties>
-        <revision>1.10.0</revision>
+        <revision>1.11.0</revision>
         <java.version>1.8</java.version>
         <spring-boot.version>2.7.18</spring-boot.version>
         <servlet.version>4.0.1</servlet.version>
@@ -83,6 +83,7 @@
         <module>guardian-starter-all</module>
         <!--    示例模块    -->
         <module>guardian-example</module>
+        <module>guardian-dependencies</module>
     </modules>
 
     <!--  依赖管理  -->
@@ -258,6 +259,12 @@
             <dependency>
                 <groupId>io.github.biggg-guardian</groupId>
                 <artifactId>guardian-starter-all</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <!-- 自定义模块-管理所有Starter模块版本模块 -->
+            <dependency>
+                <groupId>io.github.biggg-guardian</groupId>
+                <artifactId>guardian-dependencies</artifactId>
                 <version>${revision}</version>
             </dependency>
         </dependencies>

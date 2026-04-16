@@ -1,0 +1,88 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.biggg-guardian</groupId>
+        <artifactId>guardian-parent</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>guardian-dependencies</artifactId>
+    <packaging>pom</packaging>
+
+    <name>guardian-dependencies</name>
+    <description>
+        Guardian 管理所有Starter模块版本
+    </description>
+
+   <dependencyManagement>
+       <dependencies>
+           <!-- Guardian 防重复提交 -->
+           <dependency>
+               <groupId>io.github.biggg-guardian</groupId>
+               <artifactId>guardian-repeat-submit-spring-boot-starter</artifactId>
+               <version>${revision}</version>
+           </dependency>
+           <!-- Guardian 接口限流 -->
+           <dependency>
+               <groupId>io.github.biggg-guardian</groupId>
+               <artifactId>guardian-rate-limit-spring-boot-starter</artifactId>
+               <version>${revision}</version>
+           </dependency>
+           <!-- Guardian 接口幂等 -->
+           <dependency>
+               <groupId>io.github.biggg-guardian</groupId>
+               <artifactId>guardian-idempotent-spring-boot-starter</artifactId>
+               <version>${revision}</version>
+           </dependency>
+           <!-- Guardian 请求参数自动trim -->
+           <dependency>
+               <groupId>io.github.biggg-guardian</groupId>
+               <artifactId>guardian-auto-trim-spring-boot-starter</artifactId>
+               <version>${revision}</version>
+           </dependency>
+           <!-- Guardian 慢接口检测 -->
+           <dependency>
+               <groupId>io.github.biggg-guardian</groupId>
+               <artifactId>guardian-slow-api-spring-boot-starter</artifactId>
+               <version>${revision}</version>
+           </dependency>
+           <!-- Guardian 请求链路 TraceId -->
+           <dependency>
+               <groupId>io.github.biggg-guardian</groupId>
+               <artifactId>guardian-trace-spring-boot-starter</artifactId>
+               <version>${revision}</version>
+           </dependency>
+           <!-- Guardian IP 黑白名单 -->
+           <dependency>
+               <groupId>io.github.biggg-guardian</groupId>
+               <artifactId>guardian-ip-filter-spring-boot-starter</artifactId>
+               <version>${revision}</version>
+           </dependency>
+           <!-- Guardian 防重放攻击 -->
+           <dependency>
+               <groupId>io.github.biggg-guardian</groupId>
+               <artifactId>guardian-anti-replay-spring-boot-starter</artifactId>
+               <version>${revision}</version>
+           </dependency>
+           <!-- Guardian 接口开关 -->
+           <dependency>
+               <groupId>io.github.biggg-guardian</groupId>
+               <artifactId>guardian-api-switch-spring-boot-starter</artifactId>
+               <version>${revision}</version>
+           </dependency>
+           <!-- Guardian 参数签名 -->
+           <dependency>
+               <groupId>io.github.biggg-guardian</groupId>
+               <artifactId>guardian-sign-spring-boot-starter</artifactId>
+               <version>${revision}</version>
+           </dependency>
+           <!-- Guardian 请求加密解密 -->
+           <dependency>
+               <groupId>io.github.biggg-guardian</groupId>
+               <artifactId>guardian-encrypt-spring-boot-starter</artifactId>
+               <version>${revision}</version>
+           </dependency>
+       </dependencies>
+   </dependencyManagement>
+</project>
